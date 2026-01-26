@@ -30,9 +30,9 @@ Managing infrastructure across AWS, Azure, and Google Cloud is fragmented. Each 
 
 We treat Cloud Resources like products in a Vending Machine:
 
-1.  **Frontend**: You select what you want (e.g., "AWS EC2 t2.micro").
-2.  **Backend**: Validates your credit and request.
-3.  **Engine**: The robotic arm (Terraform) automatically provisions it in the cloud.
+1. **Frontend**: You select what you want (e.g., "AWS EC2 t2.micro").
+2. **Backend**: Validates your credit and request.
+3. **Engine**: The robotic arm (Terraform) automatically provisions it in the cloud.
 
 ---
 
@@ -47,12 +47,12 @@ graph TD
     end
 
     subgraph "Docker Compose Network"
-        LB[Reverse Proxy / API Gateway]
-        Frontend_Container[React App (Nginx)]
-        Backend_Container[FastAPI Backend]
-        DB[(PostgreSQL)]
-        Redis[(Redis)]
-        Worker_Container[Celery Worker]
+        LB["Reverse Proxy / API Gateway"]
+        Frontend_Container["React App (Nginx)"]
+        Backend_Container["FastAPI Backend"]
+        DB[("PostgreSQL")]
+        Redis[("Redis")]
+        Worker_Container["Celery Worker"]
     end
 
     subgraph "External Clouds"
