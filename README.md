@@ -1,6 +1,6 @@
 # ☁️ Multi-Cloud SaaS Orchestration Platform
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge) ![Tech Stack](https://img.shields.io/badge/stack-FastAPI_React_Terraform-blueviolet?style=for-the-badge) ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge) ![Tech Stack](https://img.shields.io/badge/stack-FastAPI_React_Terraform-blueviolet?style=for-the-badge) ![License](https://img.shields.io/badge/license-Proprietary-red?style=for-the-badge) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 
 > **"Infrastructure at the Speed of Thought"**
 
