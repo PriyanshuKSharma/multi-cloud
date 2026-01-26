@@ -216,13 +216,20 @@ graph TD
 
 - Docker & Docker Compose
 
-### Fast Launch
+### 🏃 Fast Launch
 
 ```bash
-# 1. Start Support Services & Backend
-docker-compose up -d
-
-# 2. Visit the App
-# Frontend: http://localhost:5173
-# API Docs: http://localhost:8000/docs
+docker-compose up -d --build
 ```
+
+### 🔗 Access Points
+
+| Service | URL | Description | Credentials (Default) |
+| :--- | :--- | :--- | :--- |
+| **Frontend Dashboard** | [http://localhost:5173](http://localhost:5173) | Main User Interface | Sign up cleanly or check logs |
+| **Backend API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | Swagger UI for testing APIs | N/A |
+| **Backend Redoc** | [http://localhost:8000/redoc](http://localhost:8000/redoc) | Alternative API Documentation | N/A |
+| **PostgreSQL** | `localhost:5432` | Main Database | `user` / `password` |
+| **Redis** | `localhost:6379` | Job Queue Broker | N/A |
+
+> **Note**: The frontend runs in development mode via Vite, which supports Hot Module Replacement (HMR). The backend runs with UVicorn and auto-reload enabled for rapid iteration.
