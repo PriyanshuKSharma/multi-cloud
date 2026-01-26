@@ -6,8 +6,15 @@ pydantic
 python-dotenv
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==4.0.1
 celery
 redis
 requests
 cryptography
 email-validator
+python-multipart
+boto3
+azure-identity
+azure-mgmt-compute
+azure-mgmt-resource
+google-cloud-compute
