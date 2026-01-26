@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../api/axios';
+import { motion } from 'framer-motion';
 
 const resourceSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),

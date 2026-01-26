@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../api/axios';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Lock, Mail, UserPlus, Sparkles } from 'lucide-react';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -28,7 +30,6 @@ const Signup: React.FC = () => {
         email: data.email,
         password: data.password,
       });
-      // Redirect to login after successful registration
       navigate('/login');
     } catch (err: any) {
       setError('root', { 
@@ -38,57 +39,88 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
-      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
-        <h2 className="text-3xl font-bold mb-6 text-center text-green-400">Create Account</h2>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+       {/* Background Decorative Blobs */}
+       <div className="absolute top-[20%] right-[10%] w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" />
+       <div className="absolute bottom-[20%] left-[10%] w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md glass-panel rounded-2xl p-8 relative z-10"
+      >
+        <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-4 shadow-lg shadow-emerald-500/30">
+                <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400">
+                Join Nebula
+            </h2>
+            <p className="text-gray-400 mt-2">Start orchestrating your cloud infrastructure</p>
+        </div>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium">Email</label>
-            <input 
-              {...register('email')} 
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition"
-              placeholder="user@example.com"
-            />
-            {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300 ml-1">Email</label>
+            <div className="relative group">
+                <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <input 
+                {...register('email')} 
+                className="input-field w-full pl-10 py-2.5 focus:ring-emerald-500"
+                placeholder="user@example.com"
+                />
+            </div>
+            {errors.email && <p className="text-red-400 text-xs ml-1">{errors.email.message}</p>}
           </div>
 
-          <div>
-            <label className="block mb-1 text-sm font-medium">Password</label>
-            <input 
-              type="password" 
-              {...register('password')} 
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition"
-              placeholder="••••••••"
-            />
-            {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
+             <div className="relative group">
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <input 
+                type="password" 
+                {...register('password')} 
+                className="input-field w-full pl-10 py-2.5 focus:ring-emerald-500"
+                placeholder="••••••••"
+                />
+            </div>
+            {errors.password && <p className="text-red-400 text-xs ml-1">{errors.password.message}</p>}
           </div>
 
-          <div>
-            <label className="block mb-1 text-sm font-medium">Confirm Password</label>
-            <input 
-              type="password" 
-              {...register('confirmPassword')} 
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition"
-              placeholder="••••••••"
-            />
-            {errors.confirmPassword && <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300 ml-1">Confirm Password</label>
+             <div className="relative group">
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <input 
+                type="password" 
+                {...register('confirmPassword')} 
+                className="input-field w-full pl-10 py-2.5 focus:ring-emerald-500"
+                placeholder="••••••••"
+                />
+            </div>
+            {errors.confirmPassword && <p className="text-red-400 text-xs ml-1">{errors.confirmPassword.message}</p>}
           </div>
 
-          {errors.root && <div className="text-red-400 text-sm text-center">{errors.root.message}</div>}
+          {errors.root && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                {errors.root.message}
+            </div>
+          )}
 
           <button 
             type="submit" 
             disabled={isSubmitting}
-            className="w-full py-2 bg-green-600 hover:bg-green-700 rounded font-semibold transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-medium py-2.5 rounded-md shadow-lg shadow-emerald-500/20 transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2"
           >
-            {isSubmitting ? 'Creating Account...' : 'Sign Up'}
+            <span>{isSubmitting ? 'Creating Account...' : 'Create Account'}</span>
+             {!isSubmitting && <UserPlus className="w-5 h-5" />}
           </button>
         </form>
-        <div className="mt-4 text-center text-sm text-gray-400">
-          Already have an account? <Link to="/login" className="text-green-400 hover:underline">Log in</Link>
+         <div className="mt-6 text-center text-sm text-gray-500">
+          Already have an account? <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium hover:underline">Log in</Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
