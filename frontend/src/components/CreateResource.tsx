@@ -43,7 +43,7 @@ const CreateResource: React.FC = () => {
         config.bucket_name = data.name;
       }
       
-      await api.post('/resources/', {
+      await api.post('/resources', {
         ...data,
         project_id: 0, // Default project for MVP
         configuration: config
