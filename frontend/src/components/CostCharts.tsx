@@ -1,27 +1,33 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const data = [
-  { name: 'AWS', cost: 120 },
-  { name: 'Azure', cost: 80 },
-  { name: 'GCP', cost: 45 },
-];
 
-const pieData = [
-  { name: 'Compute', value: 180 },
-  { name: 'Storage', value: 65 },
-];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const CostCharts: React.FC = () => {
+interface CostChartsProps {
+    providerData?: { name: string; cost: number }[];
+    serviceData?: { name: string; value: number }[];
+}
+
+const CostCharts: React.FC<CostChartsProps> = ({ 
+    providerData = [
+       { name: 'AWS', cost: 0 },
+       { name: 'Azure', cost: 0 },
+       { name: 'GCP', cost: 0 },
+    ], 
+    serviceData = [
+       { name: 'Compute', value: 0 },
+       { name: 'Storage', value: 0 },
+    ] 
+}) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
         <h3 className="text-lg font-bold text-white mb-4">Cost by Provider</h3>
         <div className="h-64 chart-container">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <BarChart data={providerData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="name" stroke="#9CA3AF" />
               <YAxis stroke="#9CA3AF" />
@@ -42,7 +48,7 @@ const CostCharts: React.FC = () => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={pieData}
+                data={serviceData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -51,7 +57,7 @@ const CostCharts: React.FC = () => {
                 paddingAngle={5}
                 dataKey="value"
               >
-                {pieData.map((_, index) => (
+                {serviceData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

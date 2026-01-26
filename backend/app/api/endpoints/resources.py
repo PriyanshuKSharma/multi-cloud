@@ -37,7 +37,9 @@ def get_resource_stats(
         "total_cost": f"${total_cost:.2f}",
         "storage_used": "1.2 TB", # Placeholder, would need S3/Blob sync
         "system_health": "100%",
-        "provider_breakdown": real_time_stats["details"]
+        "provider_breakdown": real_time_stats["details"],
+        "cost_by_provider": real_time_stats["cost_by_provider"],
+        "cost_by_service": real_time_stats["cost_by_service"]
     }
 
 @router.post("/", response_model=ResourceResponse)

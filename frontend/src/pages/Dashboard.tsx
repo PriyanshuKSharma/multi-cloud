@@ -13,7 +13,9 @@ const Dashboard: React.FC = () => {
       active_resources: 0,
       total_cost: '$0.00',
       storage_used: '0 TB',
-      system_health: '100%'
+      system_health: '100%',
+      cost_by_provider: [],
+      cost_by_service: []
   });
 
   useEffect(() => {
@@ -24,7 +26,9 @@ const Dashboard: React.FC = () => {
                 active_resources: res.data.active_resources,
                 total_cost: res.data.total_cost,
                 storage_used: res.data.storage_used,
-                system_health: res.data.system_health
+                system_health: res.data.system_health,
+                cost_by_provider: res.data.cost_by_provider || [],
+                cost_by_service: res.data.cost_by_service || []
             });
         } catch (e) {
             console.error("Failed to fetch stats", e);
@@ -80,7 +84,10 @@ const Dashboard: React.FC = () => {
          transition={{ delay: 0.4 }}
          className="mt-6"
       >
-        <CostCharts />
+        <CostCharts 
+            providerData={statsData.cost_by_provider} 
+            serviceData={statsData.cost_by_service}
+        />
       </motion.div>
 
       {/* Main Content Grid */}

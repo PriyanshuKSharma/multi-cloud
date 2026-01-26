@@ -53,6 +53,8 @@ class CloudSyncService:
         # Placeholder for GCP implementation
         return 0
 
+        return stats
+
     def get_aggregate_stats(self):
         creds = self.db.query(CloudCredential).filter(CloudCredential.user_id == self.user_id).all()
         
@@ -61,26 +63,58 @@ class CloudSyncService:
             "aws_count": 0,
             "azure_count": 0,
             "gcp_count": 0,
-            "details": []
+            "details": [],
+            "cost_by_provider": [],
+            "cost_by_service": []
         }
+
+        # Costs per instance type (Simulated)
+        COST_AWS = 28.0
+        COST_AZURE = 32.0
+        COST_GCP = 24.0
 
         for cred in creds:
             count = 0
+            cost = 0.0
+            provider_name = "Unknown"
+
             if cred.provider == 'aws':
                 count = self.get_aws_counts(cred)
                 stats["aws_count"] += count
+                cost = count * COST_AWS
+                provider_name = "AWS"
             elif cred.provider == 'azure':
                 count = self.get_azure_counts(cred)
                 stats["azure_count"] += count
+                cost = count * COST_AZURE
+                provider_name = "Azure"
             elif cred.provider == 'gcp':
                 count = self.get_gcp_counts(cred)
                 stats["gcp_count"] += count
+                cost = count * COST_GCP
+                provider_name = "GCP"
             
             stats["total_instances"] += count
+            
+            # Aggregate cost by provider
+            existing = next((item for item in stats["cost_by_provider"] if item["name"] == provider_name), None)
+            if existing:
+                existing["cost"] += cost
+            else:
+                stats["cost_by_provider"].append({"name": provider_name, "cost": cost})
+
             stats["details"].append({
                 "provider": cred.provider,
                 "name": cred.name,
                 "active_instances": count
             })
+            
+        # Mock Service split (Compute vs Storage)
+        # Assuming 80% is Compute, 20% Storage for now until we have storage sync
+        total_estimated_cost = sum(item['cost'] for item in stats['cost_by_provider'])
+        stats["cost_by_service"] = [
+            {"name": "Compute", "value": total_estimated_cost * 0.8},
+            {"name": "Storage", "value": total_estimated_cost * 0.2}
+        ]
             
         return stats
