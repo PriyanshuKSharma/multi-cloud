@@ -48,20 +48,23 @@ services:
     depends_on:
       - backend
 
-  # celery_worker:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   command: celery -A core.worker worker --loglevel=info
-  #   volumes:
-  #     - ./backend:/app
-  #     - /var/run/docker.sock:/var/run/docker.sock # To spawn siblings
-  #   environment:
-  #     - DATABASE_URL=postgresql://user:password@db/multicloud
-  #     - REDIS_URL=redis://redis:6379/0
-  #   depends_on:
-  #     - db
-  #     - redis
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    volumes:
+      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock # To spawn siblings
+      # Mount terraform binaries if needed, but they are in the image now
+      # Mount local terraform modules so the worker can find them
+      - ./terraform:/app/terraform
+    environment:
+      - DATABASE_URL=postgresql://user:password@db/multicloud
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
 
 volumes:
   postgres_data:
