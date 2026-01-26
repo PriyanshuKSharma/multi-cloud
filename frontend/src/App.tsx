@@ -16,6 +16,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
+// Import Layout
+import Layout from './components/Layout';
+
 function App() {
   return (
     <Router>
@@ -23,14 +26,16 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
+          
+          {/* Protected Routes wrapped in Layout */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            {/* Future routes like /resources can go here */}
+          </Route>
         </Routes>
       </AuthProvider>
     </Router>

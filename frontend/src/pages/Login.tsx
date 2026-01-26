@@ -2,12 +2,14 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Lock, Mail, ArrowRight, CloudLightning } from 'lucide-react';
 
 const loginSchema = z.object({
-  username: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -22,65 +24,99 @@ const Login: React.FC = () => {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      // API expects form-data for OAuth2PasswordRequestForm
       const formData = new URLSearchParams();
-      formData.append('username', data.username);
+      formData.append('username', data.email);
       formData.append('password', data.password);
 
       const response = await api.post('/auth/login', formData, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
-      
+
       login(response.data.access_token);
       navigate('/');
     } catch (err: any) {
-      setError('root', { 
-        message: err.response?.data?.detail || 'Login failed. Please check your credentials.' 
-      });
+        setError('root', { 
+            message: 'Invalid email or password' 
+        });
+        console.error('Login failed', err);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
-      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
-        <h2 className="text-3xl font-bold mb-6 text-center text-blue-400">Login</h2>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+      {/* Background Decorative Blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md glass-panel rounded-2xl p-8 relative z-10"
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 mb-4 shadow-lg shadow-blue-500/30">
+            <CloudLightning className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+            Welcome Back
+          </h2>
+          <p className="text-gray-400 mt-2">Sign in to manage your cloud universe</p>
+        </div>
         
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium">Email</label>
-            <input 
-              {...register('username')} 
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
-              placeholder="admin@example.com"
-            />
-            {errors.username && <p className="text-red-400 text-sm mt-1">{errors.username.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+            <div className="relative group">
+              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+              <input 
+                {...register('email')} 
+                className="input-field w-full pl-10 py-2.5"
+                placeholder="you@example.com"
+              />
+            </div>
+            {errors.email && <p className="text-red-400 text-xs ml-1">{errors.email.message}</p>}
           </div>
 
-          <div>
-            <label className="block mb-1 text-sm font-medium">Password</label>
-            <input 
-              type="password" 
-              {...register('password')} 
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
-              placeholder="••••••••"
-            />
-            {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>}
+          <div className="space-y-1">
+            <div className="flex justify-between items-center ml-1">
+                <label className="text-sm font-medium text-gray-300">Password</label>
+            </div>
+            <div className="relative group">
+              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+              <input 
+                type="password" 
+                {...register('password')} 
+                className="input-field w-full pl-10 py-2.5"
+                placeholder="••••••••"
+              />
+            </div>
+            {errors.password && <p className="text-red-400 text-xs ml-1">{errors.password.message}</p>}
           </div>
 
-          {errors.root && <div className="text-red-400 text-sm text-center">{errors.root.message}</div>}
+          {errors.root && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                {errors.root.message}
+            </div>
+          )}
 
           <button 
             type="submit" 
             disabled={isSubmitting}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition disabled:opacity-50"
+            className="btn-primary w-full flex items-center justify-center space-x-2 group"
           >
-            {isSubmitting ? 'Logging in...' : 'Sign In'}
+            <span>{isSubmitting ? 'Signing In...' : 'Sign In'}</span>
+            {!isSubmitting && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
           </button>
         </form>
-        <div className="mt-4 text-center text-sm text-gray-400">
-          Don't have an account? <Link to="/signup" className="text-blue-400 hover:underline">Sign up</Link>
+
+        <div className="mt-6 text-center text-sm text-gray-500">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-medium hover:underline transition-all">
+            Create Free Account
+          </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

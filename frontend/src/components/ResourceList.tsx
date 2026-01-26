@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 
+import { motion } from 'framer-motion';
+
 interface Resource {
   id: number;
   name: string;
