@@ -5,13 +5,39 @@ import CostCharts from '../components/CostCharts';
 import { motion } from 'framer-motion';
 import { Activity, Server, DollarSign, Database } from 'lucide-react';
 
+import api from '../api/axios';
+import { useState, useEffect } from 'react';
+
 const Dashboard: React.FC = () => {
-  // Mock Stats Data
+  const [statsData, setStatsData] = useState({
+      active_resources: 0,
+      total_cost: '$0.00',
+      storage_used: '0 TB',
+      system_health: '100%'
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+        try {
+            const res = await api.get('/resources/stats');
+            setStatsData({
+                active_resources: res.data.active_resources,
+                total_cost: res.data.total_cost,
+                storage_used: res.data.storage_used,
+                system_health: res.data.system_health
+            });
+        } catch (e) {
+            console.error("Failed to fetch stats", e);
+        }
+    };
+    fetchStats();
+  }, []);
+
   const stats = [
-    { label: 'Active Resources', value: '12', icon: Server, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { label: 'Total Cost', value: '$245.00', icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10' },
-    { label: 'Storage Used', value: '1.2 TB', icon: Database, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { label: 'System Health', value: '100%', icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Real Active Instances', value: statsData.active_resources.toString(), icon: Server, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { label: 'Estimated Cost', value: statsData.total_cost, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10' },
+    { label: 'Storage Used', value: statsData.storage_used, icon: Database, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    { label: 'System Health', value: statsData.system_health, icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
   ];
 
   return (
