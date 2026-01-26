@@ -19,6 +19,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
 // Import Layout
 import Layout from './components/Layout';
 
+import Onboarding from './pages/Onboarding';
+import Settings from './pages/Settings';
+import ResourcesPage from './pages/ResourcesPage';
+
 function App() {
   return (
     <Router>
@@ -26,6 +30,11 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/onboarding" element={
+             <ProtectedRoute>
+                <Onboarding />
+             </ProtectedRoute>
+          } />
           
           {/* Protected Routes wrapped in Layout */}
           <Route path="/" element={
@@ -34,7 +43,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
-            {/* Future routes like /resources can go here */}
+            <Route path="resources" element={<ResourcesPage />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </AuthProvider>
