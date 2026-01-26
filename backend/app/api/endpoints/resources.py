@@ -9,7 +9,36 @@ from app.api.deps import get_current_user
 from app.worker import provision_resource_task
 import json
 
+from app.services.cloud_sync import CloudSyncService
+
 router = APIRouter()
+
+@router.get("/stats")
+def get_resource_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # 1. Get detailed cloud stats
+    syncer = CloudSyncService(db, current_user.id)
+    real_time_stats = syncer.get_aggregate_stats()
+    
+    # 2. Get local DB stats
+    local_count = db.query(Resource).filter(
+        Project.user_id == current_user.id,
+        Resource.status == "active"
+    ).join(Project).count()
+    
+    # 3. Calculate simulated costs (Mocking logic for now based on count)
+    total_cost = (real_time_stats["total_instances"] * 25.0) + (local_count * 10.0)
+    
+    return {
+        "active_resources": real_time_stats["total_instances"],
+        "managed_resources": local_count,
+        "total_cost": f"${total_cost:.2f}",
+        "storage_used": "1.2 TB", # Placeholder, would need S3/Blob sync
+        "system_health": "100%",
+        "provider_breakdown": real_time_stats["details"]
+    }
 
 @router.post("/", response_model=ResourceResponse)
 def create_resource(
