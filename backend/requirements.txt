@@ -10,3 +10,4 @@ celery
 redis
 requests
 cryptography
+email-validator
