@@ -28,7 +28,8 @@ pipeline {
                     sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend"
                     
                     echo "Pushing Backend Image to Docker Hub"
-                    docker.withRegistry('', DOCKER_HUB_CREDENTIALS_ID) {
+                    withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
                         sh "docker push ${BACKEND_IMAGE}:${IMAGE_TAG}"
                         sh "docker push ${BACKEND_IMAGE}:latest"
                     }
@@ -43,11 +44,18 @@ pipeline {
                     sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ./frontend"
                     
                     echo "Pushing Frontend Image to Docker Hub"
-                    docker.withRegistry('', DOCKER_HUB_CREDENTIALS_ID) {
+                    withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
                         sh "docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}"
                         sh "docker push ${FRONTEND_IMAGE}:latest"
                     }
                 }
+            }
+        }
+
+        stage('Logout') {
+            steps {
+                sh "docker logout"
             }
         }
 
