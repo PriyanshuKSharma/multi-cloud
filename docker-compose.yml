@@ -31,6 +31,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db/multicloud
       - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=local-dev-secret-key-change-me
     depends_on:
       - db
       - redis
@@ -62,6 +63,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db/multicloud
       - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=local-dev-secret-key-change-me
     depends_on:
       - db
       - redis
