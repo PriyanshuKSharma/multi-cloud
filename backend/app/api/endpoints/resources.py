@@ -118,3 +118,21 @@ def read_resource(
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
     return resource
+
+@router.delete("/{resource_id}")
+def delete_resource(
+    resource_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    resource = db.query(Resource).join(Project).filter(
+        Resource.id == resource_id, 
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    db.delete(resource)
+    db.commit()
+    return {"message": "Resource record deleted successfully"}

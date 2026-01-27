@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../api/axios';
-import { motion } from 'framer-motion';
 
 const resourceSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -35,16 +34,21 @@ const CreateResource: React.FC = () => {
     try {
       // Clean up config based on type
       const config: any = { ...data.configuration };
+      let resourceName = data.name;
+
       if (data.type === 'vm') {
-        config.instance_name = data.name;
+        config.instance_name = resourceName;
         // Mock AMI for AWS
         if (data.provider === 'aws') config.ami = "ami-0c55b159cbfafe1f0";
       } else {
-        config.bucket_name = data.name;
+        // S3 Buckets MUST be lowercase
+        resourceName = resourceName.toLowerCase().replace(/\s+/g, '-');
+        config.bucket_name = resourceName;
       }
       
       await api.post('/resources', {
         ...data,
+        name: resourceName,
         project_id: 0, // Default project for MVP
         configuration: config
       });

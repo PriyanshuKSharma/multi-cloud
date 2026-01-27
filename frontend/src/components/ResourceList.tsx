@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 
 import { motion } from 'framer-motion';
+import { Trash2 } from 'lucide-react';
 import ResourceLogs from './ResourceLogs';
 
 interface Resource {
@@ -38,6 +39,19 @@ const ResourceList: React.FC = () => {
     setSelectedResource(resource);
   };
 
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation(); // Don't trigger row click
+    if (!window.confirm('Are you sure you want to delete this resource record?')) return;
+
+    try {
+      await api.delete(`/resources/${id}`);
+      setResources(resources.filter(r => r.id !== id));
+    } catch (error) {
+      console.error('Failed to delete resource', error);
+      alert('Failed to delete resource record');
+    }
+  };
+
   return (
     <>
     <motion.div 
@@ -60,6 +74,7 @@ const ResourceList: React.FC = () => {
               <th className="p-4 font-semibold">Provider</th>
               <th className="p-4 font-semibold">Status</th>
               <th className="p-4 font-semibold">IP Address</th>
+              <th className="p-4 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700/50 text-sm">
@@ -99,6 +114,17 @@ const ResourceList: React.FC = () => {
                 </td>
                 <td className="p-4 text-gray-400 font-mono text-xs">
                   {res.terraform_output?.ip || '-'}
+                </td>
+                <td className="p-4 text-right">
+                  {res.status !== 'active' && (
+                    <button 
+                      onClick={(e) => handleDelete(e, res.id)}
+                      className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                      title="Delete Record"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

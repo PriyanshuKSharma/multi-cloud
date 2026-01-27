@@ -36,7 +36,10 @@ class TerraformRunner:
         return self.run_command("terraform plan -out=tfplan", env_vars)
 
     def apply(self, env_vars: Dict[str, str] = None):
-        return self.run_command("terraform apply -auto-approve tfplan", env_vars)
+        # Prefer applying with the plan file if it exists, otherwise do a direct auto-approve apply
+        if os.path.exists(os.path.join(self.working_dir, "tfplan")):
+            return self.run_command("terraform apply -auto-approve tfplan", env_vars)
+        return self.run_command("terraform apply -auto-approve", env_vars)
 
     def destroy(self, env_vars: Dict[str, str] = None):
         return self.run_command("terraform destroy -auto-approve", env_vars)

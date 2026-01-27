@@ -7,10 +7,16 @@ import json
 
 @celery_app.task
 def provision_resource_task(resource_id: str, provider: str, module_name: str, variables: dict):
+    print(f"--- [DEBUG] Starting Task: {resource_id} {provider} {module_name} ---")
+    logs = ""
+    # For debugging key consensus (safe)
+    sk = os.getenv("SECRET_KEY", "MISSING")
+    logs += f"[Debug] Using SECRET_KEY starting with: {sk[:4]}...\n"
     db = SessionLocal()
     resource = db.query(Resource).filter(Resource.id == int(resource_id)).first()
     
     if not resource:
+        print("--- [DEBUG] Resource not found! ---")
         db.close()
         return {"status": "failed", "error": "Resource not found"}
 
@@ -75,13 +81,11 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
         
         env_vars = {}
         
-        # Find credential for this user & provider
-        # (For MVP, we just pick the first one matching the provider. 
-        # In prod, we might let user select specific cred ID).
+        # Find the LATEST credential for this user & provider
         cred = db.query(CloudCredential).filter(
-            CloudCredential.user_id == resource.project.user_id, # Assuming Project -> User link
+            CloudCredential.user_id == resource.project.user_id,
             CloudCredential.provider == provider
-        ).first()
+        ).order_by(CloudCredential.id.desc()).first()
 
         if cred:
              try:
@@ -98,10 +102,25 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
                     env_vars["ARM_SUBSCRIPTION_ID"] = cred_data.get("subscription_id")
                     env_vars["ARM_TENANT_ID"] = cred_data.get("tenant_id")
                 # Add GCP handling here...
+                
+                # Verify we actually got the essential keys
+                if provider == "aws" and not env_vars.get("AWS_ACCESS_KEY_ID"):
+                     raise ValueError("AWS Access Key missing in decrypted data")
+                     
              except Exception as e:
-                 logs += f"\n[Warning] Failed to decrypt credentials: {e}\n"
+                 import traceback
+                 logs += f"\n[Error] Failed to decrypt credentials: {type(e).__name__}: {str(e)}\n"
+                 # logs += f"{traceback.format_exc()}\n" # Uncomment for deep debug
+                 resource.status = "failed"
+                 resource.terraform_output = {"logs": logs}
+                 db.commit()
+                 return {"status": "failed", "logs": logs}
         else:
-             logs += f"\n[Warning] No credentials found for {provider}. Using fallback/system keys if available.\n"
+             logs += f"\n[Error] No credentials found for {provider}. Cannot proceed.\n"
+             resource.status = "failed"
+             resource.terraform_output = {"logs": logs}
+             db.commit()
+             return {"status": "failed", "logs": logs}
 
         # 4. Execute Terraform
         
@@ -115,6 +134,16 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
             db.commit()
             return {"status": "failed", "logs": logs}
             
+        # Plan
+        plan_out = runner.plan(env_vars)
+        logs += f"\n--- PLAN ---\n{plan_out}\n"
+        
+        if "Error" in plan_out:
+            resource.status = "failed"
+            resource.terraform_output = {"logs": logs}
+            db.commit()
+            return {"status": "failed", "logs": logs}
+
         # Apply
         apply_out = runner.apply(env_vars)
         logs += f"\n--- APPLY ---\n{apply_out}\n"
@@ -139,6 +168,7 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
         return {"status": resource.status, "logs": logs}
         
     except Exception as e:
+        print(f"--- [DEBUG] EXCEPTION: {e} ---")
         resource.status = "failed"
         resource.terraform_output = {"logs": str(e)}
         db.commit()

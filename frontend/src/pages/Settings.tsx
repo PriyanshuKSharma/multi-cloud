@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import AddCredentialModal from '../components/AddCredentialModal';
 import { Trash2, Plus, Shield } from 'lucide-react';
 
 interface Credential {
@@ -11,6 +12,7 @@ interface Credential {
 
 const Settings: React.FC = () => {
   const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCredentials();
@@ -45,11 +47,20 @@ const Settings: React.FC = () => {
                 <Shield className="w-5 h-5 mr-2 text-blue-400" />
                 Cloud Credentials
             </h2>
-            <button className="btn-primary text-sm flex items-center space-x-2">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="btn-primary text-sm flex items-center space-x-2"
+            >
                 <Plus className="w-4 h-4" />
                 <span>Add New</span>
             </button>
         </div>
+
+        <AddCredentialModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSuccess={fetchCredentials} 
+        />
 
         <div className="space-y-3">
             {credentials.length === 0 ? (
