@@ -1,1 +1,13 @@
 backend/venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+*.log
+celery_logs.txt
+latest_celery_logs.txt
+.terraform/
+terraform.tfstate*
+.terraform.lock.hcl
+tfplan
+backend/multicloud.db
