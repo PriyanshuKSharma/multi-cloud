@@ -9,6 +9,7 @@ pipeline {
         DOCKERHUB_USERNAME = 'priyanshuksharma'
         BACKEND_IMAGE = "${DOCKERHUB_USERNAME}/multi-cloud-backend"
         FRONTEND_IMAGE = "${DOCKERHUB_USERNAME}/multi-cloud-frontend"
+        CELERY_IMAGE = "${DOCKERHUB_USERNAME}/multi-cloud-celery-worker"
         
         // Image Tag
         IMAGE_TAG = "v${BUILD_NUMBER}.0.0"
@@ -21,17 +22,25 @@ pipeline {
             }
         }
 
-        stage('Build & Push Backend') {
+        stage('Build & Push Backend & Celery') {
             steps {
                 script {
-                    echo "Building Backend Image: ${BACKEND_IMAGE}:${IMAGE_TAG}"
+                    echo "Building Backend & Celery Image: ${BACKEND_IMAGE}:${IMAGE_TAG}"
                     sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend"
                     
-                    echo "Pushing Backend Image to Docker Hub"
+                    // Tag for Celery Worker (uses same backend image)
+                    sh "docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} ${CELERY_IMAGE}:${IMAGE_TAG}"
+                    sh "docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} ${CELERY_IMAGE}:latest"
+                    
+                    echo "Pushing Images to Docker Hub"
                     withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
                         sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
+                        
                         sh "docker push ${BACKEND_IMAGE}:${IMAGE_TAG}"
                         sh "docker push ${BACKEND_IMAGE}:latest"
+                        
+                        sh "docker push ${CELERY_IMAGE}:${IMAGE_TAG}"
+                        sh "docker push ${CELERY_IMAGE}:latest"
                     }
                 }
             }
@@ -63,6 +72,7 @@ pipeline {
             steps {
                 sh "docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} ${BACKEND_IMAGE}:latest || true"
                 sh "docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} ${FRONTEND_IMAGE}:latest || true"
+                sh "docker rmi ${CELERY_IMAGE}:${IMAGE_TAG} ${CELERY_IMAGE}:latest || true"
             }
         }
     }
