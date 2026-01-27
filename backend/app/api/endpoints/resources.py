@@ -73,8 +73,17 @@ def create_resource(
     db.refresh(resource)
 
     # Trigger Async Job
-    # In real app, choose module based on provider/type
-    module_name = f"{resource_in.provider}_{resource_in.type}" # e.g., aws_vm
+    # Map (provider, type) to correct Terraform module directory
+    MODULE_MAP = {
+        ("aws", "storage"): "aws_s3",
+        ("aws", "vm"): "aws_vm",
+        ("azure", "storage"): "azure_blob",
+        ("azure", "vm"): "azure_vm",
+        ("gcp", "storage"): "gcp_storage",
+        ("gcp", "vm"): "gcp_vm",
+    }
+    
+    module_name = MODULE_MAP.get((resource_in.provider, resource_in.type), f"{resource_in.provider}_{resource_in.type}")
     
     # Map configuration to TF Vars
     tf_vars = resource_in.configuration
