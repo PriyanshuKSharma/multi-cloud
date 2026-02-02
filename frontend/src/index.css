@@ -32,15 +32,28 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
   
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'Outfit', 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  --animate-pulse-slow: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-border-glow: border-glow 4s ease infinite;
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.1; transform: scale(1); }
+    50% { opacity: 0.2; transform: scale(1.1); }
+  }
+
+  @keyframes border-glow {
+    0%, 100% { border-color: rgba(59, 130, 246, 0.2); box-shadow: 0 0 0px rgba(59, 130, 246, 0); }
+    50% { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+  }
 }
 
 :root {
-  --background: hsl(222.2 84% 4.9%);
+  --background: hsl(230 40% 4%);
   --foreground: hsl(210 40% 98%);
   
-  --card: hsl(222.2 84% 4.9%);
+  --card: rgba(17, 25, 40, 0.75);
   --card-foreground: hsl(210 40% 98%);
   
   --popover: hsl(222.2 84% 4.9%);
@@ -61,41 +74,82 @@
   --destructive: hsl(0 62.8% 30.6%);
   --destructive-foreground: hsl(210 40% 98%);
   
-  --border: hsl(217.2 32.6% 17.5%);
-  --input: hsl(217.2 32.6% 17.5%);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.05);
   --ring: hsl(212.7 26.8% 83.9%);
   
-  --radius: 0.5rem;
+  --radius: 1rem;
 }
 
 /* Custom Components using @layer components is deprecated/different in v4, 
    but we can just use standard CSS or @utility */
 
 .glass-panel {
-  @apply bg-gray-900/30 backdrop-blur-lg border border-gray-800 shadow-xl;
+  @apply bg-[#0f1115]/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)];
 }
 
 .glass-card {
-  @apply bg-gray-800/50 backdrop-blur-md border border-gray-700/50 shadow-lg transition-all duration-300 hover:border-primary/50;
+  @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-xl transition-all duration-500 hover:bg-white/10 hover:border-primary/50 hover:shadow-primary/10;
 }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-4 rounded-md shadow-lg shadow-blue-500/20 transition-all duration-200 active:scale-95 hover:from-blue-500 hover:to-indigo-500;
+  @apply relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 px-6 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] hover:-translate-y-0.5 active:scale-95;
+}
+
+.btn-primary::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full transition-transform duration-1000;
+}
+
+.btn-primary:hover::after {
+  @apply translate-x-full;
 }
 
 .input-field {
-  @apply bg-gray-900/50 border border-gray-700 text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none;
+  @apply bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all outline-none placeholder:text-gray-500;
+}
+
+.glow-text {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 drop-shadow-[0_0_10px_rgba(96,165,250,0.5)];
+}
+
+.nebula-bg {
+  @apply fixed inset-0 -z-10 overflow-hidden bg-[#030303];
+}
+
+.nebula-spot {
+  @apply absolute rounded-full mix-blend-screen filter blur-[100px] animate-pulse-slow;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(34, 197, 94, 0.1) 0px, transparent 50%);
-  background-attachment: fixed;
+  overflow-x: hidden;
 }
 
+/* Custom scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+}
+
+.neon-border {
+  @apply border border-white/10 relative;
+}
+
+.neon-border::before {
+  content: '';
+  @apply absolute -inset-[1px] rounded-[inherit] bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 transition-opacity duration-500 -z-10;
+}
+
+.neon-border:hover::before {
+  @apply opacity-100;
+}
