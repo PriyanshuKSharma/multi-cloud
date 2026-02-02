@@ -31,6 +31,7 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
       onClose();
     } catch (err) {
       console.error(err);
+      alert('Failed to save AWS credentials');
     } finally {
       setLoading(false);
     }
@@ -39,93 +40,78 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 0 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-lg glass-panel p-10 rounded-[3rem] shadow-2xl relative overflow-hidden"
+            exit={{ opacity: 0, scale: 0.9, y: 0 }}
+            className="w-full max-w-md glass-panel p-8 rounded-3xl shadow-2xl relative"
           >
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500" />
-            
-            <div className="flex justify-between items-start mb-10">
-              <div className="space-y-1">
-                <h2 className="text-3xl font-black text-white flex items-center tracking-tighter">
-                  <Shield className="w-8 h-8 mr-4 text-blue-400" />
-                  Uplink Configuration
-                </h2>
-                <p className="text-gray-400 font-medium">Provision a new AWS cluster node.</p>
-              </div>
-              <button 
-                onClick={onClose} 
-                className="p-2 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 rounded-2xl transition-all"
-              >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white flex items-center">
+                <Shield className="w-5 h-5 mr-2 text-blue-400" />
+                Add AWS Credential
+              </h2>
+              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Alias Name</label>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Display Name</label>
                 <input 
                   {...register('name', { required: 'Name is required' })} 
-                  className={`input-field w-full ${errors.name ? 'border-red-500/50' : ''}`}
-                  placeholder="e.g. Andromeda Cluster" 
+                  className={`input-field w-full p-2.5 ${errors.name ? 'border-red-500' : ''}`}
+                  placeholder="e.g. My Production AWS" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Access Key ID</label>
+                <input 
+                  {...register('access_key', { required: 'Access Key is required' })} 
+                  className={`input-field w-full p-2.5 ${errors.access_key ? 'border-red-500' : ''}`}
+                  placeholder="AKIA..." 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Secret Access Key</label>
+                <input 
+                  {...register('secret_key', { required: 'Secret Key is required' })} 
+                  type="password" 
+                  className={`input-field w-full p-2.5 ${errors.secret_key ? 'border-red-500' : ''}`}
+                  placeholder="••••••••••••••••••••" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Default Region</label>
+                <input 
+                  {...register('region')} 
+                  className="input-field w-full p-2.5"
+                  placeholder="us-east-1" 
+                  defaultValue="us-east-1"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Access Key ID</label>
-                    <input 
-                      {...register('access_key', { required: 'Access Key is required' })} 
-                      className={`input-field w-full ${errors.access_key ? 'border-red-500/50' : ''}`}
-                      placeholder="AKIA..." 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Default Region</label>
-                    <input 
-                      {...register('region')} 
-                      className="input-field w-full"
-                      placeholder="us-east-1" 
-                      defaultValue="us-east-1"
-                    />
-                  </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Secret Access Key</label>
-                <div className="relative group">
-                    <input 
-                      {...register('secret_key', { required: 'Secret Key is required' })} 
-                      type="password" 
-                      className={`input-field w-full pl-12 ${errors.secret_key ? 'border-red-500/50' : ''}`}
-                      placeholder="••••••••••••••••••••" 
-                    />
-                    <Key size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
-                </div>
-              </div>
-
-              <div className="pt-8 flex flex-col space-y-4">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              <div className="pt-4 flex flex-col space-y-3">
+                <button 
                   type="submit" 
                   disabled={loading} 
-                  className="btn-primary w-full py-4 text-lg font-bold"
+                  className="btn-primary w-full py-3 flex items-center justify-center"
                 >
                   {loading ? (
-                    <span className="flex items-center justify-center">
-                       <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-3" />
-                       Initializing...
+                    <span className="flex items-center">
+                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                       </svg>
+                       Saving...
                     </span>
-                  ) : 'Establish Uplink'}
-                </motion.button>
-                <div className="flex items-center justify-center space-x-2 text-gray-500">
-                    <Shield size={12} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">End-to-End Encryption Enabled</span>
-                </div>
+                  ) : 'Save Credentials'}
+                </button>
+                <p className="text-center text-xs text-gray-500">
+                  Credentials are encrypted and stored securely.
+                </p>
               </div>
             </form>
           </motion.div>
