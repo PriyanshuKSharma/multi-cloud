@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,16 +33,13 @@ const CreateResource: React.FC = () => {
 
   const onSubmit = async (data: ResourceFormInputs) => {
     try {
-      // Clean up config based on type
       const config: any = { ...data.configuration };
       let resourceName = data.name;
 
       if (data.type === 'vm') {
         config.instance_name = resourceName;
-        // Mock AMI for AWS
         if (data.provider === 'aws') config.ami = "ami-0c55b159cbfafe1f0";
       } else {
-        // S3 Buckets MUST be lowercase
         resourceName = resourceName.toLowerCase().replace(/\s+/g, '-');
         config.bucket_name = resourceName;
       }
@@ -49,69 +47,78 @@ const CreateResource: React.FC = () => {
       await api.post('/resources', {
         ...data,
         name: resourceName,
-        project_id: 0, // Default project for MVP
+        project_id: 0,
         configuration: config
       });
-      alert('Resource creation started!');
       reset();
     } catch (error) {
       console.error(error);
-      alert('Failed to create resource');
     }
   };
 
   return (
-    <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-      <h2 className="text-xl font-bold mb-4 text-white">Provision New Resource</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="glass-card p-8 rounded-[2.5rem] border-white/5 shadow-2xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-[5rem] -mr-10 -mt-10" />
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-400 text-sm mb-1">Provider</label>
-            <select {...register('provider')} className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600">
-              <option value="aws">AWS</option>
-              <option value="azure">Azure</option>
-              <option value="gcp">Google Cloud</option>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Provider</label>
+            <select {...register('provider')} className="input-field w-full cursor-pointer appearance-none">
+              <option value="aws" className="bg-[#1a1b1e]">AWS (Amazon)</option>
+              <option value="azure" className="bg-[#1a1b1e]">Microsoft Azure</option>
+              <option value="gcp" className="bg-[#1a1b1e]">Google Cloud</option>
             </select>
           </div>
-          <div>
-            <label className="block text-gray-400 text-sm mb-1">Type</label>
-            <select {...register('type')} className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600">
-              <option value="vm">Virtual Machine</option>
-              <option value="storage">Object Storage</option>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Fleet Type</label>
+            <select {...register('type')} className="input-field w-full cursor-pointer appearance-none">
+              <option value="vm" className="bg-[#1a1b1e]">Compute Instance</option>
+              <option value="storage" className="bg-[#1a1b1e]">Object Storage</option>
             </select>
           </div>
         </div>
 
-        <div>
-          <label className="block text-gray-400 text-sm mb-1">Resource Name</label>
-          <input {...register('name')} className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600" placeholder="my-resource-01" />
-          {errors.name && <p className="text-red-400 text-sm">{errors.name.message}</p>}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Node Identifier</label>
+          <input 
+            {...register('name')} 
+            className="input-field w-full" 
+            placeholder="nebula-node-01" 
+          />
+          {errors.name && <p className="text-red-400 text-[10px] font-bold mt-1 ml-1">{errors.name.message}</p>}
         </div>
 
-        {/* Dynamic Config Fields */}
-        <div className="p-4 bg-gray-750 rounded border border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Configuration</h3>
+        {/* Advanced Config Section */}
+        <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 space-y-4">
+          <p className="text-[10px] font-black text-blue-400/70 uppercase tracking-[0.2em]">Core Configuration</p>
           
-          <div className="mb-2">
-            <label className="block text-gray-400 text-sm mb-1">Region</label>
-            <input {...register('configuration.region')} className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600" />
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Region</label>
+            <input {...register('configuration.region')} className="input-field w-full text-sm py-2" />
           </div>
 
           {selectedType === 'vm' && (
-             <div className="mb-2">
-              <label className="block text-gray-400 text-sm mb-1">Instance Type / Size</label>
-              <input {...register('configuration.instance_type')} className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600" placeholder="t2.micro / Standard_F2" />
+             <div className="space-y-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Instance Profile</label>
+              <input 
+                {...register('configuration.instance_type')} 
+                className="input-field w-full text-sm py-2" 
+                placeholder="t3.medium / Standard_D2" 
+              />
             </div>
           )}
         </div>
 
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="submit" 
           disabled={isSubmitting}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold disabled:opacity-50"
+          className="btn-primary w-full group overflow-hidden"
         >
-          {isSubmitting ? 'Provisioning...' : 'Deploy Resource'}
-        </button>
+          <span className="relative z-10">{isSubmitting ? 'Initializing Node...' : 'Deploy to Cluster'}</span>
+        </motion.button>
       </form>
     </div>
   );
