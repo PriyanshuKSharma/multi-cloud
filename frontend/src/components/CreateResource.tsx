@@ -57,67 +57,73 @@ const CreateResource: React.FC = () => {
   };
 
   return (
-    <div className="glass-card p-8 rounded-[2.5rem] border-white/5 shadow-2xl relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-[5rem] -mr-10 -mt-10" />
+    <div className="glass-card p-6 rounded-2xl border-white/5 shadow-2xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-[3rem] -mr-8 -mt-8" />
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Provider</label>
-            <select {...register('provider')} className="input-field w-full cursor-pointer appearance-none">
-              <option value="aws" className="bg-[#1a1b1e]">AWS (Amazon)</option>
-              <option value="azure" className="bg-[#1a1b1e]">Microsoft Azure</option>
-              <option value="gcp" className="bg-[#1a1b1e]">Google Cloud</option>
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-2">Deploy Resource</h2>
+        <p className="text-gray-400 text-sm">Provision infrastructure across cloud providers</p>
+      </div>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Provider</label>
+            <select {...register('provider')} className="input-field w-full cursor-pointer appearance-none text-sm py-2.5">
+              <option value="aws" className="bg-[#1a1b1e]">AWS</option>
+              <option value="azure" className="bg-[#1a1b1e]">Azure</option>
+              <option value="gcp" className="bg-[#1a1b1e]">GCP</option>
             </select>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Fleet Type</label>
-            <select {...register('type')} className="input-field w-full cursor-pointer appearance-none">
-              <option value="vm" className="bg-[#1a1b1e]">Compute Instance</option>
-              <option value="storage" className="bg-[#1a1b1e]">Object Storage</option>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Type</label>
+            <select {...register('type')} className="input-field w-full cursor-pointer appearance-none text-sm py-2.5">
+              <option value="vm" className="bg-[#1a1b1e]">Compute</option>
+              <option value="storage" className="bg-[#1a1b1e]">Storage</option>
             </select>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Node Identifier</label>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Resource Name</label>
           <input 
             {...register('name')} 
-            className="input-field w-full" 
-            placeholder="nebula-node-01" 
+            className="input-field w-full text-sm py-2.5" 
+            placeholder="my-resource-01" 
           />
-          {errors.name && <p className="text-red-400 text-[10px] font-bold mt-1 ml-1">{errors.name.message}</p>}
+          {errors.name && <p className="text-red-400 text-[10px] font-medium mt-1 ml-1">{errors.name.message}</p>}
         </div>
 
-        {/* Advanced Config Section */}
-        <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 space-y-4">
-          <p className="text-[10px] font-black text-blue-400/70 uppercase tracking-[0.2em]">Core Configuration</p>
+        <div className="p-4 bg-white/[0.02] rounded-xl border border-white/5 space-y-3">
+          <p className="text-[10px] font-bold text-blue-400/70 uppercase tracking-wider">Configuration</p>
           
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Region</label>
-            <input {...register('configuration.region')} className="input-field w-full text-sm py-2" />
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Region</label>
+            <input {...register('configuration.region')} className="input-field w-full text-sm py-2" placeholder="us-east-1" />
           </div>
 
           {selectedType === 'vm' && (
-             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Instance Profile</label>
+             <div className="space-y-1.5">
+              <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Instance Type</label>
               <input 
                 {...register('configuration.instance_type')} 
                 className="input-field w-full text-sm py-2" 
-                placeholder="t3.medium / Standard_D2" 
+                placeholder="t3.medium" 
               />
             </div>
           )}
         </div>
 
         <motion.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
           type="submit" 
           disabled={isSubmitting}
-          className="btn-primary w-full group overflow-hidden"
+          className="btn-primary w-full group overflow-hidden py-3"
         >
-          <span className="relative z-10">{isSubmitting ? 'Initializing Node...' : 'Deploy to Cluster'}</span>
+          <span className="relative z-10 font-semibold">
+            {isSubmitting ? 'Deploying...' : 'Deploy Resource'}
+          </span>
         </motion.button>
       </form>
     </div>
