@@ -38,11 +38,7 @@ import ResourcesPage from './pages/ResourcesPage';
 function App() {
   return (
     <Router>
-      <div className="nebula-bg">
-        <div className="nebula-spot w-[500px] h-[500px] bg-blue-600/20 -top-20 -left-20 animate-pulse-slow" />
-        <div className="nebula-spot w-[600px] h-[600px] bg-purple-600/15 bottom-0 right-0 animate-pulse-slow" style={{ animationDelay: '2s' }} />
-        <div className="nebula-spot w-[400px] h-[400px] bg-emerald-600/10 top-1/4 left-1/2 animate-pulse-slow" style={{ animationDelay: '4s' }} />
-      </div>
+
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
