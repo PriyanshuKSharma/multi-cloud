@@ -1,0 +1,7 @@
+The platform is containerized using Docker Compose, allowing for rapid deployment in any environment.
+
+\subsection{Deployment Workflow}
+The deployment starts with a one-command build: \text{docker-compose up --build}. This orchestrates the database, broker, api, and workers into a secure internal network. For production environments, the system is designed to be deployed onto Kubernetes clusters (EKS/AKS/GKE), using Helm charts for lifecycle management.
+
+\subsection{Horizontal Scalability}
+The architecture scales horizontally at the worker level. As provisioning demand increases, additional Celery workers can be spawned to process the Redis queue, ensuring linear performance scaling without affecting the main API performance.
