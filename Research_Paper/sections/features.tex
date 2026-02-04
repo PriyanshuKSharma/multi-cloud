@@ -1,0 +1,23 @@
+The platform is designed with a focus on usability and robust cloud management. The following core features define the platform's utility:
+
+\subsection{Multi-Cloud Resource Vending}
+Users can provision diverse resources, including compute (AWS EC2, Azure VMs, GCP Engine) and storage (S3, Blob, GCS) through a unified API \cite{ijraset2025}. The interface abstracts complex configuration parameters into intuitive forms, as shown in Table \ref{tab:mapping}. This abstraction layer is critical for reducing vendor-specific cognitive load \cite{arxiv_iac_2025}.
+
+\begin{table}[h]
+\centering
+\caption{Abstracted Resource Mapping}
+\label{tab:mapping}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Feature} & \textbf{Cloud Simplify Label} & \textbf{Cloud Provider Resource} \\ \hline
+Compute & standard-vm-v1 & t3.medium (AWS), B2s (Azure) \\ \hline
+Storage & high-speed-bucket & Standard S3 (AWS), LRS (Azure) \\ \hline
+Security & zero-trust-cred & IAM Role / Service Principal \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Zero-Trust Credential Management}
+A critical feature is the isolated handling of cloud credentials. Users upload their JSON keys or access IDs, which are immediately AES-encrypted at the application layer. These credentials are never decrypted except within the ephemeral context of the background task execution, preventing exposure to the frontend or persistent storage in plain text.
+
+\subsection{Real-Time Monitoring and Logging}
+The platform provides a reactive dashboard that tracks the health and costs of provisioned resources. By integrating custom scrapers and cloud-native APIs, users receive consolidated billing insights without leaving the unified interface.
