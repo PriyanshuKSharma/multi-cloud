@@ -1,0 +1,7 @@
+Infrastructure as Code (IaC) represents a fundamental paradigm shift, treating infrastructure as software that is versioned, tested, and automated \cite{morris2016iac}. By moving away from manual configurations, IaC ensures reproducibility, auditability, and scalability across environments.
+
+\subsection{Terraform: The Multi-Cloud Standard}
+Terraform has emerged as the industry-leading IaC platform, supporting over 300 providers \cite{hashicorp2024terraform}. Its provider-agnostic design allow for writing configurations in HashiCorp Configuration Language (HCL) and deploying across multiple clouds with minimal modification. Cloud Simplify leverages this capability to underpin its vision of cloud independence.
+
+\subsection{Standardization and Portability}
+The adoption of open standards such as TOSCA \cite{oasisTOSCA}, OCCI \cite{ogfOCCI}, and CIMI \cite{dmtfCIMI} is critical for cross-cloud portability. Cloud Simplify aligns with these frameworks by abstracting provider differences behind a unified API layer \cite{nist500292, iso17788}. Recent benchmarking studies \cite{terraform_performance_2023, wjarr2024} further validate the efficiency of such abstraction layers in large-scale deployments.
