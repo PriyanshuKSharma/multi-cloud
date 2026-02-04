@@ -1,0 +1,10 @@
+While the current implementation focus on robust provisioning, the "Intelligent Plane" of Cloud Simplify is designed for proactive infrastructure management.
+
+\subsection{Predictive Resource Sizing}
+Using historical performance metrics (CPU utilization, memory pressure), the platform integrates a lightweight regression model to recommend optimal instance types. This prevents the common problem of over-provisioning, which leads to unnecessary cloud expenditure. For example, the system can detect if an \text{m5.large} instance is consistently under-utilized and suggest a downgrade to \text{t3.medium}.
+
+\subsection{Anomaly Detection in Cloud Utilization}
+The integration layer monitors usage patterns across all configured accounts. By applying unsupervised learning (Isolation Forests), the platform can identify anomalous spikes in resource consumption, which may indicate security breaches (e.g., unauthorized crypto-mining) or misconfigured deployment scripts.
+
+\subsection{Smart Cost Optimization}
+The platform leverages generative AI to analyze multi-cloud billing documents. By correlating resource tags with cost data, it provides natural language summaries of "orphaned" resources (e.g., unattached EBS volumes or unused elastic IPs) that should be terminated to save costs. 

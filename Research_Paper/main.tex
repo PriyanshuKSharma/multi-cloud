@@ -1,0 +1,86 @@
+\documentclass[11pt,conference,onecolumn]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Cloud Simplify: A Unified Multi-Cloud SaaS Orchestration Platform with Intelligent Resource Management\\
+{\footnotesize \textsuperscript{*}A Research Paper on Scalable Infrastructure-as-Code and AI-Driven Provisioning}
+}
+
+\author{\IEEEauthorblockN{Priyanshu Kumar Sharma}
+\IEEEauthorblockA{\textit{Computer Engineering Department} \\
+\textit{Affiliation/University Name}\\
+City, Country \\
+sharma.priyanshu@email.com}
+\and
+\IEEEauthorblockN{Vaishnavi Jadhav}
+\IEEEauthorblockA{\textit{Computer Engineering Department} \\
+\textit{Affiliation/University Name}\\
+City, Country \\
+jadhav.vaishnavi@email.com}
+\and
+\IEEEauthorblockN{Vaibhav Gulage}
+\IEEEauthorblockA{\textit{Computer Engineering Department} \\
+\textit{Affiliation/University Name}\\
+City, Country \\
+gulage.vaibhav@email.com}
+}
+
+\maketitle
+
+\begin{abstract}
+As enterprise infrastructure scales across heterogeneous cloud environments, the complexity of managing multi-cloud ecosystems (AWS, Azure, GCP) introduces significant operational overhead and vendor lock-in risks. This paper presents \textit{Cloud Simplify}, a next-generation SaaS orchestration platform designed to unify multi-cloud provisioning through a reactive Infrastructure-as-Code (IaC) engine. By integrating FastAPI, Celery, and Terraform, the platform decouples infrastructure logic from provider-specific APIs, enabling seamless, high-performance resource deployment. Furthermore, the paper explores the integration of intelligent features for predictive cost analysis and smart resource sizing, laying the foundation for autonomous cloud management. Our implementation demonstrates a reduction in provisioning latency and enhanced security through zero-trust credential encapsulation.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Multi-Cloud, Orchestration, SaaS, Terraform, FastAPI, Infrastructure as Code, Intelligent Cloud Management.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\input{sections/introduction}
+
+\section{Literature Review and Related Work}
+\input{sections/literature_review}
+
+\section{System Architecture and Design}
+\input{sections/architecture}
+
+\section{Key Features and Functionality}
+\input{sections/features}
+
+\section{AI Integration and Intelligent Features}
+\input{sections/ai_integration}
+
+\section{Implementation Details}
+\input{sections/implementation}
+
+\section{Performance Evaluation and Results}
+\input{sections/performance}
+
+\section{Deployment and Scalability}
+\input{sections/deployment}
+
+\section{Future Work and Enhancements}
+\input{sections/future_work}
+
+\section{Conclusion}
+\input{sections/conclusion}
+
+\section*{Acknowledgements}
+The authors would like to thank the open-source community for the tools and frameworks that made this project possible.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
