@@ -1,10 +1,7 @@
-The evolution of cloud computing has transitioned from monolithic single-provider environments to complex multi-cloud and hybrid-cloud ecosystems. This section reviews existing methodologies in cloud orchestration and the role of IaC in modern DevOps.
+Infrastructure as Code (IaC) represents a fundamental paradigm shift, treating infrastructure as software that is versioned, tested, and automated \cite{morris2016iac}. By moving away from manual configurations, IaC ensures reproducibility, auditability, and scalability across environments.
 
-\subsection{Cloud Orchestration and Interoperability}
-Recent studies \cite{algomox2024} highlight that AI-driven orchestration is becoming essential for managing the inherent complexity of managed cloud services. Traditional orchestration tools often fail to account for the dynamic nature of cloud workloads, requiring manual intervention for scaling and cost management. Governance strategies \cite{ijert2024} emphasize the need for unified models that enhance the developer experience (DevEx) while maintaining rigorous security standards across heterogeneous environments.
+\subsection{Terraform: The Multi-Cloud Standard}
+Terraform has emerged as the industry-leading IaC platform, supporting over 300 providers \cite{hashicorp2024terraform}. Its provider-agnostic design allow for writing configurations in HashiCorp Configuration Language (HCL) and deploying across multiple clouds with minimal modification. Cloud Simplify leverages this capability to underpin its vision of cloud independence.
 
-\subsection{Infrastructure-as-Code (IaC)}
-Terraform, developed by HashiCorp, has established itself as the industry standard for multi-cloud IaC \cite{medium_terraform_2023}. Its ability to abstract provider-specific resources into a common configuration language (HCL) is fundamental to our research. Benchmarking studies \cite{arxiv_iac_2025} have shown that while IaC improves consistency, the cognitive load of managing state files and provider differences remains high. Our work builds upon these foundations by adding a SaaS orchestration layer that automates the lifecycle of Terraform modules \cite{ijraset2025}.
-
-\subsection{Asynchronous Task Management}
-The use of distributed task queues like Celery \cite{celery_docs} and message brokers like Redis is well-documented in high-performance web applications. In the context of cloud provisioning, this architecture is vital to handle the long-running Nature of "terraform apply" operations without degrading user experience. By encapsulating these operations into background workers, Cloud Simplify achieves a non-blocking reactive interface.
+\subsection{Standardization and Portability}
+The adoption of open standards such as TOSCA \cite{oasisTOSCA}, OCCI \cite{ogfOCCI}, and CIMI \cite{dmtfCIMI} is critical for cross-cloud portability. Cloud Simplify aligns with these frameworks by abstracting provider differences behind a unified API layer \cite{nist500292, iso17788}. Recent benchmarking studies \cite{terraform_performance_2023, wjarr2024} further validate the efficiency of such abstraction layers in large-scale deployments.
