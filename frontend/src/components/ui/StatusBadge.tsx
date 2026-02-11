@@ -27,7 +27,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', showDot 
     lg: 'px-3 py-1.5 text-base',
   };
 
-  const config = statusConfig[status];
+  const normalizedStatus = status?.toLowerCase() as keyof typeof statusConfig;
+  const config = statusConfig[normalizedStatus] || statusConfig.inactive;
 
   return (
     <motion.span
