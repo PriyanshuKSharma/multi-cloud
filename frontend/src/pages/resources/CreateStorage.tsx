@@ -18,6 +18,7 @@ const regions = {
   aws: [
     { value: 'us-east-1', label: 'US East (N. Virginia)' },
     { value: 'us-west-2', label: 'US West (Oregon)' },
+    { value: 'ap-south-1', label: 'Asia Pacific (Mumbai)' },
     { value: 'eu-west-1', label: 'EU West (Ireland)' },
     { value: 'ap-southeast-1', label: 'Asia Pacific (Singapore)' },
   ],
@@ -44,9 +45,34 @@ interface CreateStorageForm {
   encryption_enabled: boolean;
 }
 
+interface CreateStoragePayload {
+  name: string;
+  provider: 'aws' | 'azure' | 'gcp';
+  type: 'storage';
+  project_id: number;
+  configuration: {
+    region: string;
+    bucket_name: string;
+    public_access: boolean;
+    versioning_enabled: boolean;
+    encryption_enabled: boolean;
+  };
+}
+
+interface CreateStorageResponse {
+  id: number;
+  status: string;
+  terraform_output?: {
+    error?: string;
+    detail?: string;
+    [key: string]: unknown;
+  } | null;
+}
+
 const CreateStorage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateStorageForm>({
     defaultValues: {
@@ -68,25 +94,57 @@ const CreateStorage: React.FC = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateStorageForm) => {
-      const payload = {
+      const payload: CreateStoragePayload = {
         name: data.name,
         provider: data.provider,
-        region: data.region,
-        metadata: {
-            public_access: data.check_public_access,
-            versioning: data.versioning_enabled,
-            encryption: data.encryption_enabled
-        }
+        type: 'storage',
+        project_id: 0, // backend auto-creates/uses default project
+        configuration: {
+          region: data.region,
+          bucket_name: data.name,
+          public_access: data.check_public_access,
+          versioning_enabled: data.versioning_enabled,
+          encryption_enabled: data.encryption_enabled,
+        },
       };
-      return await axios.post('/inventory/storage', payload);
+      const response = await axios.post('/resources/', payload);
+      return response.data as CreateStorageResponse;
     },
-    onSuccess: () => {
+    onSuccess: (resource) => {
+      if (resource?.status === 'failed') {
+        setSubmitError(
+          resource.terraform_output?.detail ||
+          resource.terraform_output?.error ||
+          'Resource request was accepted but provisioning could not be queued.'
+        );
+        return;
+      }
+      setSubmitError(null);
       queryClient.invalidateQueries({ queryKey: ['inventory', 'storage'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
       navigate('/resources/storage');
+    },
+    onError: (error: any) => {
+      const detail = error?.response?.data?.detail;
+      if (typeof detail === 'string') {
+        setSubmitError(detail);
+        return;
+      }
+      if (Array.isArray(detail)) {
+        const message = detail
+          .map((item) => item?.msg)
+          .filter(Boolean)
+          .join(', ');
+        setSubmitError(message || 'Failed to create storage bucket. Please try again.');
+        return;
+      }
+      setSubmitError('Failed to create storage bucket. Please try again.');
     },
   });
 
   const onSubmit = (data: CreateStorageForm) => {
+    setSubmitError(null);
     createMutation.mutate(data);
   };
 
@@ -162,6 +220,14 @@ const CreateStorage: React.FC = () => {
                 type="text"
                 {...register('name', { 
                   required: 'Bucket name is required',
+                  minLength: {
+                    value: 3,
+                    message: 'Bucket name must be at least 3 characters',
+                  },
+                  maxLength: {
+                    value: 63,
+                    message: 'Bucket name must be 63 characters or fewer',
+                  },
                   pattern: {
                     value: /^[a-z0-9][a-z0-9-.]*[a-z0-9]$/,
                     message: "Invalid bucket name format"
@@ -182,16 +248,27 @@ const CreateStorage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-400 mb-1">
                 Region
               </label>
-              <select
-                {...register('region')}
+              <input
+                type="text"
+                list={`region-options-${selectedProvider}`}
+                {...register('region', { required: 'Region is required' })}
                 className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-              >
+                placeholder="Type or select region (e.g., ap-south-1)"
+              />
+              <datalist id={`region-options-${selectedProvider}`}>
                 {regions[selectedProvider]?.map((region) => (
                   <option key={region.value} value={region.value}>
                     {region.label}
                   </option>
                 ))}
-              </select>
+              </datalist>
+              {errors.region && (
+                <p className="mt-1 text-sm text-red-400 flex items-center">
+                  <AlertCircle className="w-3 h-3 mr-1" />
+                  {errors.region.message}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">You can type any valid provider region.</p>
             </div>
           </div>
 
@@ -254,10 +331,10 @@ const CreateStorage: React.FC = () => {
           </button>
         </div>
         
-        {createMutation.isError && (
+        {(createMutation.isError || submitError) && (
           <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 flex items-center">
             <AlertCircle className="w-5 h-5 mr-2" />
-            Failed to create storage bucket. Please try again.
+            {submitError || 'Failed to create storage bucket. Please try again.'}
           </div>
         )}
       </form>
