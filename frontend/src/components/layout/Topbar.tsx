@@ -2,12 +2,33 @@ import React from 'react';
 import { Search, Bell, User, ChevronDown, Settings, LogOut, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import axios from '../../api/axios';
+
+import { useNavigate } from 'react-router-dom';
 
 const Topbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
+
+  const { data: profileUser } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => (await axios.get('/auth/me')).data,
+    retry: 1,
+  });
+
+  const currentUser = profileUser || user || {
+    full_name: 'Admin User',
+    email: 'admin@cloudorch.com'
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setShowUserMenu(false);
+  };
 
   const notifications = [
     {
@@ -142,8 +163,8 @@ const Topbar: React.FC = () => {
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-medium text-gray-300">{user?.full_name || 'User'}</p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
+              <p className="text-sm font-medium text-gray-300">{currentUser.full_name}</p>
+              <p className="text-xs text-gray-500">{currentUser.email}</p>
             </div>
             <ChevronDown className="w-4 h-4 text-gray-500" />
           </button>
@@ -157,19 +178,28 @@ const Topbar: React.FC = () => {
                 className="absolute right-0 mt-2 w-56 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-3 border-b border-gray-800/50">
-                  <p className="text-sm font-medium text-gray-300">{user?.full_name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-300">{currentUser.full_name}</p>
+                  <p className="text-xs text-gray-500">{currentUser.email}</p>
                 </div>
                 <div className="p-2">
-                  <button className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left">
+                  <button 
+                    onClick={() => handleNavigation('/profile')}
+                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                  >
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-300">Profile</span>
                   </button>
-                  <button className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left">
+                  <button 
+                    onClick={() => handleNavigation('/settings')}
+                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                  >
                     <Settings className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-300">Settings</span>
                   </button>
-                  <button className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left">
+                  <button 
+                    onClick={() => handleNavigation('/help')}
+                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                  >
                     <HelpCircle className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-300">Help & Support</span>
                   </button>
