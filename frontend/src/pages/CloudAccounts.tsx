@@ -11,6 +11,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AddCredentialModal from '../components/AddCredentialModal';
 
 interface CloudAccount {
   id: number;
@@ -34,6 +35,8 @@ const CloudAccountsPage: React.FC = () => {
     },
   });
 
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -52,7 +55,10 @@ const CloudAccountsPage: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             <span className="text-sm font-medium">Refresh</span>
           </button>
-          <button className="flex items-center space-x-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all"
+          >
             <Plus className="w-4 h-4" />
             <span className="text-sm font-medium">Add Account</span>
           </button>
@@ -136,12 +142,21 @@ const CloudAccountsPage: React.FC = () => {
           <Cloud className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-400 mb-2">No cloud accounts connected</h3>
           <p className="text-sm text-gray-500 mb-6">Connect your first cloud provider to get started</p>
-          <button className="inline-flex items-center space-x-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all"
+          >
             <Plus className="w-4 h-4" />
             <span className="font-medium">Add Account</span>
           </button>
         </div>
       )}
+
+      <AddCredentialModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 };
