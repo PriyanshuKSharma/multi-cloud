@@ -50,7 +50,7 @@ sudo usermod -aG docker $USER
 ### 2. Application Deployment
 ```bash
 # Clone repository
-git clone <your-repo-url>
+git clone https://github.com/PriyanshuKSharma/multi-cloud
 cd multi-cloud
 
 # Configure environment
