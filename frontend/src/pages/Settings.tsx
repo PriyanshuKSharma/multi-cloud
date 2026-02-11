@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import AddCredentialModal from '../components/AddCredentialModal';
+import PageGuide from '../components/ui/PageGuide';
 import { Trash2, Plus, Shield, Key, Calendar, Cloud, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,6 +65,16 @@ const Settings: React.FC = () => {
           <p className="text-gray-400 mt-2">Manage your cloud provider credentials and global configurations.</p>
         </div>
       </div>
+
+      <PageGuide
+        title="About Settings"
+        purpose="Settings centralizes security controls and cloud credential management for this account."
+        actions={[
+          'connect or disconnect cloud credentials',
+          'review provider access entries and creation timestamps',
+          'maintain secure access posture for provisioning workflows',
+        ]}
+      />
 
       {/* Credentials Card */}
       <div className="glass-card overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
