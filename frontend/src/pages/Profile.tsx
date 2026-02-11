@@ -2,6 +2,7 @@ import React from 'react';
 import { Shield, Mail } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
+import PageGuide from '../components/ui/PageGuide';
 
 interface UserProfile {
   id: number;
@@ -144,6 +145,16 @@ const Profile: React.FC = () => {
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-white mb-8">My Profile</h1>
+
+      <PageGuide
+        title="About Profile"
+        purpose="Profile allows you to manage personal account details and core security settings."
+        actions={[
+          'edit contact and organization information',
+          'change your password securely',
+          'enable or disable two-factor authentication',
+        ]}
+      />
 
       {statusMessage && <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-green-300 text-sm">{statusMessage}</div>}
       {errorMessage && <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-300 text-sm">{errorMessage}</div>}
