@@ -1,18 +1,28 @@
 import React from 'react';
-import { Search, Bell, User, ChevronDown, Settings, LogOut, HelpCircle } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, Settings, LogOut, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../../api/axios';
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 const Topbar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigationType = useNavigationType();
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
+
+  const getHistoryIndex = React.useCallback(() => {
+    const state = window.history.state as { idx?: number } | null;
+    return typeof state?.idx === 'number' ? state.idx : 0;
+  }, []);
+
+  const [historyIndex, setHistoryIndex] = React.useState<number>(getHistoryIndex);
+  const [maxHistoryIndex, setMaxHistoryIndex] = React.useState<number>(getHistoryIndex);
 
   const { data: profileUser } = useQuery({
     queryKey: ['auth', 'me'],
@@ -28,6 +38,29 @@ const Topbar: React.FC = () => {
   const handleNavigation = (path: string) => {
     navigate(path);
     setShowUserMenu(false);
+  };
+
+  React.useEffect(() => {
+    const idx = getHistoryIndex();
+    setHistoryIndex(idx);
+    if (navigationType === 'PUSH') {
+      setMaxHistoryIndex(idx);
+      return;
+    }
+    setMaxHistoryIndex((prev) => Math.max(prev, idx));
+  }, [getHistoryIndex, location.key, navigationType]);
+
+  const canGoBack = historyIndex > 0;
+  const canGoForward = historyIndex < maxHistoryIndex;
+
+  const goBack = () => {
+    if (!canGoBack) return;
+    navigate(-1);
+  };
+
+  const goForward = () => {
+    if (!canGoForward) return;
+    navigate(1);
   };
 
   const notifications = [
@@ -51,6 +84,26 @@ const Topbar: React.FC = () => {
     <header className="h-16 bg-[#0f0f11] border-b border-gray-800/50 flex items-center justify-between px-6 sticky top-0 z-40">
       {/* Left: Project Selector */}
       <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={goBack}
+            disabled={!canGoBack}
+            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Go back"
+            title="Back"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-400" />
+          </button>
+          <button
+            onClick={goForward}
+            disabled={!canGoForward}
+            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Go forward"
+            title="Forward"
+          >
+            <ArrowRight className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
         <div className="relative">
           <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg border border-gray-700/50 transition-all duration-200">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
