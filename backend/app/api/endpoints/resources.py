@@ -88,6 +88,19 @@ def create_resource(
     # Map configuration to TF Vars
     tf_vars = resource_in.configuration
     
+    # Provider-specific variable translation
+    if resource_in.provider == "azure":
+        if resource_in.type == "vm":
+            # Translate region to location for Azure
+            if "region" in tf_vars:
+                tf_vars["location"] = tf_vars.pop("region")
+            # Ensure instance_name is set (frontend usually does this but as a safety)
+            if "instance_name" not in tf_vars:
+                tf_vars["instance_name"] = resource.name
+        elif resource_in.type == "storage":
+            if "region" in tf_vars:
+                tf_vars["location"] = tf_vars.pop("region")
+    
     provision_resource_task.delay(
         resource_id=str(resource.id),
         provider=resource_in.provider,
