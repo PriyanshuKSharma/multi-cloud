@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
+import PageGuide from '../../components/ui/PageGuide';
 import {
   Network,
   ArrowLeft,
@@ -104,6 +105,16 @@ const CreateNetwork: React.FC = () => {
         </h1>
         <p className="text-gray-400 mt-2">Provision a new VPC or VNET</p>
       </div>
+
+      <PageGuide
+        title="About Create Network"
+        purpose="Create network foundations for your workloads, including CIDR design and core networking controls."
+        actions={[
+          'select provider and deployment region',
+          'define CIDR and gateway behavior',
+          'provision network resources for compute and storage',
+        ]}
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Provider Selection */}
