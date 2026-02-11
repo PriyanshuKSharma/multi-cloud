@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON, DateTime, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.base import Base
@@ -30,5 +30,15 @@ class Resource(Base):
     configuration = Column(JSON)
     terraform_output = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Enhanced fields for real cloud data
+    cloud_resource_id = Column(String(255))  # Actual cloud provider resource ID
+    public_ip = Column(String(50))
+    private_ip = Column(String(50))
+    instance_type = Column(String(50))  # VM instance type
+    region = Column(String(100))
+    cost_per_hour = Column(JSON)  # Store as decimal for precision
+    last_synced_at = Column(DateTime)
+    drift_status = Column(String(20), default='synced')  # synced, drift, unknown
 
     project = relationship("Project", back_populates="resources")
