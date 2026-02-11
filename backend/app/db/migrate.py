@@ -16,6 +16,8 @@ def create_tables():
     print("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     ensure_user_columns()
+    ensure_project_columns()
+    ensure_resource_columns()
     print("✅ All tables created successfully!")
 
 
@@ -42,6 +44,52 @@ def ensure_user_columns():
         for column, ddl in column_defs.items():
             if column not in existing:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {column} {ddl}"))
+
+def ensure_resource_columns():
+    """Adds missing columns to existing resources table."""
+    inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+    if "resources" not in table_names:
+        return
+
+    existing = {col["name"] for col in inspector.get_columns("resources")}
+    
+    column_defs = {
+        "cloud_resource_id": "VARCHAR(255)",
+        "public_ip": "VARCHAR(50)",
+        "private_ip": "VARCHAR(50)",
+        "instance_type": "VARCHAR(50)",
+        "region": "VARCHAR(100)",
+        "cost_per_hour": "JSON",
+        "last_synced_at": "TIMESTAMP",
+        "drift_status": "VARCHAR(20) DEFAULT 'synced'",
+    }
+
+    with engine.begin() as conn:
+        for column, ddl in column_defs.items():
+            if column not in existing:
+                print(f"Migrating resources: Adding {column}")
+                conn.execute(text(f"ALTER TABLE resources ADD COLUMN {column} {ddl}"))
+
+
+def ensure_project_columns():
+    """Adds missing columns to existing projects table."""
+    inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+    if "projects" not in table_names:
+        return
+
+    existing = {col["name"] for col in inspector.get_columns("projects")}
+
+    column_defs = {
+        "description": "VARCHAR",
+    }
+
+    with engine.begin() as conn:
+        for column, ddl in column_defs.items():
+            if column not in existing:
+                print(f"Migrating projects: Adding {column}")
+                conn.execute(text(f"ALTER TABLE projects ADD COLUMN {column} {ddl}"))
 
 if __name__ == "__main__":
     create_tables()
