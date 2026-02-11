@@ -27,15 +27,4 @@ backend/app/schemas/__pycache__/credential.cpython-311.pyc
 backend/app/schemas/__pycache__/resource.cpython-311.pyc
 backend/app/schemas/__pycache__/user.cpython-311.pyc
 
-backend/__pycache__/main.cpython-311.pyc
-backend/app/__pycache__/worker.cpython-311.pyc
-backend/app/api/__pycache__/deps.cpython-311.pyc
-backend/app/core/__pycache__/celery_app.cpython-311.pyc
-backend/app/core/__pycache__/security.cpython-311.pyc
-backend/app/db/__pycache__/base.cpython-311.pyc
-backend/app/models/__pycache__/credential.cpython-311.pyc
-backend/app/models/__pycache__/resource.cpython-311.pyc
-backend/app/models/__pycache__/user.cpython-311.pyc
-backend/app/schemas/__pycache__/credential.cpython-311.pyc
-backend/app/schemas/__pycache__/resource.cpython-311.pyc
-backend/app/schemas/__pycache__/user.cpython-311.pyc
+node_modules
