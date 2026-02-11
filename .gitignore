@@ -28,3 +28,4 @@ backend/app/schemas/__pycache__/resource.cpython-311.pyc
 backend/app/schemas/__pycache__/user.cpython-311.pyc
 
 node_modules
+.vercel
