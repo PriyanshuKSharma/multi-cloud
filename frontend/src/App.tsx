@@ -21,10 +21,12 @@ import Networks from './pages/resources/Networks';
 import CreateNetwork from './pages/resources/CreateNetwork';
 import Projects from './pages/Projects';
 import Deployments from './pages/Deployments';
+import DeploymentDetail from './pages/DeploymentDetail';
 import Billing from './pages/Billing';
 import CloudAccounts from './pages/CloudAccounts';
 import Activity from './pages/Activity';
 import Blueprints from './pages/Blueprints';
+import CloudConsole from './pages/CloudConsole';
 import Profile from './pages/Profile';
 import HelpPage from './pages/Help';
 import Docs from './pages/Docs';
@@ -101,9 +103,11 @@ function App() {
               {/* Other Routes */}
               <Route path="projects" element={<Projects />} />
               <Route path="deployments" element={<Deployments />} />
+              <Route path="deployments/:id" element={<DeploymentDetail />} />
               <Route path="billing" element={<Billing />} />
               <Route path="accounts" element={<CloudAccounts />} />
               <Route path="activity" element={<Activity />} />
+              <Route path="console" element={<CloudConsole />} />
               <Route path="blueprints" element={<Blueprints />} />
               <Route path="settings" element={<Settings />} />
               <Route path="profile" element={<Profile />} />
