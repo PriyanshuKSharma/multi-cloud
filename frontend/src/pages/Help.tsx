@@ -1,10 +1,21 @@
 import React from 'react';
 import { Book, LifeBuoy, FileCode, Search } from 'lucide-react';
+import PageGuide from '../components/ui/PageGuide';
 
 const HelpPage: React.FC = () => {
     return (
         <div className="p-8 max-w-5xl mx-auto space-y-8">
             <h1 className="text-3xl font-bold text-white mb-6">Help & Support</h1>
+
+            <PageGuide
+                title="About Help & Support"
+                purpose="Help & Support is your entry point for docs, API references, and operational guidance."
+                actions={[
+                    'search knowledge base content',
+                    'open documentation and API resources',
+                    'reach support channels for unresolved issues',
+                ]}
+            />
 
             {/* Search */}
             <div className="relative mb-12">
