@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import api from '../api/axios';
+import api, { API_BASE_URL } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -14,6 +14,44 @@ const loginSchema = z.object({
 });
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
+
+const getErrorDetail = (error: any): string | null => {
+  const detail = error?.response?.data?.detail;
+  if (!detail) {
+    return null;
+  }
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const message = detail
+      .map((item) => (typeof item?.msg === 'string' ? item.msg : ''))
+      .filter(Boolean)
+      .join(', ');
+    return message || null;
+  }
+
+  return null;
+};
+
+const getLoginErrorMessage = (error: any): string => {
+  const backendMessage = getErrorDetail(error);
+  if (backendMessage) {
+    return backendMessage;
+  }
+
+  if (error?.code === 'ERR_NETWORK' || !error?.response) {
+    return `Cannot reach API server (${API_BASE_URL}). Set VITE_API_URL to your deployed backend URL and allow your frontend origin in backend CORS.`;
+  }
+
+  if (error?.response?.status === 404) {
+    return `Login endpoint not found at ${API_BASE_URL}/auth/login. Verify VITE_API_URL and backend deployment.`;
+  }
+
+  return 'Login failed. Please try again.';
+};
 
 const Login: React.FC = () => {
   const { login } = useAuth();
@@ -35,8 +73,8 @@ const Login: React.FC = () => {
       login(response.data.access_token);
       navigate('/');
     } catch (err: any) {
-        setError('root', { 
-            message: 'Invalid email or password' 
+        setError('root', {
+            message: getLoginErrorMessage(err),
         });
         console.error('Login failed', err);
     }

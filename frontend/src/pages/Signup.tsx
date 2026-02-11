@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import api from '../api/axios';
+import api, { API_BASE_URL } from '../api/axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Mail, UserPlus, Sparkles } from 'lucide-react';
@@ -22,6 +22,44 @@ const signupSchema = z.object({
 
 type SignupFormInputs = z.infer<typeof signupSchema>;
 
+const getErrorDetail = (error: any): string | null => {
+  const detail = error?.response?.data?.detail;
+  if (!detail) {
+    return null;
+  }
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const message = detail
+      .map((item) => (typeof item?.msg === 'string' ? item.msg : ''))
+      .filter(Boolean)
+      .join(', ');
+    return message || null;
+  }
+
+  return null;
+};
+
+const getSignupErrorMessage = (error: any): string => {
+  const backendMessage = getErrorDetail(error);
+  if (backendMessage) {
+    return backendMessage;
+  }
+
+  if (error?.code === 'ERR_NETWORK' || !error?.response) {
+    return `Cannot reach API server (${API_BASE_URL}). For Vercel, set VITE_API_URL to your deployed backend URL and enable backend CORS for your frontend domain.`;
+  }
+
+  if (error?.response?.status === 404) {
+    return `Signup endpoint not found at ${API_BASE_URL}/auth/register. Verify VITE_API_URL points to your backend.`;
+  }
+
+  return 'Registration failed. Please try again.';
+};
+
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors, isSubmitting }, setError } = useForm<SignupFormInputs>({
@@ -40,8 +78,8 @@ const Signup: React.FC = () => {
       });
       navigate('/login');
     } catch (err: any) {
-      setError('root', { 
-        message: err.response?.data?.detail || 'Registration failed.' 
+      setError('root', {
+        message: getSignupErrorMessage(err),
       });
     }
   };

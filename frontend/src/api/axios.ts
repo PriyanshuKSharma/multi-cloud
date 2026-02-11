@@ -1,7 +1,15 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
+const configuredApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const isBrowser = typeof window !== 'undefined';
+const isLocalBrowser =
+  isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Local dev -> localhost backend. Hosted frontend -> default to same-origin /api (use platform rewrite/proxy).
+export const API_BASE_URL = configuredApiUrl || (isLocalBrowser ? 'http://localhost:8000' : '/api');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
