@@ -11,6 +11,7 @@ import {
   Cloud,
   Activity,
   FileCode,
+  Terminal,
   Settings,
   ChevronDown,
   ChevronRight,
@@ -84,6 +85,11 @@ const Sidebar: React.FC = () => {
       icon: <Activity className="w-5 h-5" />,
     },
     {
+      name: 'Cloud Console',
+      path: '/console',
+      icon: <Terminal className="w-5 h-5" />,
+    },
+    {
       name: 'Blueprints',
       path: '/blueprints',
       icon: <FileCode className="w-5 h-5" />,
@@ -117,7 +123,7 @@ const Sidebar: React.FC = () => {
             <Cloud className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">CloudOrch</h1>
+            <h1 className="text-lg font-bold text-white">Nebula</h1>
             <p className="text-xs text-gray-500">Multi-Cloud Platform</p>
           </div>
         </div>
