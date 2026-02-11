@@ -98,74 +98,72 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Account Name</label>
-                    <input 
-                      {...register('name', { required: 'Name is required' })} 
-                      className="input-field w-full p-2.5"
-                      placeholder="e.g. Production" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Provider</label>
-                    <select {...register('provider')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
-                        <option value="aws" className="bg-[#1a1b1e]">AWS</option>
-                        <option value="azure" className="bg-[#1a1b1e]">Azure</option>
-                    </select>
-                  </div>
-              </div>
+                     <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Account Name</label>
+                     <input 
+                       {...register('name', { required: 'Name is required' })} 
+                       className="input-field w-full p-2.5"
+                       placeholder="e.g. Production" 
+                     />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Provider</label>
+                     <select {...register('provider')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
+                         <option value="aws" className="bg-[#1a1b1e]">AWS</option>
+                         <option value="azure" className="bg-[#1a1b1e]">Azure</option>
+                         <option value="gcp" className="bg-[#1a1b1e]">GCP</option>
+                     </select>
+                   </div>
+               </div>
 
-              <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/5 space-y-4">
-                  {provider === 'aws' ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Access Key</label>
-                                <input {...register('access_key')} className="input-field w-full p-2.5" placeholder="AKIA..." />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Secret Key</label>
-                                <input {...register('secret_key')} type="password" className="input-field w-full p-2.5" placeholder="••••" />
-                            </div>
-                        </div>
-                      </>
-                  ) : (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Tenant ID</label>
-                                <input {...register('tenant_id')} className="input-field w-full p-2.5" placeholder="0000-..." />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Client ID</label>
-                                <input {...register('client_id')} className="input-field w-full p-2.5" placeholder="0000-..." />
-                            </div>
-                        </div>
-                        <div>
-                             <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Client Secret</label>
-                             <input {...register('client_secret')} type="password" className="input-field w-full p-2.5" placeholder="••••" />
-                        </div>
-                        <div>
-                             <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Subscription ID</label>
-                             <input {...register('subscription_id')} className="input-field w-full p-2.5" placeholder="0000-..." />
-                        </div>
-                      </>
-                  )}
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-blue-400/80 uppercase tracking-widest mb-1 ml-1">Default Region</label>
-                    <select {...register('region')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
-                        {REGIONS[provider as keyof typeof REGIONS]?.map(r => (
-                            <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
-                        ))}
-                    </select>
-                  </div>
-              </div>
+               <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/5 space-y-4">
+                   {provider === 'aws' ? (
+                       <>
+                         <div className="grid grid-cols-2 gap-4">
+                             <div>
+                                 <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Access Key ID</label>
+                                 <input 
+                                   {...register('access_key')} 
+                                   className="input-field w-full p-2.5" 
+                                   placeholder="AKIA..." 
+                                 />
+                             </div>
+                             <div>
+                                 <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Secret Access Key</label>
+                                 <input 
+                                   {...register('secret_key')} 
+                                   type="password" 
+                                   className="input-field w-full p-2.5" 
+                                   placeholder="••••" 
+                                 />
+                             </div>
+                         </div>
+                         <div>
+                             <label className="block text-[10px] font-bold text-blue-400/80 uppercase tracking-widest mb-1 ml-1">Default Region</label>
+                             <select {...register('region')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
+                                 {REGIONS.aws.map(r => (
+                                     <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                                 ))}
+                             </select>
+                         </div>
+                       </>
+                   ) : (
+                       <div className="text-center py-8">
+                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-800/50 mb-3">
+                           <Shield className="w-6 h-6 text-gray-500" />
+                         </div>
+                         <h3 className="text-lg font-medium text-white mb-1">Coming Soon</h3>
+                         <p className="text-sm text-gray-400">
+                           Support for {provider === 'azure' ? 'Microsoft Azure' : 'Google Cloud Platform'} is currently under development.
+                         </p>
+                       </div>
+                   )}
+               </div>
 
               <div className="pt-2">
                 <button 
                   type="submit" 
-                  disabled={loading} 
-                  className="btn-primary w-full py-3.5"
+                  disabled={loading || provider !== 'aws'} 
+                  className={`btn-primary w-full py-3.5 ${provider !== 'aws' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {loading ? 'Verifying...' : 'Save Credentials'}
                 </button>
