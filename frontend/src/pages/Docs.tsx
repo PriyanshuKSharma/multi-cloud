@@ -22,6 +22,8 @@ import {
 
 const Docs: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
+  const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const swaggerUrl = `${apiBaseUrl}/docs`;
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: <Book className="w-4 h-4" /> },
@@ -390,7 +392,7 @@ const Docs: React.FC = () => {
                       <h2 className="text-2xl font-bold text-white mb-2">API Reference</h2>
                       <p className="text-gray-400">RESTful API compliant with OpenAPI 3.0.</p>
                     </div>
-                    <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors text-sm font-medium">
+                    <a href={swaggerUrl} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors text-sm font-medium">
                       <span>Open Swagger UI</span>
                       <ExternalLink className="w-4 h-4" />
                     </a>
