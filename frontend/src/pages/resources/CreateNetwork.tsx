@@ -11,6 +11,28 @@ import {
   Loader,
 } from 'lucide-react';
 
+
+const regions = {
+  aws: [
+    { value: 'us-east-1', label: 'US East (N. Virginia)' },
+    { value: 'us-west-2', label: 'US West (Oregon)' },
+    { value: 'eu-west-1', label: 'EU West (Ireland)' },
+    { value: 'ap-southeast-1', label: 'Asia Pacific (Singapore)' },
+  ],
+  azure: [
+    { value: 'eastus', label: 'East US' },
+    { value: 'westus', label: 'West US' },
+    { value: 'northeurope', label: 'North Europe' },
+    { value: 'southeastasia', label: 'Southeast Asia' },
+  ],
+  gcp: [
+    { value: 'us-central1', label: 'US Central (Iowa)' },
+    { value: 'us-east1', label: 'US East (South Carolina)' },
+    { value: 'europe-west1', label: 'Europe West (Belgium)' },
+    { value: 'asia-southeast1', label: 'Asia Southeast (Singapore)' },
+  ],
+};
+
 interface CreateNetworkForm {
   name: string;
   provider: 'aws' | 'azure' | 'gcp';
@@ -24,7 +46,7 @@ const CreateNetwork: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<CreateNetworkForm>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateNetworkForm>({
     defaultValues: {
       provider: 'aws',
       region: 'us-east-1',
@@ -35,6 +57,12 @@ const CreateNetwork: React.FC = () => {
   });
 
   const selectedProvider = watch('provider');
+
+  // Update region when provider changes
+  React.useEffect(() => {
+    const defaultRegion = regions[selectedProvider][0].value;
+    setValue('region', defaultRegion);
+  }, [selectedProvider, setValue]);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateNetworkForm) => {
@@ -140,10 +168,11 @@ const CreateNetwork: React.FC = () => {
                 {...register('region')}
                 className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
               >
-                <option value="us-east-1">US East (N. Virginia)</option>
-                <option value="us-west-2">US West (Oregon)</option>
-                <option value="eu-west-1">EU West (Ireland)</option>
-                <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                {regions[selectedProvider]?.map((region) => (
+                  <option key={region.value} value={region.value}>
+                    {region.label}
+                  </option>
+                ))}
               </select>
             </div>
 
