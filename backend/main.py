@@ -6,6 +6,7 @@ from app.db.migrate import ensure_user_columns
 
 from app.models import user, resource, credential
 from app.models import resource_inventory  # Import new models
+from app.models import blueprint
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -29,12 +30,13 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-from app.api.endpoints import resources, credentials, dashboard, inventory, billing
+from app.api.endpoints import resources, credentials, dashboard, inventory, billing, blueprints
 app.include_router(resources.router, prefix="/resources", tags=["resources"])
 app.include_router(credentials.router, prefix="/credentials", tags=["credentials"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(inventory.router, prefix="/inventory", tags=["inventory"])
 app.include_router(billing.router, prefix="/billing", tags=["billing"])
+app.include_router(blueprints.router, prefix="/blueprints", tags=["blueprints"])
 
 @app.get("/")
 def read_root():
