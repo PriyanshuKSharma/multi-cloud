@@ -101,8 +101,8 @@ const BillingPage: React.FC = () => {
       {/* Cost by Provider */}
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-white mb-6">Cost by Provider</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
             <BarChart data={billing?.cost_by_provider || []}>
               <XAxis dataKey="provider" stroke="#6b7280" />
               <YAxis stroke="#6b7280" />
@@ -122,8 +122,8 @@ const BillingPage: React.FC = () => {
       {/* Cost Trend */}
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-white mb-6">Cost Trend (Last 30 Days)</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
             <LineChart data={billing?.cost_trend || []}>
               <XAxis dataKey="date" stroke="#6b7280" />
               <YAxis stroke="#6b7280" />
