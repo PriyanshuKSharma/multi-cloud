@@ -1,10 +1,41 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Onboarding from './pages/Onboarding';
+import Settings from './pages/Settings';
 
-import Dashboard from './pages/Dashboard';
+// New Layout
+import AppLayout from './components/layout/AppLayout';
+
+// New Pages
+import DashboardNew from './pages/DashboardNew';
+import VirtualMachines from './pages/resources/VirtualMachines';
+import VMDetail from './pages/resources/VMDetail';
+import CreateVM from './pages/resources/CreateVM';
+import Storage from './pages/resources/Storage';
+import CreateStorage from './pages/resources/CreateStorage';
+import Networks from './pages/resources/Networks';
+import CreateNetwork from './pages/resources/CreateNetwork';
+import Projects from './pages/Projects';
+import Deployments from './pages/Deployments';
+import Billing from './pages/Billing';
+import CloudAccounts from './pages/CloudAccounts';
+import Activity from './pages/Activity';
+import Blueprints from './pages/Blueprints';
+
+// Create Query Client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5000,
+    },
+  },
+});
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
@@ -28,40 +59,55 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
-// Import Layout
-import Layout from './components/Layout';
-
-import Onboarding from './pages/Onboarding';
-import Settings from './pages/Settings';
-import ResourcesPage from './pages/ResourcesPage';
-
 function App() {
   return (
-    <Router>
-
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/onboarding" element={
-             <ProtectedRoute>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AuthProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Onboarding */}
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
                 <Onboarding />
-             </ProtectedRoute>
-          } />
-          
-          {/* Protected Routes wrapped in Layout */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Dashboard />} />
-            <Route path="resources" element={<ResourcesPage />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
-    </Router>
+              </ProtectedRoute>
+            } />
+            
+            {/* Protected Routes with New Layout */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<DashboardNew />} />
+              
+              {/* Resources */}
+              <Route path="resources">
+                <Route path="vms" element={<VirtualMachines />} />
+                <Route path="vms/:id" element={<VMDetail />} />
+                <Route path="vms/create" element={<CreateVM />} />
+                <Route path="storage" element={<Storage />} />
+                <Route path="storage/create" element={<CreateStorage />} />
+                <Route path="networks" element={<Networks />} />
+                <Route path="networks/create" element={<CreateNetwork />} />
+              </Route>
+              
+              {/* Other Routes */}
+              <Route path="projects" element={<Projects />} />
+              <Route path="deployments" element={<Deployments />} />
+              <Route path="billing" element={<Billing />} />
+              <Route path="accounts" element={<CloudAccounts />} />
+              <Route path="activity" element={<Activity />} />
+              <Route path="blueprints" element={<Blueprints />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
