@@ -4,6 +4,7 @@ from app.api.endpoints import auth
 from app.db.base import engine, Base
 
 from app.models import user, resource, credential
+from app.models import resource_inventory  # Import new models
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -26,9 +27,12 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-from app.api.endpoints import resources, credentials
+from app.api.endpoints import resources, credentials, dashboard, inventory, billing
 app.include_router(resources.router, prefix="/resources", tags=["resources"])
 app.include_router(credentials.router, prefix="/credentials", tags=["credentials"])
+app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(inventory.router, prefix="/inventory", tags=["inventory"])
+app.include_router(billing.router, prefix="/billing", tags=["billing"])
 
 @app.get("/")
 def read_root():
