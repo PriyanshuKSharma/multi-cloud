@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
+import PageGuide from '../components/ui/PageGuide';
 import {
   Cloud,
   Plus,
@@ -57,6 +58,16 @@ const CloudAccountsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <PageGuide
+        title="About Cloud Accounts"
+        purpose="Cloud accounts store and validate provider credentials used for inventory sync and provisioning."
+        actions={[
+          'review connected AWS, Azure, and GCP accounts',
+          'check account status and last sync recency',
+          'add or remove provider credentials',
+        ]}
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
