@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
+import PageGuide from '../../components/ui/PageGuide';
 import {
   Server,
   Plus,
@@ -113,6 +114,16 @@ const VirtualMachinesPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      <PageGuide
+        title="About Virtual Machines"
+        purpose="Virtual Machines lists compute instances across all connected providers with current operational state."
+        actions={[
+          'filter by provider, region, and status',
+          'inspect key metadata such as IPs, tags, and cost',
+          'open instance detail pages and start new VM provisioning',
+        ]}
+      />
 
       {/* Filters */}
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
