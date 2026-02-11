@@ -25,6 +25,8 @@ import Billing from './pages/Billing';
 import CloudAccounts from './pages/CloudAccounts';
 import Activity from './pages/Activity';
 import Blueprints from './pages/Blueprints';
+import Profile from './pages/Profile';
+import HelpPage from './pages/Help';
 
 // Create Query Client
 const queryClient = new QueryClient({
@@ -103,6 +105,8 @@ function App() {
               <Route path="activity" element={<Activity />} />
               <Route path="blueprints" element={<Blueprints />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="help" element={<HelpPage />} />
             </Route>
           </Routes>
         </AuthProvider>
