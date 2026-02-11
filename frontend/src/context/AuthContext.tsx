@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api/axios';
 
 interface AuthContextType {
   user: any;
@@ -16,17 +17,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-      // Optionally fetch user profile here
-    }
-    setIsLoading(false);
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // Set default header if not already set by interceptor (axios usually handles this if configured)
+          // But here we rely on the interceptor to pick up the token from localStorage
+          const response = await api.get('/auth/me');
+          setUser(response.data);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Failed to fetch user profile', error);
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        }
+      }
+      setIsLoading(false);
+    };
+    initAuth();
   }, []);
 
-  const login = (token: string) => {
+  const login = async (token: string) => {
     localStorage.setItem('token', token);
     setIsAuthenticated(true);
+    try {
+        const response = await api.get('/auth/me');
+        setUser(response.data);
+    } catch (error) {
+        console.error('Failed to fetch user profile after login', error);
+    }
   };
 
   const logout = () => {
