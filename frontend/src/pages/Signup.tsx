@@ -8,9 +8,13 @@ import { motion } from 'framer-motion';
 import { Lock, Mail, UserPlus, Sparkles } from 'lucide-react';
 
 const signupSchema = z.object({
+  full_name: z.string().min(2, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
+  organization: z.string().optional(),
+  job_profile: z.string().optional(),
+  phone_number: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -29,6 +33,10 @@ const Signup: React.FC = () => {
       await api.post('/auth/register', {
         email: data.email,
         password: data.password,
+        full_name: data.full_name,
+        job_profile: data.job_profile,
+        organization: data.organization,
+        phone_number: data.phone_number,
       });
       navigate('/login');
     } catch (err: any) {
@@ -48,7 +56,7 @@ const Signup: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md glass-panel rounded-2xl p-8 relative z-10"
+        className="w-full max-w-md glass-panel rounded-2xl p-8 relative z-10 my-8"
       >
         <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-4 shadow-lg shadow-emerald-500/30">
@@ -62,6 +70,19 @@ const Signup: React.FC = () => {
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+            <div className="relative group">
+                <UserPlus className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
+                <input 
+                {...register('full_name')} 
+                className="input-field w-full pl-10 py-2.5 focus:ring-emerald-500"
+                placeholder="John Doe"
+                />
+            </div>
+            {errors.full_name && <p className="text-red-400 text-xs ml-1">{errors.full_name.message}</p>}
+          </div>
+
+          <div className="space-y-1">
             <label className="text-sm font-medium text-gray-300 ml-1">Email</label>
             <div className="relative group">
                 <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-500 group-focus-within:text-emerald-400 transition-colors" />
@@ -72,6 +93,34 @@ const Signup: React.FC = () => {
                 />
             </div>
             {errors.email && <p className="text-red-400 text-xs ml-1">{errors.email.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300 ml-1">Job Profile</label>
+              <input 
+              {...register('job_profile')} 
+              className="input-field w-full px-4 py-2.5 focus:ring-emerald-500"
+              placeholder="DevOps Engineer"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300 ml-1">Organization</label>
+              <input 
+              {...register('organization')} 
+              className="input-field w-full px-4 py-2.5 focus:ring-emerald-500"
+              placeholder="Cloud Corp"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300 ml-1">Phone Number</label>
+            <input 
+            {...register('phone_number')} 
+            className="input-field w-full px-4 py-2.5 focus:ring-emerald-500"
+            placeholder="+1 (555) 000-0000"
+            />
           </div>
 
           <div className="space-y-1">
