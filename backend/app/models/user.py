@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -10,5 +11,12 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+    
+    full_name = Column(String, index=True)
+    job_profile = Column(String)
+    organization = Column(String)
+    phone_number = Column(String)
+    two_factor_enabled = Column(Boolean, default=False)
+    last_password_change = Column(DateTime, nullable=True)
     
     projects = relationship("Project", back_populates="owner")
