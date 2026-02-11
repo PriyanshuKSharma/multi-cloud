@@ -4,6 +4,7 @@ import axios from '../api/axios';
 import MetricCard from '../components/ui/MetricCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import ProviderIcon from '../components/ui/ProviderIcon';
+import PageGuide from '../components/ui/PageGuide';
 import {
   Server,
   Database,
@@ -113,6 +114,16 @@ const DashboardPage: React.FC = () => {
           <span className="text-sm font-medium">Refresh</span>
         </button>
       </div>
+
+      <PageGuide
+        title="About Dashboard"
+        purpose="This dashboard gives a real-time summary of your multi-cloud estate and platform health."
+        actions={[
+          'monitor VM, storage, network, and cost KPIs',
+          'track provider health and recent activity',
+          'refresh data to validate current backend sync status',
+        ]}
+      />
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
