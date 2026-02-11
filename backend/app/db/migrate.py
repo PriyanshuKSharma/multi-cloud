@@ -8,6 +8,7 @@ from app.db.base import engine, Base
 from app.models.user import User
 from app.models.credential import CloudCredential
 from app.models.resource import Project, Resource
+from app.models.blueprint import Blueprint
 from app.models.resource_inventory import ResourceInventory, CostData, ProviderHealth, TerraformState
 
 def create_tables():
