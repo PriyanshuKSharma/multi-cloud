@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
+import PageGuide from '../../components/ui/PageGuide';
 import {
   Database,
   ArrowLeft,
@@ -105,6 +106,16 @@ const CreateStorage: React.FC = () => {
         </h1>
         <p className="text-gray-400 mt-2">Provision a new object storage bucket</p>
       </div>
+
+      <PageGuide
+        title="About Create Storage"
+        purpose="This form provisions object storage buckets across AWS, Azure, and GCP."
+        actions={[
+          'pick provider and region',
+          'set access, versioning, and encryption options',
+          'create a storage resource that appears in inventory',
+        ]}
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Provider Selection */}
