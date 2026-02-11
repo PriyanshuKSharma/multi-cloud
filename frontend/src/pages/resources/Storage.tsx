@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   RefreshCw,
+  Terminal,
   HardDrive,
   Trash2,
   Download,
@@ -24,6 +25,7 @@ interface StorageResource {
   provider: string;
   region: string;
   status: string;
+  source: 'inventory' | 'provisioning';
   metadata: {
     bucket_type?: string;
     size_gb?: number;
@@ -38,7 +40,24 @@ interface StorageResource {
   last_synced: string;
 }
 
-const normalizeStorage = (item: any): StorageResource => {
+interface ProvisionedResource {
+  id: number;
+  name: string;
+  provider: string;
+  type: string;
+  status: string;
+  configuration?: Record<string, unknown>;
+  created_at: string;
+}
+
+interface StorageObject {
+  key: string;
+  size: number;
+  etag?: string;
+  last_modified?: string;
+}
+
+const normalizeInventoryStorage = (item: any): StorageResource => {
   const metadata = item.metadata ?? {};
   
   return {
@@ -48,6 +67,7 @@ const normalizeStorage = (item: any): StorageResource => {
     provider: String(item.provider ?? '').toLowerCase(),
     region: item.region ?? 'unknown',
     status: item.status ?? 'unknown',
+    source: 'inventory',
     metadata: {
       bucket_type: metadata.bucket_type ?? item.bucket_type,
       size_gb: metadata.size_gb ?? item.size_gb,
@@ -63,12 +83,55 @@ const normalizeStorage = (item: any): StorageResource => {
   };
 };
 
+const normalizeProvisionedStorage = (item: ProvisionedResource): StorageResource => {
+  const config = item.configuration ?? {};
+  const regionValue = config.region ?? config.location;
+  const encryptionEnabled = config.encryption_enabled ?? config.encryption;
+  const versioningEnabled = config.versioning_enabled;
+  const publicAccess = config.public_access;
+
+  return {
+    id: item.id,
+    resource_id: String(item.id),
+    resource_name: item.name || 'Unnamed Storage',
+    provider: String(item.provider ?? '').toLowerCase(),
+    region: typeof regionValue === 'string' ? regionValue : 'unknown',
+    status: item.status || 'pending',
+    source: 'provisioning',
+    metadata: {
+      bucket_type: 'object-storage',
+      size_gb: undefined,
+      object_count: undefined,
+      storage_class: 'Provisioning',
+      versioning_enabled: typeof versioningEnabled === 'boolean' ? versioningEnabled : undefined,
+      public_access: typeof publicAccess === 'boolean' ? publicAccess : undefined,
+      encryption: typeof encryptionEnabled === 'boolean'
+        ? (encryptionEnabled ? 'enabled' : 'disabled')
+        : undefined,
+      tags: undefined,
+    },
+    created_at: item.created_at ?? '',
+    last_synced: item.created_at ?? '',
+  };
+};
+
+const normalizeStorageStatus = (status: string): StorageResource['status'] => {
+  if (!status) return 'unknown';
+  return status.toLowerCase();
+};
+
 const StoragePage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [filters, setFilters] = React.useState({
     provider: '',
     region: '',
     search: '',
   });
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [actionMessage, setActionMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [uploadTarget, setUploadTarget] = React.useState<StorageResource | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const { data: storage, isLoading, error, refetch } = useQuery<StorageResource[]>({
     queryKey: ['inventory', 'storage', filters],
@@ -77,17 +140,203 @@ const StoragePage: React.FC = () => {
       if (filters.provider) params.append('provider', filters.provider);
       if (filters.region) params.append('region', filters.region);
       
-      const response = await axios.get(`/inventory/storage?${params.toString()}`);
-      const payload = response.data;
-      const items = Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : [];
-      return items.map(normalizeStorage);
+      const [inventoryResponse, resourcesResponse] = await Promise.all([
+        axios.get(`/inventory/storage?${params.toString()}`),
+        axios.get('/resources/?limit=500'),
+      ]);
+
+      const inventoryPayload = inventoryResponse.data;
+      const inventoryItems = (
+        Array.isArray(inventoryPayload)
+          ? inventoryPayload
+          : Array.isArray(inventoryPayload?.items)
+            ? inventoryPayload.items
+            : []
+      ).map(normalizeInventoryStorage);
+
+      const resourcesPayload = resourcesResponse.data;
+      const provisionedResources = (
+        Array.isArray(resourcesPayload)
+          ? resourcesPayload
+          : Array.isArray(resourcesPayload?.items)
+            ? resourcesPayload.items
+            : []
+      ) as ProvisionedResource[];
+
+      const provisionedItems = provisionedResources
+        .filter((item) => String(item.type).toLowerCase() === 'storage')
+        .map(normalizeProvisionedStorage)
+        .filter((item: StorageResource) => (filters.provider ? item.provider === filters.provider : true))
+        .filter((item: StorageResource) => (filters.region ? item.region === filters.region : true))
+        .map((item: StorageResource) => ({ ...item, status: normalizeStorageStatus(item.status) }));
+
+      const mergedMap = new Map<string, StorageResource>();
+      for (const item of inventoryItems) {
+        const key = `${item.provider}:${item.resource_name}`.toLowerCase();
+        mergedMap.set(key, item);
+      }
+      for (const item of provisionedItems) {
+        const key = `${item.provider}:${item.resource_name}`.toLowerCase();
+        if (!mergedMap.has(key)) {
+          mergedMap.set(key, item);
+        }
+      }
+
+      return [...mergedMap.values()].sort((a, b) => {
+        const aDate = Date.parse(a.last_synced || a.created_at || '') || 0;
+        const bDate = Date.parse(b.last_synced || b.created_at || '') || 0;
+        return bDate - aDate;
+      });
     },
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   const filteredStorage = (storage ?? []).filter((item) =>
     item.resource_name.toLowerCase().includes(filters.search.toLowerCase())
   );
+
+  const deleteMutation = useMutation({
+    mutationFn: async (resourceId: number) => {
+      await axios.delete(`/resources/${resourceId}`);
+    },
+    onMutate: (resourceId) => {
+      setDeletingId(resourceId);
+      setDeleteError(null);
+      setActionMessage(null);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'storage'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
+    },
+    onError: (error: any) => {
+      const detail = error?.response?.data?.detail;
+      setDeleteError(typeof detail === 'string' ? detail : 'Failed to delete storage resource record.');
+    },
+    onSettled: () => {
+      setDeletingId(null);
+    },
+  });
+
+  const listStorageObjects = async (resourceId: number): Promise<StorageObject[]> => {
+    const response = await axios.get(`/resources/${resourceId}/storage/objects`, {
+      params: { max_keys: 200 },
+    });
+    const payload = response.data;
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    return items as StorageObject[];
+  };
+
+  const handleDownload = async (item: StorageResource) => {
+    setDeleteError(null);
+    setActionMessage(null);
+
+    if (item.source !== 'provisioning') {
+      setActionMessage({
+        type: 'error',
+        text: 'Download is available for provisioned storage resources only.',
+      });
+      return;
+    }
+
+    try {
+      const objects = await listStorageObjects(item.id);
+      if (!objects.length) {
+        setActionMessage({
+          type: 'error',
+          text: `No objects found in bucket "${item.resource_name}". Upload a file first.`,
+        });
+        return;
+      }
+
+      const sampleList = objects.slice(0, 10).map((obj, index) => `${index + 1}. ${obj.key}`).join('\n');
+      const defaultKey = objects[0].key;
+      const selectedKey = window.prompt(
+        `Enter object key to download from "${item.resource_name}".\nAvailable objects:\n${sampleList}`,
+        defaultKey
+      );
+      if (!selectedKey) return;
+
+      const response = await axios.get(`/resources/${item.id}/storage/download`, {
+        params: { key: selectedKey },
+        responseType: 'blob',
+      });
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = selectedKey.split('/').pop() || 'download';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      setActionMessage({
+        type: 'success',
+        text: `Downloaded "${selectedKey}" from "${item.resource_name}".`,
+      });
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setActionMessage({
+        type: 'error',
+        text: typeof detail === 'string' ? detail : 'Failed to download object from bucket.',
+      });
+    }
+  };
+
+  const handleUploadClick = (item: StorageResource) => {
+    setDeleteError(null);
+    setActionMessage(null);
+    if (item.source !== 'provisioning') {
+      setActionMessage({
+        type: 'error',
+        text: 'Upload is available for provisioned storage resources only.',
+      });
+      return;
+    }
+    setUploadTarget(item);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !uploadTarget) return;
+
+    const suggestedKey = file.name;
+    const selectedKey = window.prompt(
+      `Enter object key for "${uploadTarget.resource_name}"`,
+      suggestedKey
+    );
+    if (!selectedKey) {
+      event.target.value = '';
+      setUploadTarget(null);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('key', selectedKey);
+
+    try {
+      await axios.post(`/resources/${uploadTarget.id}/storage/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setActionMessage({
+        type: 'success',
+        text: `Uploaded "${selectedKey}" to "${uploadTarget.resource_name}".`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'storage'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setActionMessage({
+        type: 'error',
+        text: typeof detail === 'string' ? detail : 'Failed to upload object to bucket.',
+      });
+    } finally {
+      event.target.value = '';
+      setUploadTarget(null);
+    }
+  };
 
   const formatSize = (sizeGb?: number) => {
     if (!sizeGb) return 'N/A';
@@ -108,16 +357,23 @@ const StoragePage: React.FC = () => {
           <p className="text-gray-400 mt-1">Manage your multi-cloud storage buckets and volumes</p>
         </div>
         <div className="flex items-center space-x-3">
+          <Link
+            to="/console"
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all duration-200"
+          >
+            <Terminal className="w-4 h-4" />
+            <span className="text-sm font-medium">Open Console</span>
+          </Link>
           <button
             onClick={() => refetch()}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all duration-200"
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all duration-200"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             <span className="text-sm font-medium">Refresh</span>
           </button>
           <Link
             to="/resources/storage/create"
-            className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all duration-200"
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all duration-200"
           >
             <Plus className="w-4 h-4" />
             <span className="text-sm font-medium">Create Storage</span>
@@ -134,6 +390,24 @@ const StoragePage: React.FC = () => {
           'create new storage resources from this page',
         ]}
       />
+
+      {deleteError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {deleteError}
+        </div>
+      )}
+
+      {actionMessage && (
+        <div
+          className={`rounded-xl px-4 py-3 text-sm border ${
+            actionMessage.type === 'success'
+              ? 'border-green-500/30 bg-green-500/10 text-green-300'
+              : 'border-red-500/30 bg-red-500/10 text-red-300'
+          }`}
+        >
+          {actionMessage.text}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
@@ -206,13 +480,24 @@ const StoragePage: React.FC = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3 mb-2">
-                      <Link
-                        to={`/resources/storage/${item.id}`}
-                        className="text-lg font-semibold text-white hover:text-purple-400 transition-colors truncate"
-                      >
-                        {item.resource_name}
-                      </Link>
+                      {item.source === 'provisioning' ? (
+                        <Link
+                          to={`/deployments/${item.id}`}
+                          className="text-lg font-semibold text-white hover:text-purple-400 transition-colors truncate"
+                        >
+                          {item.resource_name}
+                        </Link>
+                      ) : (
+                        <span className="text-lg font-semibold text-white truncate">
+                          {item.resource_name}
+                        </span>
+                      )}
                       <StatusBadge status={item.status as any} size="sm" />
+                      {item.source === 'provisioning' && (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+                          Provisioning
+                        </span>
+                      )}
                     </div>
                     
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
@@ -266,19 +551,77 @@ const StoragePage: React.FC = () => {
                 </div>
               )}
 
+              {item.source === 'provisioning' && (
+                <p className="text-xs text-cyan-300/80 mb-4">
+                  Created from provisioning jobs. Click the name to view deployment logs.
+                </p>
+              )}
+
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-xs text-gray-300 transition-colors">
-                  <Download className="w-3 h-3" />
-                  <span>Download</span>
-                </button>
-                <button className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-xs text-gray-300 transition-colors">
-                  <Upload className="w-3 h-3" />
-                  <span>Upload</span>
-                </button>
-                <button className="flex items-center space-x-1 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-xs text-red-400 transition-colors">
-                  <Trash2 className="w-3 h-3" />
-                  <span>Delete</span>
-                </button>
+                {item.source === 'provisioning' ? (
+                  <>
+                    <button
+                      onClick={() => handleDownload(item)}
+                      className="cursor-pointer flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-xs text-gray-300 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download</span>
+                    </button>
+                    <button
+                      onClick={() => handleUploadClick(item)}
+                      className="cursor-pointer flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-xs text-gray-300 transition-colors"
+                    >
+                      <Upload className="w-3 h-3" />
+                      <span>Upload</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      disabled
+                      className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 rounded-lg text-xs text-gray-500 cursor-not-allowed"
+                      title="Download is available for provisioned resources"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download</span>
+                    </button>
+                    <button
+                      disabled
+                      className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 rounded-lg text-xs text-gray-500 cursor-not-allowed"
+                      title="Upload is available for provisioned resources"
+                    >
+                      <Upload className="w-3 h-3" />
+                      <span>Upload</span>
+                    </button>
+                  </>
+                )}
+                {item.source === 'provisioning' ? (
+                  <button
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Delete failed/provisioned record "${item.resource_name}"? This removes it from deployment/resource history.`
+                        )
+                      ) {
+                        deleteMutation.mutate(item.id);
+                      }
+                    }}
+                    disabled={deletingId === item.id}
+                    className="cursor-pointer flex items-center space-x-1 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-xs text-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>{deletingId === item.id ? 'Deleting...' : 'Delete'}</span>
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 rounded-lg text-xs text-gray-500 cursor-not-allowed"
+                    title="Managed inventory resources are deleted from provider consoles"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Delete</span>
+                  </button>
+                )}
               </div>
             </motion.div>
           ))}
@@ -320,6 +663,13 @@ const StoragePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
     </div>
   );
 };
