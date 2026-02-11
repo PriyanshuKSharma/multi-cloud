@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 import MetricCard from '../components/ui/MetricCard';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -10,12 +11,12 @@ import {
   Database,
   DollarSign,
   Layers,
-  TrendingUp,
   Activity,
   RefreshCw,
+  Terminal,
   AlertCircle,
 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
 
 interface DashboardStats {
@@ -99,20 +100,29 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 mt-1">Multi-cloud resource overview and insights</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-gray-400 mt-1 text-sm md:text-base">Multi-cloud resource overview and insights</p>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/20 transition-all duration-200"
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          <span className="text-sm font-medium">Refresh</span>
-        </button>
+        <div className="flex items-center space-x-3 w-full md:w-auto">
+          <Link
+            to="/console"
+            className="flex-1 md:flex-none justify-center cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all duration-200"
+          >
+            <Terminal className="w-4 h-4" />
+            <span className="text-sm font-medium">Cloud Console</span>
+          </Link>
+          <button
+            onClick={() => refetch()}
+            className="flex-1 md:flex-none justify-center cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/20 transition-all duration-200"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="text-sm font-medium">Refresh</span>
+          </button>
+        </div>
       </div>
 
       <PageGuide
@@ -126,7 +136,7 @@ const DashboardPage: React.FC = () => {
       />
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <MetricCard
           title="Total Resources"
           value={stats?.total_resources || 0}
@@ -162,7 +172,7 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
         {/* Provider Distribution */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -175,7 +185,7 @@ const DashboardPage: React.FC = () => {
               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="h-64">
+            <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -183,7 +193,7 @@ const DashboardPage: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ provider, count }) => `${provider.toUpperCase()}: ${count}`}
+                    label={(entry: any) => `${String(entry?.provider || '').toUpperCase()}: ${entry?.count ?? 0}`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="count"
@@ -227,7 +237,7 @@ const DashboardPage: React.FC = () => {
               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="h-64">
+            <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats?.cost_by_provider || []}>
                   <XAxis dataKey="provider" stroke="#6b7280" />
@@ -248,7 +258,7 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Provider Health & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
         {/* Provider Health */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
