@@ -40,20 +40,30 @@ class CloudSyncService:
                 client_id=data['client_id'],
                 client_secret=data['client_secret']
             )
-            client = ComputeManagementClient(credential, data['subscription_id'])
-            # Simple count of all VMs in all resource groups
-            # Note: This iterates pages, for MVP we just take strict list
-            vms = list(client.virtual_machines.list_all())
-            return len(vms)
+            
+            # VM Count
+            compute_client = ComputeManagementClient(credential, data['subscription_id'])
+            vms = list(compute_client.virtual_machines.list_all())
+            vm_count = len(vms)
+            
+            # Storage Count (Simplified: counting storage accounts for now)
+            # In a full impl, we'd use StorageManagementClient to count containers/blobs
+            from azure.mgmt.storage import StorageManagementClient
+            storage_client = StorageManagementClient(credential, data['subscription_id'])
+            accounts = list(storage_client.storage_accounts.list())
+            storage_count = len(accounts)
+            
+            return {
+                "compute": vm_count,
+                "storage": storage_count
+            }
         except Exception as e:
              print(f"Azure Sync Error: {e}")
-             return 0
+             return {"compute": 0, "storage": 0}
 
     def get_gcp_counts(self, cred: CloudCredential):
         # Placeholder for GCP implementation
-        return 0
-
-        return stats
+        return {"compute": 0, "storage": 0}
 
     def get_aggregate_stats(self):
         creds = self.db.query(CloudCredential).filter(CloudCredential.user_id == self.user_id).all()
@@ -65,56 +75,60 @@ class CloudSyncService:
             "gcp_count": 0,
             "details": [],
             "cost_by_provider": [],
-            "cost_by_service": []
+            "cost_by_service": [
+                {"name": "Compute", "value": 0.0},
+                {"name": "Storage", "value": 0.0}
+            ]
         }
 
         # Costs per instance type (Simulated)
-        COST_AWS = 28.0
-        COST_AZURE = 32.0
-        COST_GCP = 24.0
+        COSTS = {
+            "aws": {"compute": 28.0, "storage": 5.0},
+            "azure": {"compute": 32.0, "storage": 7.0},
+            "gcp": {"compute": 24.0, "storage": 4.0}
+        }
 
         for cred in creds:
-            count = 0
-            cost = 0.0
-            provider_name = "Unknown"
+            counts = {"compute": 0, "storage": 0}
+            provider_name = cred.provider.upper()
 
             if cred.provider == 'aws':
+                # AWS currently only returns computation count in get_aws_counts, 
+                # let's adapt it to return a dict for consistency
                 count = self.get_aws_counts(cred)
+                counts["compute"] = count
                 stats["aws_count"] += count
-                cost = count * COST_AWS
-                provider_name = "AWS"
             elif cred.provider == 'azure':
-                count = self.get_azure_counts(cred)
-                stats["azure_count"] += count
-                cost = count * COST_AZURE
-                provider_name = "Azure"
+                counts = self.get_azure_counts(cred)
+                stats["azure_count"] += counts["compute"]
             elif cred.provider == 'gcp':
-                count = self.get_gcp_counts(cred)
-                stats["gcp_count"] += count
-                cost = count * COST_GCP
-                provider_name = "GCP"
+                counts = self.get_gcp_counts(cred)
+                stats["gcp_count"] += counts["compute"]
             
-            stats["total_instances"] += count
+            stats["total_instances"] += counts["compute"]
             
+            # Calculate costs
+            p_costs = COSTS.get(cred.provider, {"compute": 0, "storage": 0})
+            compute_cost = counts["compute"] * p_costs["compute"]
+            storage_cost = counts["storage"] * p_costs["storage"]
+            total_cred_cost = compute_cost + storage_cost
+
             # Aggregate cost by provider
             existing = next((item for item in stats["cost_by_provider"] if item["name"] == provider_name), None)
             if existing:
-                existing["cost"] += cost
+                existing["cost"] += total_cred_cost
             else:
-                stats["cost_by_provider"].append({"name": provider_name, "cost": cost})
+                stats["cost_by_provider"].append({"name": provider_name, "cost": total_cred_cost})
+
+            # Aggregate cost by service
+            stats["cost_by_service"][0]["value"] += compute_cost
+            stats["cost_by_service"][1]["value"] += storage_cost
 
             stats["details"].append({
                 "provider": cred.provider,
                 "name": cred.name,
-                "active_instances": count
+                "active_instances": counts["compute"],
+                "active_storage": counts["storage"]
             })
-            
-        # Mock Service split (Compute vs Storage)
-        # Assuming 80% is Compute, 20% Storage for now until we have storage sync
-        total_estimated_cost = sum(item['cost'] for item in stats['cost_by_provider'])
-        stats["cost_by_service"] = [
-            {"name": "Compute", "value": total_estimated_cost * 0.8},
-            {"name": "Storage", "value": total_estimated_cost * 0.2}
-        ]
             
         return stats
