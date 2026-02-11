@@ -9,7 +9,6 @@ import {
   Server,
   Plus,
   Search,
-  Filter,
   MoreVertical,
   Play,
   Square,
