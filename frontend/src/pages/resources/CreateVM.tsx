@@ -11,12 +11,12 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface VMConfig {
   name: string;
   provider: 'aws' | 'azure' | 'gcp';
   type: 'vm';
+  project_id: number;
   configuration: {
     instance_type: string;
     ami?: string;
@@ -36,6 +36,7 @@ const CreateVMPage: React.FC = () => {
     name: '',
     provider: 'aws',
     type: 'vm',
+    project_id: 0,
     configuration: {
       instance_type: 't3.medium',
       region: 'us-east-1',
@@ -49,6 +50,8 @@ const CreateVMPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', 'vms'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
       navigate('/resources/vms');
     },
   });
@@ -86,7 +89,7 @@ const CreateVMPage: React.FC = () => {
   };
 
   const regions = {
-    aws: ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'],
+    aws: ['us-east-1', 'us-west-2', 'ap-south-1', 'eu-west-1', 'ap-southeast-1'],
     azure: ['eastus', 'westus', 'westeurope', 'southeastasia'],
     gcp: ['us-central1', 'us-west1', 'europe-west1', 'asia-southeast1'],
   };
