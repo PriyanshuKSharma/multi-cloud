@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
-import { X, Shield, Key } from 'lucide-react';
+import { X, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddCredentialModalProps {
@@ -10,28 +10,66 @@ interface AddCredentialModalProps {
   onSuccess: () => void;
 }
 
+const REGIONS = {
+    aws: [
+      { id: 'us-east-1', name: 'US East (N. Virginia)' },
+      { id: 'us-west-2', name: 'US West (Oregon)' },
+      { id: 'eu-west-1', name: 'Europe (Ireland)' },
+      { id: 'ap-south-1', name: 'Asia Pacific (Mumbai)' },
+      { id: 'ap-southeast-1', name: 'Asia Pacific (Singapore)' },
+    ],
+    azure: [
+      { id: 'eastus', name: 'East US' },
+      { id: 'westus2', name: 'West US 2' },
+      { id: 'westeurope', name: 'West Europe' },
+      { id: 'centralindia', name: 'Central India' },
+      { id: 'southeastasia', name: 'Southeast Asia' },
+    ]
+};
+
 const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, watch } = useForm<any>({
+      defaultValues: {
+          provider: 'aws',
+          region: 'us-east-1'
+      }
+  });
+
+  const provider = watch('provider');
 
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
-      await api.post('/credentials/', {
-        provider: 'aws',
-        name: data.name || 'AWS Account',
-        data: {
-          access_key: data.access_key,
-          secret_key: data.secret_key,
-          region: data.region || 'us-east-1'
-        }
-      });
+      const payload: any = {
+        provider: data.provider,
+        name: data.name,
+        data: {}
+      };
+
+      if (data.provider === 'aws') {
+          payload.data = {
+              access_key: data.access_key,
+              secret_key: data.secret_key,
+              region: data.region
+          };
+      } else if (data.provider === 'azure') {
+          payload.data = {
+              tenant_id: data.tenant_id,
+              client_id: data.client_id,
+              client_secret: data.client_secret,
+              subscription_id: data.subscription_id,
+              region: data.region
+          };
+      }
+
+      await api.post('/credentials/', payload);
       reset();
       onSuccess();
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Failed to save AWS credentials');
+      alert(`Failed to save ${data.provider.toUpperCase()} credentials`);
     } finally {
       setLoading(false);
     }
@@ -42,76 +80,95 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 0 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 0 }}
-            className="w-full max-w-md glass-panel p-8 rounded-3xl shadow-2xl relative"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="w-full max-w-lg glass-panel p-8 rounded-3xl shadow-2xl relative"
           >
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white flex items-center">
                 <Shield className="w-5 h-5 mr-2 text-blue-400" />
-                Add AWS Credential
+                Add Cloud Credential
               </h2>
               <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Display Name</label>
-                <input 
-                  {...register('name', { required: 'Name is required' })} 
-                  className={`input-field w-full p-2.5 ${errors.name ? 'border-red-500' : ''}`}
-                  placeholder="e.g. My Production AWS" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Access Key ID</label>
-                <input 
-                  {...register('access_key', { required: 'Access Key is required' })} 
-                  className={`input-field w-full p-2.5 ${errors.access_key ? 'border-red-500' : ''}`}
-                  placeholder="AKIA..." 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Secret Access Key</label>
-                <input 
-                  {...register('secret_key', { required: 'Secret Key is required' })} 
-                  type="password" 
-                  className={`input-field w-full p-2.5 ${errors.secret_key ? 'border-red-500' : ''}`}
-                  placeholder="••••••••••••••••••••" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Default Region</label>
-                <input 
-                  {...register('region')} 
-                  className="input-field w-full p-2.5"
-                  placeholder="us-east-1" 
-                  defaultValue="us-east-1"
-                />
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Account Name</label>
+                    <input 
+                      {...register('name', { required: 'Name is required' })} 
+                      className="input-field w-full p-2.5"
+                      placeholder="e.g. Production" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Provider</label>
+                    <select {...register('provider')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
+                        <option value="aws" className="bg-[#1a1b1e]">AWS</option>
+                        <option value="azure" className="bg-[#1a1b1e]">Azure</option>
+                    </select>
+                  </div>
               </div>
 
-              <div className="pt-4 flex flex-col space-y-3">
+              <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/5 space-y-4">
+                  {provider === 'aws' ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Access Key</label>
+                                <input {...register('access_key')} className="input-field w-full p-2.5" placeholder="AKIA..." />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Secret Key</label>
+                                <input {...register('secret_key')} type="password" className="input-field w-full p-2.5" placeholder="••••" />
+                            </div>
+                        </div>
+                      </>
+                  ) : (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Tenant ID</label>
+                                <input {...register('tenant_id')} className="input-field w-full p-2.5" placeholder="0000-..." />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Client ID</label>
+                                <input {...register('client_id')} className="input-field w-full p-2.5" placeholder="0000-..." />
+                            </div>
+                        </div>
+                        <div>
+                             <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Client Secret</label>
+                             <input {...register('client_secret')} type="password" className="input-field w-full p-2.5" placeholder="••••" />
+                        </div>
+                        <div>
+                             <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Subscription ID</label>
+                             <input {...register('subscription_id')} className="input-field w-full p-2.5" placeholder="0000-..." />
+                        </div>
+                      </>
+                  )}
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-blue-400/80 uppercase tracking-widest mb-1 ml-1">Default Region</label>
+                    <select {...register('region')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
+                        {REGIONS[provider as keyof typeof REGIONS]?.map(r => (
+                            <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                        ))}
+                    </select>
+                  </div>
+              </div>
+
+              <div className="pt-2">
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="btn-primary w-full py-3 flex items-center justify-center"
+                  className="btn-primary w-full py-3.5"
                 >
-                  {loading ? (
-                    <span className="flex items-center">
-                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                       </svg>
-                       Saving...
-                    </span>
-                  ) : 'Save Credentials'}
+                  {loading ? 'Verifying...' : 'Save Credentials'}
                 </button>
-                <p className="text-center text-xs text-gray-500">
-                  Credentials are encrypted and stored securely.
-                </p>
               </div>
             </form>
           </motion.div>

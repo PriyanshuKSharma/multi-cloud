@@ -38,10 +38,20 @@ const CreateResource: React.FC = () => {
 
       if (data.type === 'vm') {
         config.instance_name = resourceName;
-        if (data.provider === 'aws') config.ami = "ami-0c55b159cbfafe1f0";
+        if (data.provider === 'aws') {
+          config.ami = "ami-0c55b159cbfafe1f0";
+        } else if (data.provider === 'azure') {
+          config.resource_group_name = "nebula-rg"; // Default for MVP
+          if (!config.instance_type) config.instance_type = "Standard_DS1_v2";
+          if (!config.region) config.region = "East US";
+        }
       } else {
         resourceName = resourceName.toLowerCase().replace(/\s+/g, '-');
         config.bucket_name = resourceName;
+        if (data.provider === 'azure') {
+          config.resource_group_name = "nebula-rg";
+          if (!config.region) config.region = "East US";
+        }
       }
       
       await api.post('/resources', {
@@ -55,6 +65,38 @@ const CreateResource: React.FC = () => {
       console.error(error);
     }
   };
+
+  const getPlaceholder = (field: 'region' | 'instance_type') => {
+    const provider = watch('provider');
+    if (field === 'region') {
+      return provider === 'aws' ? 'us-east-1' : provider === 'azure' ? 'eastus' : 'us-central1';
+    }
+    return provider === 'aws' ? 't3.medium' : provider === 'azure' ? 'Standard_DS1_v2' : 'e2-medium';
+  };
+
+  const REGIONS = {
+    aws: [
+      { id: 'us-east-1', name: 'US East (N. Virginia)' },
+      { id: 'us-west-2', name: 'US West (Oregon)' },
+      { id: 'eu-west-1', name: 'Europe (Ireland)' },
+      { id: 'ap-south-1', name: 'Asia Pacific (Mumbai)' },
+      { id: 'ap-southeast-1', name: 'Asia Pacific (Singapore)' },
+    ],
+    azure: [
+      { id: 'eastus', name: 'East US' },
+      { id: 'westus2', name: 'West US 2' },
+      { id: 'westeurope', name: 'West Europe' },
+      { id: 'centralindia', name: 'Central India' },
+      { id: 'southeastasia', name: 'Southeast Asia' },
+    ],
+    gcp: [
+      { id: 'us-central1', name: 'US Central (Iowa)' },
+      { id: 'europe-west1', name: 'Europe West (Belgium)' },
+      { id: 'asia-south1', name: 'Asia South (Mumbai)' },
+    ]
+  };
+
+  const currentProvider = watch('provider');
 
   return (
     <div className="glass-card p-6 rounded-2xl border-white/5 shadow-2xl relative overflow-hidden group">
@@ -98,17 +140,26 @@ const CreateResource: React.FC = () => {
           <p className="text-[10px] font-bold text-blue-400/70 uppercase tracking-wider">Configuration</p>
           
           <div className="space-y-1.5">
-            <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Region</label>
-            <input {...register('configuration.region')} className="input-field w-full text-sm py-2" placeholder="us-east-1" />
+            <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Region / Location</label>
+            <select 
+              {...register('configuration.region')} 
+              className="input-field w-full cursor-pointer appearance-none text-sm py-2"
+            >
+              {REGIONS[currentProvider as keyof typeof REGIONS].map((region) => (
+                <option key={region.id} value={region.id} className="bg-[#1a1b1e]">
+                  {region.name} ({region.id})
+                </option>
+              ))}
+            </select>
           </div>
 
           {selectedType === 'vm' && (
              <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Instance Type</label>
+              <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Instance Type / SKU</label>
               <input 
                 {...register('configuration.instance_type')} 
                 className="input-field w-full text-sm py-2" 
-                placeholder="t3.medium" 
+                placeholder={getPlaceholder('instance_type')} 
               />
             </div>
           )}
