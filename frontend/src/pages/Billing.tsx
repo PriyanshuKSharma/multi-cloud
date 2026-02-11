@@ -2,6 +2,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
+import PageGuide from '../components/ui/PageGuide';
 
 import {
   DollarSign,
@@ -9,11 +10,12 @@ import {
   TrendingDown,
   Download,
   Calendar,
+  RefreshCw,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const BillingPage: React.FC = () => {
-  const { data: billing } = useQuery({
+  const { data: billing, refetch, isFetching } = useQuery({
     queryKey: ['billing'],
     queryFn: async () => {
       const response = await axios.get('/billing/overview');
@@ -35,11 +37,35 @@ const BillingPage: React.FC = () => {
           </h1>
           <p className="text-gray-400 mt-1">Monitor your multi-cloud spending and costs</p>
         </div>
-        <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all">
-          <Download className="w-4 h-4" />
-          <span className="text-sm font-medium">Export Report</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 disabled:opacity-60 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+          >
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            <span className="text-sm font-medium">Refresh</span>
+          </button>
+          <button
+            type="button"
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+          >
+            <Download className="w-4 h-4" />
+            <span className="text-sm font-medium">Export Report</span>
+          </button>
+        </div>
       </div>
+
+      <PageGuide
+        title="About Cost & Billing"
+        purpose="This page helps you understand spending trends across cloud providers and services."
+        actions={[
+          'track current and historical monthly costs',
+          'compare provider-level cost distribution',
+          'review spend trend to identify anomalies',
+        ]}
+      />
 
       {/* Cost Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
