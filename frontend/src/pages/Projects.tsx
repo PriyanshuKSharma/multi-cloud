@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
+import PageGuide from '../components/ui/PageGuide';
 import {
   FolderKanban,
   Plus,
@@ -61,6 +62,16 @@ const ProjectsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <PageGuide
+        title="About Projects"
+        purpose="Projects group your infrastructure into logical workspaces for ownership, cost visibility, and lifecycle control."
+        actions={[
+          'search existing projects',
+          'review project resource counts and activity recency',
+          'create a new project workspace for isolated deployments',
+        ]}
+      />
 
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
         <div className="relative">
