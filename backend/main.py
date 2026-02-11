@@ -1,4 +1,5 @@
 import logging
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,17 +22,26 @@ app = FastAPI(title="Nebula API")
 logger = logging.getLogger(__name__)
 
 # CORS Middleware
-origins = [
+default_origins = [
     "http://localhost",
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
+    "https://nebula-xi-lyart.vercel.app",
 ]
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()] or default_origins
+
+# Optional single-origin override for deployed frontends.
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
+if frontend_origin and frontend_origin not in origins:
+    origins.append(frontend_origin)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX"),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
