@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import ProviderIcon from '../../components/ui/ProviderIcon';
+import PageGuide from '../../components/ui/PageGuide';
 import {
   ArrowLeft,
   Server,
@@ -112,6 +113,16 @@ const CreateVMPage: React.FC = () => {
           <p className="text-gray-400 mt-1">Deploy a new VM using Terraform</p>
         </div>
       </div>
+
+      <PageGuide
+        title="About Create VM"
+        purpose="Use this form to define provider-specific VM configuration and launch compute through the provisioning engine."
+        actions={[
+          'select provider, region, and instance type',
+          'configure networking and machine access settings',
+          'submit to create a managed VM resource',
+        ]}
+      />
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="max-w-4xl">
