@@ -3,7 +3,24 @@ import { useForm } from 'react-hook-form';
 import api from '../api/axios';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Shield, Key } from 'lucide-react';
+import { CheckCircle, Shield } from 'lucide-react';
+
+const REGIONS = {
+    aws: [
+      { id: 'us-east-1', name: 'US East (N. Virginia)' },
+      { id: 'us-west-2', name: 'US West (Oregon)' },
+      { id: 'eu-west-1', name: 'Europe (Ireland)' },
+      { id: 'ap-south-1', name: 'Asia Pacific (Mumbai)' },
+      { id: 'ap-southeast-1', name: 'Asia Pacific (Singapore)' },
+    ],
+    azure: [
+      { id: 'eastus', name: 'East US' },
+      { id: 'westus2', name: 'West US 2' },
+      { id: 'westeurope', name: 'West Europe' },
+      { id: 'centralindia', name: 'Central India' },
+      { id: 'southeastasia', name: 'Southeast Asia' },
+    ]
+};
 
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -25,9 +42,34 @@ const Onboarding: React.FC = () => {
         }
       });
       setStep(2);
+      reset();
     } catch (err) {
       console.error(err);
       alert('Failed to save AWS credentials');
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const onSubmitAzure = async (data: any) => {
+    setLoading(true);
+    try {
+      await api.post('/credentials/', {
+        provider: 'azure',
+        name: 'My Azure Account',
+        data: {
+          tenant_id: data.tenant_id,
+          client_id: data.client_id,
+          client_secret: data.client_secret,
+          subscription_id: data.subscription_id,
+          region: data.region || 'eastus'
+        }
+      });
+      setStep(3);
+      reset();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save Azure credentials');
     } finally {
         setLoading(false);
     }
@@ -78,7 +120,11 @@ const Onboarding: React.FC = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Default Region</label>
-                        <input {...register('region')} className="input-field w-full p-3" placeholder="us-east-1" defaultValue="us-east-1" />
+                        <select {...register('region')} className="input-field w-full p-3 cursor-pointer appearance-none">
+                            {REGIONS.aws.map(r => (
+                                <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                            ))}
+                        </select>
                     </div>
                     
                     <div className="pt-4 flex space-x-4">
@@ -91,20 +137,51 @@ const Onboarding: React.FC = () => {
             </motion.div>
         )}
 
-        {/* Step 2: Azure (Placeholder for now) */}
+        {/* Step 2: Azure */}
         {step === 2 && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center">
                     <span className="mr-2">🔷</span> Microsoft Azure
                 </h2>
-                <div className="p-6 bg-gray-800/50 rounded-xl text-center border border-dashed border-gray-700">
-                    <p className="text-gray-400 mb-4">Azure configuration Coming Soon.</p>
-                    <button onClick={skipStep} className="btn-primary">Continue</button>
-                </div>
+                <form onSubmit={handleSubmit(onSubmitAzure)} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">Tenant ID</label>
+                            <input {...register('tenant_id')} className="input-field w-full p-3" placeholder="00000000-0000..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">Client ID</label>
+                            <input {...register('client_id')} className="input-field w-full p-3" placeholder="00000000-0000..." />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Client Secret</label>
+                        <input {...register('client_secret')} type="password" className="input-field w-full p-3" placeholder="••••••••" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Subscription ID</label>
+                        <input {...register('subscription_id')} className="input-field w-full p-3" placeholder="00000000-0000..." />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Default Region</label>
+                        <select {...register('region')} className="input-field w-full p-3 cursor-pointer appearance-none">
+                            {REGIONS.azure.map(r => (
+                                <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    <div className="pt-4 flex space-x-4">
+                        <button type="button" onClick={skipStep} className="px-6 py-2 rounded text-gray-400 hover:text-white">Skip</button>
+                        <button type="submit" disabled={loading} className="btn-primary flex-1">
+                            {loading ? 'Verifying...' : 'Save & Continue'}
+                        </button>
+                    </div>
+                </form>
              </motion.div>
         )}
 
-        {/* Step 3: GCP (Placeholder for now) */}
+        {/* Step 3: GCP */}
         {step === 3 && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center">
