@@ -207,12 +207,12 @@ const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-gray-800/50">
         <div className="px-3 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
           <p className="text-xs font-medium text-gray-400">Need help?</p>
-          <a
-            href="/docs"
+          <Link
+            to="/docs"
             className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
           >
             View Documentation →
-          </a>
+          </Link>
         </div>
       </div>
     </aside>
