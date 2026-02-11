@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -17,6 +18,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from '../../api/axios';
 
 interface NavItem {
   name: string;
@@ -29,6 +31,22 @@ interface NavItem {
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const [expandedGroups, setExpandedGroups] = React.useState<string[]>(['Resources']);
+
+  const { data: deploymentCount = 0 } = useQuery({
+    queryKey: ['sidebar', 'deployment-count'],
+    queryFn: async () => {
+      const response = await axios.get('/deployments/');
+      const payload = response.data;
+      const items = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.items)
+          ? payload.items
+          : [];
+      return items.length;
+    },
+    refetchInterval: 10000,
+    retry: 1,
+  });
 
   const navItems: NavItem[] = [
     {
@@ -67,7 +85,7 @@ const Sidebar: React.FC = () => {
       name: 'Deployments',
       path: '/deployments',
       icon: <Rocket className="w-5 h-5" />,
-      badge: 2,
+      badge: deploymentCount,
     },
     {
       name: 'Cost & Billing',
