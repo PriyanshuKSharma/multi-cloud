@@ -2,12 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import auth
 from app.db.base import engine, Base
+from app.db.migrate import ensure_user_columns
 
 from app.models import user, resource, credential
 from app.models import resource_inventory  # Import new models
 
 # Create tables
 Base.metadata.create_all(bind=engine)
+ensure_user_columns()
 
 app = FastAPI(title="Multi-Cloud Orchestrator API")
 
