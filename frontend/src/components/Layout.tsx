@@ -5,7 +5,7 @@ import { Cloud, LayoutDashboard, LogOut, Settings, Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Layout: React.FC = () => {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -74,7 +74,7 @@ const Layout: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
