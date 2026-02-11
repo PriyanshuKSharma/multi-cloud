@@ -28,7 +28,12 @@ interface NavItem {
   children?: NavItem[];
 }
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  className?: string;
+  onNavigate?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
   const location = useLocation();
   const [expandedGroups, setExpandedGroups] = React.useState<string[]>(['Resources']);
 
@@ -133,7 +138,7 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-64 bg-[#0f0f11] border-r border-gray-800/50 flex flex-col h-screen sticky top-0">
+    <aside className={`bg-[#0f0f11] border-r border-gray-800/50 flex flex-col ${className}`}>
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-800/50">
         <div className="flex items-center space-x-3">
@@ -156,7 +161,7 @@ const Sidebar: React.FC = () => {
               <div>
                 <button
                   onClick={() => toggleGroup(item.name)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`cursor-pointer w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(item.path)
                       ? 'bg-blue-500/10 text-blue-400'
                       : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-300'
@@ -187,6 +192,7 @@ const Sidebar: React.FC = () => {
                           <Link
                             key={child.path}
                             to={child.path}
+                            onClick={onNavigate}
                             className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                               isActive(child.path)
                                 ? 'bg-blue-500/10 text-blue-400'
@@ -206,6 +212,7 @@ const Sidebar: React.FC = () => {
               // Single item
               <Link
                 to={item.path}
+                onClick={onNavigate}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive(item.path)
                     ? 'bg-blue-500/10 text-blue-400'
@@ -233,6 +240,7 @@ const Sidebar: React.FC = () => {
           <p className="text-xs font-medium text-gray-400">Need help?</p>
           <Link
             to="/docs"
+            onClick={onNavigate}
             className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
           >
             View Documentation →

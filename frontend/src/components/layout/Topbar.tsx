@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, User, ChevronDown, Settings, LogOut, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, Settings, LogOut, HelpCircle, ArrowLeft, ArrowRight, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +7,11 @@ import axios from '../../api/axios';
 
 import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
-const Topbar: React.FC = () => {
+interface TopbarProps {
+  onOpenSidebar?: () => void;
+}
+
+const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,9 +85,17 @@ const Topbar: React.FC = () => {
   ];
 
   return (
-    <header className="h-16 bg-[#0f0f11] border-b border-gray-800/50 flex items-center justify-between px-6 sticky top-0 z-40">
+    <header className="h-16 bg-[#0f0f11] border-b border-gray-800/50 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40">
       {/* Left: Project Selector */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        <button
+          onClick={onOpenSidebar}
+          className="cursor-pointer lg:hidden p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
+          aria-label="Open sidebar"
+          title="Menu"
+        >
+          <Menu className="w-5 h-5 text-gray-300" />
+        </button>
         <div className="flex items-center space-x-2">
           <button
             onClick={goBack}
@@ -104,7 +116,7 @@ const Topbar: React.FC = () => {
             <ArrowRight className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg border border-gray-700/50 transition-all duration-200">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
             <span className="text-sm font-medium text-gray-300">Production</span>
@@ -114,7 +126,7 @@ const Topbar: React.FC = () => {
       </div>
 
       {/* Right: Search, Notifications, User */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-1 sm:space-x-3">
         {/* Global Search */}
         <div className="relative">
           <button
@@ -130,7 +142,7 @@ const Topbar: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-4">
                   <div className="relative">
@@ -170,7 +182,7 @@ const Topbar: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-4 border-b border-gray-800/50">
                   <h3 className="text-sm font-semibold text-gray-300">Notifications</h3>
