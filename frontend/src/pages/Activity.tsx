@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
+import PageGuide from '../components/ui/PageGuide';
 import {
   Activity as ActivityIcon,
   RefreshCw,
@@ -55,6 +56,16 @@ const ActivityPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <PageGuide
+        title="About Activity"
+        purpose="Activity timeline records operational events across resources, deployments, and integrations."
+        actions={[
+          'monitor recent changes in near real-time',
+          'validate who triggered which action',
+          'inspect status progression by provider and resource',
+        ]}
+      />
 
       {isLoading ? (
         <div className="space-y-4">
