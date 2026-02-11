@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
+import PageGuide from '../../components/ui/PageGuide';
 import {
   Network,
   Plus,
@@ -113,6 +114,16 @@ const NetworksPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      <PageGuide
+        title="About Networks"
+        purpose="Networks tracks virtual networks, VPCs, and networking foundations used by your cloud resources."
+        actions={[
+          'filter network resources by provider and region',
+          'inspect CIDR, gateway, and DNS metadata',
+          'provision new network topology from the create flow',
+        ]}
+      />
 
       {/* Filters */}
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
