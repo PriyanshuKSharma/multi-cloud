@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Mail, ArrowRight, CloudLightning } from 'lucide-react';
+import SSOLogin from '../components/SSOLogin';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -109,6 +110,8 @@ const Login: React.FC = () => {
             {!isSubmitting && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
           </button>
         </form>
+
+        <SSOLogin />
 
         <div className="mt-6 text-center text-sm text-gray-500">
           Don't have an account?{' '}

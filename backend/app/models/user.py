@@ -8,7 +8,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=True)  # Nullable for SSO users
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     
@@ -16,7 +16,15 @@ class User(Base):
     job_profile = Column(String)
     organization = Column(String)
     phone_number = Column(String)
+    
+    # 2FA fields
     two_factor_enabled = Column(Boolean, default=False)
+    two_factor_secret = Column(String, nullable=True)
+    
+    # SSO fields
+    sso_provider = Column(String, nullable=True)  # 'google', 'github', etc.
+    sso_id = Column(String, nullable=True)  # Provider's user ID
+    
     last_password_change = Column(DateTime, nullable=True)
     
     projects = relationship("Project", back_populates="owner")

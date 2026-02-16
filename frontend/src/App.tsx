@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Onboarding from './pages/Onboarding';
 import Settings from './pages/Settings';
+import AuthCallback from './pages/AuthCallback';
 
 // New Layout
 import AppLayout from './components/layout/AppLayout';
@@ -73,6 +74,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Onboarding */}
             <Route path="/onboarding" element={

@@ -12,6 +12,14 @@ A **production-ready, enterprise-grade** multi-cloud management platform that pr
 - **Azure**: Virtual Machines, Storage Accounts, Resource Groups
 - **GCP**: Compute Engine, Cloud Storage, VPC Networks
 
+### ✅ Advanced Authentication & Security
+
+- **Two-Factor Authentication (2FA)**: TOTP-based authentication with QR code setup
+- **Single Sign-On (SSO)**: Google OAuth 2.0 integration
+- **JWT Authentication**: Secure token-based authentication
+- **Encrypted Credentials**: AES-256 encryption for cloud credentials
+- **Session Management**: Secure session handling with middleware
+
 ### ✅ Live Dashboard
 
 - Real resource counts from all providers
@@ -112,8 +120,15 @@ Open your browser and navigate to:
 ### 3. Setup Cloud Credentials
 
 1. **Create an account** or login
-2. Navigate to **Settings** page
-3. Add credentials for your cloud providers:
+   - Use email/password registration
+   - Or click "Sign in with Google" for SSO
+2. **Enable 2FA (Optional but Recommended)**
+   - Go to Settings → Security
+   - Click "Enable 2FA"
+   - Scan QR code with Google Authenticator or Authy
+   - Save backup codes securely
+3. Navigate to **Settings** page
+4. Add credentials for your cloud providers:
 
 **AWS:**
 
@@ -191,6 +206,8 @@ After sync completes, you'll see:
 - **Task Queue**: Celery + Redis
 - **Cloud SDKs**: boto3 (AWS), azure-sdk (Azure), google-cloud (GCP)
 - **ORM**: SQLAlchemy
+- **Authentication**: JWT, OAuth 2.0, TOTP (2FA)
+- **Security**: bcrypt, cryptography, pyotp, authlib
 
 ### Frontend
 
@@ -214,28 +231,30 @@ multi-cloud/
 ├── backend/
 │   ├── app/
 │   │   ├── models/              # Database models
-│   │   │   ├── resource_inventory.py  # NEW: Resource cache
+│   │   │   ├── resource_inventory.py  # Resource cache
 │   │   │   ├── resource.py            # Terraform resources
-│   │   │   ├── user.py
+│   │   │   ├── user.py                # User model with 2FA/SSO
 │   │   │   └── credential.py
 │   │   ├── services/            # Cloud provider integrations
-│   │   │   ├── aws_sync.py      # NEW: AWS SDK
-│   │   │   ├── azure_sync.py    # NEW: Azure SDK
-│   │   │   ├── gcp_sync.py      # NEW: GCP SDK
+│   │   │   ├── aws_sync.py      # AWS SDK
+│   │   │   ├── azure_sync.py    # Azure SDK
+│   │   │   ├── gcp_sync.py      # GCP SDK
+│   │   │   ├── two_factor.py    # NEW: 2FA service
+│   │   │   ├── sso.py           # NEW: SSO service
 │   │   │   └── terraform_runner.py
 │   │   ├── tasks/               # Background jobs
-│   │   │   ├── sync_tasks.py    # NEW: Periodic sync
+│   │   │   ├── sync_tasks.py    # Periodic sync
 │   │   │   └── terraform_tasks.py
 │   │   ├── api/endpoints/       # REST API endpoints
-│   │   │   ├── dashboard.py     # NEW: Dashboard stats
-│   │   │   ├── inventory.py     # NEW: Resource inventory
-│   │   │   ├── billing.py       # NEW: Cost data
-│   │   │   ├── auth.py
+│   │   │   ├── dashboard.py     # Dashboard stats
+│   │   │   ├── inventory.py     # Resource inventory
+│   │   │   ├── billing.py       # Cost data
+│   │   │   ├── auth.py          # UPDATED: Auth + 2FA + SSO
 │   │   │   ├── resources.py
 │   │   │   └── credentials.py
 │   │   ├── db/
 │   │   │   ├── base.py
-│   │   │   └── migrate.py       # NEW: DB migration
+│   │   │   └── migrate.py       # DB migration
 │   │   ├── worker.py            # Celery worker
 │   │   └── main.py              # FastAPI app
 │   ├── requirements.txt
@@ -243,11 +262,14 @@ multi-cloud/
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── Dashboard.tsx    # UPDATED: Real data
-│   │   │   ├── Login.tsx
+│   │   │   ├── Dashboard.tsx    # Real data
+│   │   │   ├── Login.tsx        # UPDATED: SSO button
+│   │   │   ├── AuthCallback.tsx # NEW: OAuth callback
 │   │   │   ├── Settings.tsx
 │   │   │   └── ...
 │   │   ├── components/
+│   │   │   ├── TwoFactorSetup.tsx  # NEW: 2FA UI
+│   │   │   ├── SSOLogin.tsx        # NEW: SSO button
 │   │   │   ├── CostCharts.tsx
 │   │   │   ├── ResourceList.tsx
 │   │   │   └── ...
@@ -255,9 +277,14 @@ multi-cloud/
 │   │       └── axios.ts
 │   ├── package.json
 │   └── Dockerfile
+├── docs/
+│   ├── SSO_2FA_SETUP.md     # NEW: Setup guide
+│   └── ...
 ├── docker-compose.yml
-├── test_apis.sh              # NEW: API test script
-└── README.md                 # This file
+├── setup_auth.ps1           # NEW: Auth setup script
+├── SSO_2FA_IMPLEMENTATION.md # NEW: Implementation summary
+├── test_apis.sh
+└── README.md                # This file
 ```
 
 ## 🔌 API Endpoints
@@ -287,9 +314,22 @@ multi-cloud/
 
 ### Authentication
 
-- `POST /auth/signup` - Create account
-- `POST /auth/login` - Login
+- `POST /auth/register` - Create account
+- `POST /auth/login` - Login with email/password
 - `GET /auth/me` - Get current user
+- `POST /auth/change-password` - Change password
+
+### Two-Factor Authentication (2FA)
+
+- `POST /auth/2fa/setup` - Generate 2FA secret and QR code
+- `POST /auth/2fa/verify` - Verify and enable 2FA
+- `POST /auth/2fa/disable` - Disable 2FA
+- `POST /auth/login/2fa` - Login with 2FA token
+
+### Single Sign-On (SSO)
+
+- `GET /auth/sso/google/login` - Initiate Google OAuth
+- `GET /auth/sso/google/callback` - OAuth callback handler
 
 ## 🧪 Testing
 
@@ -317,6 +357,53 @@ curl -X POST -H "Authorization: Bearer YOUR_TOKEN" \
 ### View API Documentation
 
 Open http://localhost:8000/docs for interactive Swagger UI
+
+## 🔐 Security & Authentication
+
+### Two-Factor Authentication (2FA)
+
+**Setup 2FA:**
+1. Login to your account
+2. Go to Settings → Security
+3. Click "Enable 2FA"
+4. Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+5. Enter 6-digit verification code
+6. Download and save backup codes
+
+**Login with 2FA:**
+- Enter email and password
+- Enter 6-digit code from authenticator app
+- Access granted
+
+### Single Sign-On (SSO)
+
+**Google OAuth Setup:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create OAuth 2.0 credentials
+3. Add authorized redirect URI: `http://localhost:8000/auth/sso/google/callback`
+4. Copy Client ID and Client Secret
+5. Update `backend/.env`:
+   ```env
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ```
+6. Restart backend: `docker-compose restart backend`
+
+**Login with Google:**
+- Click "Sign in with Google" on login page
+- Authorize the application
+- Automatically logged in
+
+### Security Features
+
+- ✅ JWT-based authentication with 30-minute expiration
+- ✅ TOTP-based 2FA with 30-second time window
+- ✅ AES-256 encrypted credential storage
+- ✅ OAuth 2.0 SSO integration
+- ✅ Session management with secure cookies
+- ✅ CORS protection
+- ✅ Password hashing with bcrypt
+- ✅ User isolation for multi-tenancy
 
 ## 📝 Development
 
@@ -433,7 +520,9 @@ docker exec -it multi-cloud-db-1 psql -U postgres -d multicloud
 
 ✅ **Scalable Design**: Background workers, caching, microservices-ready
 
-✅ **Security**: JWT auth, encrypted credentials, user isolation
+✅ **Enterprise Security**: JWT auth, 2FA, SSO, encrypted credentials, user isolation
+
+✅ **Advanced Authentication**: Two-factor authentication and Single Sign-On
 
 ✅ **Documentation**: Comprehensive README, API docs, code comments
 

@@ -1,31 +1,69 @@
-backend/venv/
+# Environment variables - NEVER commit these!
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Credentials and secrets
+*.pem
+*.key
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-.env
+*.so
+.Python
+multi-venv/
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
 *.log
-celery_logs.txt
-latest_celery_logs.txt
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Terraform
+*.tfstate
+*.tfstate.*
 .terraform/
-terraform.tfstate*
-.terraform.lock.hcl
-tfplan
-backend/multicloud.db
+terraform.tfvars
 
-backend/multi-venv
+# Logs
+logs/
+*.log
 
-backend/__pycache__/main.cpython-311.pyc
-backend/app/__pycache__/worker.cpython-311.pyc
-backend/app/api/__pycache__/deps.cpython-311.pyc
-backend/app/core/__pycache__/celery_app.cpython-311.pyc
-backend/app/core/__pycache__/security.cpython-311.pyc
-backend/app/db/__pycache__/base.cpython-311.pyc
-backend/app/models/__pycache__/credential.cpython-311.pyc
-backend/app/models/__pycache__/resource.cpython-311.pyc
-backend/app/models/__pycache__/user.cpython-311.pyc
-backend/app/schemas/__pycache__/credential.cpython-311.pyc
-backend/app/schemas/__pycache__/resource.cpython-311.pyc
-backend/app/schemas/__pycache__/user.cpython-311.pyc
-
-node_modules
-.vercel
+# Temporary files
+tmp/
+temp/

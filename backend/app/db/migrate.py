@@ -37,6 +37,9 @@ def ensure_user_columns():
         "organization": "VARCHAR",
         "phone_number": "VARCHAR",
         "two_factor_enabled": "BOOLEAN DEFAULT FALSE" if dialect != "sqlite" else "BOOLEAN DEFAULT 0",
+        "two_factor_secret": "VARCHAR",
+        "sso_provider": "VARCHAR",
+        "sso_id": "VARCHAR",
         "last_password_change": "TIMESTAMP",
     }
 
@@ -44,6 +47,10 @@ def ensure_user_columns():
         for column, ddl in column_defs.items():
             if column not in existing:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {column} {ddl}"))
+        
+        # Make hashed_password nullable for SSO users
+        if dialect == "postgresql":
+            conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL"))
 
 def ensure_resource_columns():
     """Adds missing columns to existing resources table."""
