@@ -4,6 +4,7 @@ import axios from '../api/axios';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 import {
   Activity as ActivityIcon,
   RefreshCw,
@@ -34,28 +35,33 @@ const ActivityPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <ActivityIcon className="w-8 h-8 text-green-500" />
-            <span>Activity Timeline</span>
-          </h1>
-          <p className="text-gray-400 mt-1">Track all resource changes and deployments</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all">
-            <Filter className="w-4 h-4" />
-            <span className="text-sm font-medium">Filter</span>
-          </button>
-          <button
-            onClick={() => refetch()}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-        </div>
-      </div>
+      <PageHero
+        id="activity"
+        tone="emerald"
+        eyebrow="Audit and event stream"
+        eyebrowIcon={<ActivityIcon className="h-3.5 w-3.5" />}
+        title="Activity Timeline"
+        titleIcon={<ActivityIcon className="w-8 h-8 text-emerald-400" />}
+        description="Track user actions, deployment events, and status transitions across cloud resources."
+        chips={[
+          { label: `${activities?.length ?? 0} events`, tone: 'emerald' },
+        ]}
+        actions={
+          <>
+            <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all">
+              <Filter className="w-4 h-4" />
+              <span className="text-sm font-medium">Filter</span>
+            </button>
+            <button
+              onClick={() => refetch()}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+          </>
+        }
+      />
 
       <PageGuide
         title="About Activity"
