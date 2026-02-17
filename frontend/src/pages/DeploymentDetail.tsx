@@ -2,9 +2,9 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
-import StatusBadge from '../components/ui/StatusBadge';
-import ProviderIcon from '../components/ui/ProviderIcon';
+import { formatTerraformOutput, normalizeLogText } from '../utils/terraformOutput';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 import {
   ArrowLeft,
   RefreshCw,
@@ -94,6 +94,15 @@ const DeploymentDetailPage: React.FC = () => {
     }
   };
 
+  const formattedLogs = React.useMemo(
+    () => normalizeLogText(deployment?.logs ?? ''),
+    [deployment?.logs]
+  );
+  const formattedTerraformOutput = React.useMemo(
+    () => formatTerraformOutput(deployment?.terraform_output ?? {}, { omitLogsKey: true }),
+    [deployment?.terraform_output]
+  );
+
   if (isLoading) {
     return (
       <div className="p-8 space-y-6">
@@ -136,47 +145,46 @@ const DeploymentDetailPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/deployments"
-            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
-            aria-label="Back to deployments"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-400" />
-          </Link>
-          <div>
-            <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-white">{deployment.resource_name}</h1>
-              <StatusBadge status={deployment.status as any} size="md" />
-            </div>
-            <div className="flex items-center space-x-3 mt-2 text-sm text-gray-400">
-              <ProviderIcon provider={deployment.provider as any} size="sm" showLabel />
-              <span>•</span>
-              <span className="capitalize">{deployment.resource_type}</span>
-              <span>•</span>
-              <span>Deployment #{deployment.id}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => refetch()}
-            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
-          >
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-          <button
-            onClick={() => logsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/20 transition-colors"
-          >
-            <Terminal className="w-4 h-4" />
-            <span className="text-sm font-medium">Open Logs</span>
-          </button>
-        </div>
-      </div>
+      <PageHero
+        id={`deployment-detail-${deployment.id}`}
+        tone="orange"
+        eyebrow="Deployment execution details"
+        eyebrowIcon={<Cloud className="h-3.5 w-3.5" />}
+        title={deployment.resource_name}
+        titleIcon={<Boxes className="w-8 h-8 text-orange-300" />}
+        description={`Deployment #${deployment.id} • ${deployment.resource_type}`}
+        chips={[
+          { label: deployment.provider.toUpperCase(), tone: 'orange' },
+          { label: deployment.status, tone: deployment.status.toLowerCase() === 'failed' ? 'pink' : 'emerald' },
+          { label: `${deployment.log_line_count} log lines`, tone: 'cyan' },
+        ]}
+        actions={
+          <>
+            <Link
+              to="/deployments"
+              className="cursor-pointer flex items-center rounded-lg border border-gray-700/60 bg-gray-800/60 px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-gray-800"
+              aria-label="Back to deployments"
+            >
+              <ArrowLeft className="mr-2 w-4 h-4 text-gray-400" />
+              Back
+            </Link>
+            <button
+              onClick={() => refetch()}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+            <button
+              onClick={() => logsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/20 transition-colors"
+            >
+              <Terminal className="w-4 h-4" />
+              <span className="text-sm font-medium">Open Logs</span>
+            </button>
+          </>
+        }
+      />
 
       <PageGuide
         title="About This Deployment"
@@ -263,7 +271,7 @@ const DeploymentDetailPage: React.FC = () => {
                 <span>Terraform Output</span>
               </h3>
               <button
-                onClick={() => copyText(prettyJson(deployment.terraform_output))}
+                onClick={() => copyText(formattedTerraformOutput)}
                 className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
                 title="Copy Terraform output JSON"
               >
@@ -271,7 +279,7 @@ const DeploymentDetailPage: React.FC = () => {
               </button>
             </div>
             <pre className="text-sm text-gray-300 bg-[#0b0d12] border border-gray-800/50 rounded-lg p-4 overflow-auto font-mono">
-              {prettyJson(deployment.terraform_output)}
+              {formattedTerraformOutput}
             </pre>
           </div>
         </div>
@@ -284,7 +292,7 @@ const DeploymentDetailPage: React.FC = () => {
             <span>Deployment Logs</span>
           </h3>
           <button
-            onClick={() => copyText(deployment.logs)}
+            onClick={() => copyText(formattedLogs)}
             className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
             title="Copy logs"
           >
@@ -293,7 +301,7 @@ const DeploymentDetailPage: React.FC = () => {
         </div>
         <div className="p-4 bg-[#0b0d12]">
           <pre className="text-sm text-green-200 font-mono whitespace-pre-wrap break-all max-h-[28rem] overflow-auto">
-            {deployment.logs || 'No logs available for this deployment yet.'}
+            {formattedLogs || 'No logs available for this deployment yet.'}
           </pre>
         </div>
       </div>
