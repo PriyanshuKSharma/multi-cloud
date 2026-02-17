@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import {
   FolderKanban,
   Plus,
@@ -41,6 +43,7 @@ const ProjectsPage: React.FC = () => {
   const [formError, setFormError] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [deletingProjectId, setDeletingProjectId] = React.useState<number | null>(null);
+  const [projectToDelete, setProjectToDelete] = React.useState<Project | null>(null);
 
   const { data: projects, isLoading, refetch, isError, error } = useQuery<Project[]>({
     queryKey: ['projects'],
@@ -128,31 +131,37 @@ const ProjectsPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <FolderKanban className="w-8 h-8 text-blue-500" />
-            <span>Projects</span>
-          </h1>
-          <p className="text-gray-400 mt-1">Organize and manage your cloud resources by project</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => refetch()}
-            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-          <button
-            onClick={openCreateModal}
-            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">New Project</span>
-          </button>
-        </div>
-      </div>
+      <PageHero
+        id="projects"
+        tone="blue"
+        eyebrow="Workspaces and ownership"
+        eyebrowIcon={<FolderKanban className="h-3.5 w-3.5" />}
+        title="Projects"
+        titleIcon={<FolderKanban className="w-8 h-8 text-blue-400" />}
+        description="Organize resources into project workspaces for ownership, lifecycle, and access boundaries."
+        chips={[
+          { label: `${projects?.length ?? 0} projects`, tone: 'blue' },
+          { label: `${filteredProjects.length} visible`, tone: 'cyan' },
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => refetch()}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+            <button
+              onClick={openCreateModal}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-medium">New Project</span>
+            </button>
+          </>
+        }
+      />
 
       <PageGuide
         title="About Projects"
@@ -247,15 +256,7 @@ const ProjectsPage: React.FC = () => {
 
               {project.resource_count === 0 && (
                 <button
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Delete project "${project.name}"? This cannot be undone.`
-                      )
-                    ) {
-                      deleteProjectMutation.mutate(project.id);
-                    }
-                  }}
+                  onClick={() => setProjectToDelete(project)}
                   disabled={deletingProjectId === project.id}
                   className="cursor-pointer mt-4 inline-flex items-center space-x-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 rounded-lg text-xs border border-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
@@ -280,6 +281,35 @@ const ProjectsPage: React.FC = () => {
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={projectToDelete !== null}
+        title="Delete Project"
+        message={
+          projectToDelete
+            ? `Delete project "${projectToDelete.name}"? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete Project"
+        cancelLabel="Cancel"
+        tone="danger"
+        isLoading={
+          projectToDelete !== null &&
+          deletingProjectId === projectToDelete.id &&
+          deleteProjectMutation.isPending
+        }
+        onCancel={() => {
+          if (!deleteProjectMutation.isPending) {
+            setProjectToDelete(null);
+          }
+        }}
+        onConfirm={() => {
+          if (!projectToDelete) return;
+          deleteProjectMutation.mutate(projectToDelete.id, {
+            onSettled: () => setProjectToDelete(null),
+          });
+        }}
+      />
 
       {showCreateModal && (
         <div
