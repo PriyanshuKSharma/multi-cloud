@@ -19,10 +19,11 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     two_factor_enabled: Optional[bool] = False
+    sso_provider: Optional[str] = None
     last_password_change: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
@@ -46,3 +47,19 @@ class ChangePasswordRequest(BaseModel):
 
 class TwoFactorRequest(BaseModel):
     enabled: bool
+
+
+class TwoFactorSetupResponse(BaseModel):
+    secret: str
+    qr_code: str
+    backup_codes: list[str]
+
+
+class TwoFactorVerifyRequest(BaseModel):
+    token: str
+
+
+class SSOLoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    is_new_user: bool
