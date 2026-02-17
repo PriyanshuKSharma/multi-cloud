@@ -6,6 +6,11 @@ import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import {
+  CURRENT_PROJECT_CHANGED_EVENT,
+  readCurrentProjectId,
+  setCurrentProject,
+} from '../utils/currentProject';
+import {
   FolderKanban,
   Plus,
   Search,
@@ -44,6 +49,7 @@ const ProjectsPage: React.FC = () => {
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [deletingProjectId, setDeletingProjectId] = React.useState<number | null>(null);
   const [projectToDelete, setProjectToDelete] = React.useState<Project | null>(null);
+  const [currentProjectId, setCurrentProjectId] = React.useState<number | null>(() => readCurrentProjectId());
 
   const { data: projects, isLoading, refetch, isError, error } = useQuery<Project[]>({
     queryKey: ['projects'],
@@ -59,13 +65,15 @@ const ProjectsPage: React.FC = () => {
       const response = await axios.post('/projects/', payload);
       return response.data as Project;
     },
-    onSuccess: () => {
+    onSuccess: (createdProject) => {
       setShowCreateModal(false);
       setProjectName('');
       setProjectDescription('');
       setFormError(null);
       setActionError(null);
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setCurrentProject({ id: createdProject.id, name: createdProject.name });
+      setCurrentProjectId(createdProject.id);
     },
     onError: (err: any) => {
       const detail = err?.response?.data?.detail;
@@ -100,6 +108,29 @@ const ProjectsPage: React.FC = () => {
   const filteredProjects = (projects ?? []).filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  React.useEffect(() => {
+    if (!projects || projects.length === 0) return;
+    const storedId = readCurrentProjectId();
+    if (storedId && projects.some((project) => project.id === storedId)) {
+      setCurrentProjectId(storedId);
+      return;
+    }
+    const first = projects[0];
+    setCurrentProject({ id: first.id, name: first.name });
+    setCurrentProjectId(first.id);
+  }, [projects]);
+
+  React.useEffect(() => {
+    const onProjectChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id?: number | null }>;
+      if (typeof customEvent.detail?.id === 'number') {
+        setCurrentProjectId(customEvent.detail.id);
+      }
+    };
+    window.addEventListener(CURRENT_PROJECT_CHANGED_EVENT, onProjectChanged as EventListener);
+    return () => window.removeEventListener(CURRENT_PROJECT_CHANGED_EVENT, onProjectChanged as EventListener);
+  }, []);
 
   const openCreateModal = () => {
     setFormError(null);
@@ -142,6 +173,7 @@ const ProjectsPage: React.FC = () => {
         chips={[
           { label: `${projects?.length ?? 0} projects`, tone: 'blue' },
           { label: `${filteredProjects.length} visible`, tone: 'cyan' },
+          { label: currentProjectId ? `current: #${currentProjectId}` : 'current: none', tone: 'indigo' },
         ]}
         actions={
           <>
@@ -227,7 +259,8 @@ const ProjectsPage: React.FC = () => {
                   <FolderKanban className="w-6 h-6 text-blue-500" />
                 </div>
                 <Link
-                  to="/resources"
+                  to="/resources/vms"
+                  onClick={() => setCurrentProject({ id: project.id, name: project.name })}
                   className="cursor-pointer inline-flex items-center space-x-1 text-xs text-blue-300 hover:text-blue-200"
                 >
                   <span>Open Resources</span>
@@ -252,6 +285,21 @@ const ProjectsPage: React.FC = () => {
               <div className="flex items-center space-x-2 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
                 <span>Updated {new Date(project.last_updated).toLocaleDateString()}</span>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-2">
+                {currentProjectId === project.id ? (
+                  <span className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300">
+                    Current Project
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setCurrentProject({ id: project.id, name: project.name })}
+                    className="cursor-pointer rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-1 text-xs text-blue-300 hover:bg-blue-500/20"
+                  >
+                    Set Current
+                  </button>
+                )}
               </div>
 
               {project.resource_count === 0 && (
