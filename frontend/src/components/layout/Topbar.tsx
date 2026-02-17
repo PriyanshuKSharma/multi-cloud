@@ -16,11 +16,13 @@ import {
   Network,
   Rocket,
   FolderKanban,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../../api/axios';
+import { useNotifications } from '../../context/NotificationContext';
 import {
   CURRENT_PROJECT_CHANGED_EVENT,
   readCurrentProjectId,
@@ -61,6 +63,7 @@ const includesQuery = (value: unknown, query: string): boolean =>
 
 const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   const { user, logout } = useAuth();
+  const { notifications, unreadCount, markAllRead, clearNotifications, removeNotification, formatTime } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const navigationType = useNavigationType();
@@ -355,22 +358,11 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
     navigate(1);
   };
 
-  const notifications = [
-    {
-      id: 1,
-      type: 'success',
-      title: 'Deployment Complete',
-      message: 'web-server-01 deployed successfully',
-      time: '2 minutes ago',
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'High Latency Detected',
-      message: 'GCP provider response time: 1200ms',
-      time: '15 minutes ago',
-    },
-  ];
+  React.useEffect(() => {
+    if (showNotifications) {
+      markAllRead();
+    }
+  }, [markAllRead, showNotifications]);
 
   return (
     <header className="h-16 bg-[#0f0f11] border-b border-gray-800/50 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40">
@@ -560,10 +552,10 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200 relative"
+            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200 relative"
           >
             <Bell className="w-5 h-5 text-gray-400" />
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
             )}
           </button>
@@ -576,32 +568,76 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 exit={{ opacity: 0, y: -10 }}
                 className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
-                <div className="p-4 border-b border-gray-800/50">
+                <div className="p-4 border-b border-gray-800/50 flex items-center justify-between gap-3">
                   <h3 className="text-sm font-semibold text-gray-300">Notifications</h3>
+                  <div className="flex items-center gap-2">
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={() => clearNotifications()}
+                        className="cursor-pointer text-xs font-medium text-gray-400 hover:text-gray-200 transition-colors"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="cursor-pointer p-1 rounded-md text-gray-500 hover:text-gray-200 hover:bg-gray-700/50 transition-colors"
+                      aria-label="Close notifications"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className="p-4 border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div
-                          className={`w-2 h-2 rounded-full mt-1.5 ${
-                            notification.type === 'success' ? 'bg-green-500' : 'bg-yellow-500'
-                          }`}
-                        ></div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-300">{notification.title}</p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
-                          <p className="text-xs text-gray-600 mt-1">{notification.time}</p>
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className="p-4 border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start space-x-3 flex-1 min-w-0">
+                            <div
+                              className={`w-2 h-2 rounded-full mt-1.5 ${
+                                notification.type === 'success'
+                                  ? 'bg-green-500'
+                                  : notification.type === 'error'
+                                    ? 'bg-red-500'
+                                    : notification.type === 'warning'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-blue-500'
+                              }`}
+                            ></div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-300">{notification.title}</p>
+                              <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
+                              <p className="text-xs text-gray-600 mt-1">{formatTime(notification.createdAt)}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeNotification(notification.id)}
+                            className="cursor-pointer p-1 rounded-md text-gray-500 hover:text-gray-200 hover:bg-gray-700/50 transition-colors"
+                            aria-label="Dismiss notification"
+                            title="Dismiss"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="p-4 text-sm text-gray-400">No notifications yet.</div>
+                  )}
                 </div>
                 <div className="p-3 bg-gray-800/30 text-center">
-                  <button className="text-xs font-medium text-blue-400 hover:text-blue-300">
+                  <button
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate('/activity');
+                    }}
+                    className="cursor-pointer text-xs font-medium text-blue-400 hover:text-blue-300"
+                  >
                     View all notifications
                   </button>
                 </div>
