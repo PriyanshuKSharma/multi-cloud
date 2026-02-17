@@ -6,6 +6,7 @@ import MetricCard from '../components/ui/MetricCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 import {
   Server,
   Database,
@@ -101,29 +102,38 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-8 space-y-6 md:space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 mt-1 text-sm md:text-base">Multi-cloud resource overview and insights</p>
-        </div>
-        <div className="flex items-center space-x-3 w-full md:w-auto">
-          <Link
-            to="/console"
-            className="flex-1 md:flex-none justify-center cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all duration-200"
-          >
-            <Terminal className="w-4 h-4" />
-            <span className="text-sm font-medium">Cloud Console</span>
-          </Link>
-          <button
-            onClick={() => refetch()}
-            className="flex-1 md:flex-none justify-center cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/20 transition-all duration-200"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-        </div>
-      </div>
+      <PageHero
+        id="dashboard"
+        tone="blue"
+        eyebrow="Multi-cloud command center"
+        eyebrowIcon={<Activity className="h-3.5 w-3.5" />}
+        title="Dashboard"
+        titleIcon={<Layers className="w-8 h-8 text-blue-300" />}
+        description="Multi-cloud resource overview, cost trends, provider health, and activity insights."
+        chips={[
+          { label: `${stats?.total_resources ?? 0} total resources`, tone: 'blue' },
+          { label: `${stats?.active_vms ?? 0} active VMs`, tone: 'emerald' },
+          { label: `$${stats?.estimated_monthly_cost?.toFixed(2) ?? '0.00'} monthly`, tone: 'orange' },
+        ]}
+        actions={
+          <>
+            <Link
+              to="/console"
+              className="flex-1 md:flex-none justify-center cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all duration-200"
+            >
+              <Terminal className="w-4 h-4" />
+              <span className="text-sm font-medium">Cloud Console</span>
+            </Link>
+            <button
+              onClick={() => refetch()}
+              className="flex-1 md:flex-none justify-center cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/20 transition-all duration-200"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+          </>
+        }
+      />
 
       <PageGuide
         title="About Dashboard"
