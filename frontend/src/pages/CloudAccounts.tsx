@@ -4,6 +4,7 @@ import axios from '../api/axios';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 import {
   Cloud,
   Plus,
@@ -39,31 +40,37 @@ const CloudAccountsPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <Cloud className="w-8 h-8 text-indigo-500" />
-            <span>Cloud Accounts</span>
-          </h1>
-          <p className="text-gray-400 mt-1">Manage your cloud provider credentials and connections</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => refetch()}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">Add Account</span>
-          </button>
-        </div>
-      </div>
+      <PageHero
+        id="cloud-accounts"
+        tone="indigo"
+        eyebrow="Provider credentials and health"
+        eyebrowIcon={<Cloud className="h-3.5 w-3.5" />}
+        title="Cloud Accounts"
+        titleIcon={<Cloud className="w-8 h-8 text-indigo-400" />}
+        description="Manage cloud provider credentials, sync health, and account-level connectivity."
+        chips={[
+          { label: `${accounts?.length ?? 0} connected`, tone: 'indigo' },
+          { label: `${(accounts ?? []).filter((item) => item.status.toLowerCase() === 'active').length} active`, tone: 'emerald' },
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => refetch()}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-medium">Add Account</span>
+            </button>
+          </>
+        }
+      />
 
       <PageGuide
         title="About Cloud Accounts"
