@@ -1,472 +1,224 @@
-# Multi-Cloud SaaS Orchestration Platform 🚀
+# Nebula: Unified Multi-Cloud Orchestration Platform
 
-## Overview
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="AWS logo" height="44" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg" alt="Microsoft Azure logo" height="44" />
+  <img src="https://cdn.simpleicons.org/googlecloud/4285F4" alt="Google Cloud logo" height="44" />
+  <img src="https://cdn.simpleicons.org/docker/2496ED" alt="Docker logo" height="44" />
+  <img src="https://cdn.simpleicons.org/terraform/844FBA" alt="Terraform logo" height="44" />
+  <img src="https://cdn.simpleicons.org/fastapi/009688" alt="FastAPI logo" height="44" />
+  <img src="https://cdn.simpleicons.org/react/61DAFB" alt="React logo" height="44" />
+  <img src="https://cdn.simpleicons.org/postgresql/4169E1" alt="PostgreSQL logo" height="44" />
+  <img src="https://cdn.simpleicons.org/redis/DC382D" alt="Redis logo" height="44" />
+  <img src="https://cdn.simpleicons.org/celery/37814A" alt="Celery logo" height="44" />
+</p>
 
-A **production-ready, enterprise-grade** multi-cloud management platform that provides **real-time insights** from AWS, Azure, and GCP. Built for final-year major project evaluation with **zero mocked data** - every metric comes directly from cloud provider APIs.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+ badge" />
+  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI backend badge" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=0A0A0A" alt="React 19 badge" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5 badge" />
+  <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 15 badge" />
+  <img src="https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis 7 badge" />
+  <img src="https://img.shields.io/badge/License-Proprietary-555555?style=for-the-badge" alt="Proprietary license badge" />
+</p>
 
-## 🌟 Key Features
+Nebula is a full-stack multi-cloud orchestration platform for managing infrastructure across AWS, Azure, and GCP from one interface. It combines cloud inventory sync, Terraform-based provisioning, deployment tracking, and cost analytics in a single API-first system.
 
-### ✅ Real-Time Cloud Integration
+## Why Nebula
 
-- **AWS**: EC2, S3, VPC, Cost Explorer
-- **Azure**: Virtual Machines, Storage Accounts, Resource Groups
-- **GCP**: Compute Engine, Cloud Storage, VPC Networks
+- Unified inventory for virtual machines, storage resources, and networks across AWS, Azure, and GCP
+- Secure cloud credential vault with encrypted storage
+- Terraform-backed provisioning workflows for VM and storage resources
+- Deployment lifecycle visibility with logs and status tracking
+- Cost analytics endpoints and dashboard metrics
+- Background resource synchronization via Celery workers
+- Modern React UI with route-level pages for resources, projects, deployments, billing, blueprints, and account settings
 
-### ✅ Live Dashboard
+## Architecture
 
-- Real resource counts from all providers
-- Active VM monitoring
-- Storage bucket tracking
-- Monthly cost estimation
-- Provider health status
-- Recent activity timeline
-
-### ✅ Automated Synchronization
-
-- Background sync every 10 minutes via Celery
-- Manual sync trigger on-demand
-- Smart caching for fast UI response
-- Provider health monitoring
-
-### ✅ Cost Analytics
-
-- Real billing data from cloud providers
-- Cost breakdown by provider
-- Cost breakdown by service type
-- Monthly cost comparison
-
-### ✅ Infrastructure as Code
-
-- Terraform integration for resource deployment
-- Real-time deployment logs
-- State tracking and drift detection
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Cloud Providers                          │
-│         AWS          Azure          GCP                      │
-└────────────┬─────────┬──────────────┬────────────────────────┘
-             │         │              │
-             ▼         ▼              ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Background Sync (Celery Beat)                   │
-│         Every 10 minutes + Manual Trigger                    │
-└────────────┬─────────┬──────────────┬────────────────────────┘
-             │         │              │
-             ▼         ▼              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                PostgreSQL Database                           │
-│   ResourceInventory | CostData | ProviderHealth             │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  FastAPI Backend                             │
-│   /dashboard/stats | /inventory/* | /billing/*              │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  React Frontend                              │
-│   Dashboard | Resource Lists | Cost Charts                  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    UI[React + Vite Frontend] --> API[FastAPI API]
+    API --> PG[(PostgreSQL)]
+    API --> REDIS[(Redis)]
+    API --> CW[Celery Worker]
+    CW --> AWS[AWS APIs]
+    CW --> AZ[Azure APIs]
+    CW --> GCP[GCP APIs]
+    CW --> TF[Terraform Modules]
 ```
 
-## 🚀 Quick Start
+Core backend routers:
+
+- `auth`, `credentials`, `dashboard`, `inventory`, `billing`
+- `resources`, `projects`, `deployments`, `blueprints`
+
+## Quick Start (Docker)
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Cloud provider accounts (AWS/Azure/GCP)
-- Cloud credentials with appropriate permissions
+- Docker
+- Docker Compose
+- Cloud credentials for one or more providers (AWS, Azure, GCP)
 
-### 1. Start All Services
+### 1) Clone and configure
 
 ```bash
-# Clone and navigate to project
+git clone https://github.com/PriyanshuKSharma/multi-cloud.git
 cd multi-cloud
-
-# Start all services with Docker Compose
-docker-compose up -d --build
+cp .env.example .env
 ```
 
-This will start:
+### 2) Start the stack
 
-- **Backend API** (FastAPI) - http://localhost:8000
-- **Frontend** (React + Vite) - http://localhost:5173
-- **PostgreSQL** - localhost:5432
-- **Redis** - localhost:6379
-- **Celery Worker** (background sync)
-- **Celery Beat** (scheduler)
+```bash
+docker compose up -d --build
+```
 
-### 2. Access the Application
+This starts:
 
-Open your browser and navigate to:
+- `frontend` on `http://localhost:5173`
+- `backend` on `http://localhost:8000`
+- `db` (PostgreSQL) on port `5432`
+- `redis` on port `6379`
+- `celery_worker` for async provisioning and sync tasks
 
-- **Frontend**: http://localhost:5173
-- **API Docs**: http://localhost:8000/docs
-- **API Health**: http://localhost:8000/health
+### 3) Access the platform
 
-### 3. Setup Cloud Credentials
+- App: `http://localhost:5173`
+- API docs (Swagger): `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
 
-1. **Create an account** or login
-2. Navigate to **Settings** page
-3. Add credentials for your cloud providers:
+### 4) Optional: run scheduler for periodic sync
 
-**AWS:**
+Periodic sync is configured in Celery tasks. To run the scheduler:
 
-- Access Key ID
-- Secret Access Key
-- Region (e.g., us-east-1)
+```bash
+docker compose run --rm celery_worker celery -A app.worker.celery_app beat --loglevel=info
+```
 
-**Azure:**
+If you do not run Beat, you can still trigger sync manually from the dashboard API:
 
-- Tenant ID
-- Client ID
-- Client Secret
-- Subscription ID
+```bash
+curl -X POST http://localhost:8000/dashboard/sync/trigger \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
 
-**GCP:**
+## Cloud Credential Inputs
 
-- Service Account JSON
-- Project ID
+Create credentials via UI or `POST /credentials/`.
 
-### 4. Sync Resources
+| Provider | Required fields |
+| --- | --- |
+| AWS | `access_key`, `secret_key`, `region` |
+| Azure | `tenant_id`, `client_id`, `client_secret`, `subscription_id` |
+| GCP | Service account JSON payload (with project and auth fields) |
 
-**Option A: Automatic Sync**
+## API Surface (Selected)
 
-- Wait 10 minutes for the first automatic sync
+| Area | Method | Endpoint |
+| --- | --- | --- |
+| Auth | `POST` | `/auth/register` |
+| Auth | `POST` | `/auth/login` |
+| Auth | `GET` | `/auth/me` |
+| Dashboard | `GET` | `/dashboard/stats` |
+| Dashboard | `POST` | `/dashboard/sync/trigger` |
+| Inventory | `GET` | `/inventory/vms` |
+| Inventory | `GET` | `/inventory/storage` |
+| Inventory | `GET` | `/inventory/networks` |
+| Billing | `GET` | `/billing/costs` |
+| Billing | `GET` | `/billing/summary` |
+| Resources | `POST` | `/resources/` |
+| Resources | `POST` | `/resources/{resource_id}/vm/start` |
+| Resources | `POST` | `/resources/{resource_id}/vm/stop` |
+| Resources | `DELETE` | `/resources/{resource_id}/vm` |
+| Storage Ops | `GET` | `/resources/{resource_id}/storage/objects` |
+| Storage Ops | `POST` | `/resources/{resource_id}/storage/upload` |
+| Storage Ops | `GET` | `/resources/{resource_id}/storage/download` |
+| Projects | `GET` | `/projects/` |
+| Deployments | `GET` | `/deployments/` |
+| Blueprints | `GET` | `/blueprints/` |
 
-**Option B: Manual Sync**
+For complete request/response details, see `docs/API.md`.
 
-- Click the **"Sync Now"** button on the Dashboard
-- Watch the sync progress in real-time
-
-### 5. View Real Data
-
-After sync completes, you'll see:
-
-- ✅ Real resource counts
-- ✅ Active VMs from your cloud accounts
-- ✅ Storage buckets
-- ✅ Cost data
-- ✅ Provider health status
-- ✅ Recent activity
-
-## 📊 Dashboard Features
-
-### Metric Cards
-
-- **Total Resources**: Count of all resources across providers
-- **Active VMs**: Running virtual machines
-- **Storage Buckets**: S3, Blob Storage, Cloud Storage
-- **Monthly Cost**: Estimated cost from billing APIs
-
-### Provider Health
-
-- Real-time API connectivity status
-- Response time monitoring
-- Error messages if connection fails
-- Color-coded indicators (green/yellow/red)
-
-### Cost Charts
-
-- **Cost by Provider**: Bar chart showing spending per provider
-- **Cost by Service**: Pie chart showing breakdown by service type
-
-### Recent Activity
-
-- Timeline of last 5 synced resources
-- Resource type and provider badges
-- Sync timestamps
-
-## 🛠️ Technology Stack
+## Local Development
 
 ### Backend
 
-- **Framework**: FastAPI
-- **Database**: PostgreSQL
-- **Task Queue**: Celery + Redis
-- **Cloud SDKs**: boto3 (AWS), azure-sdk (Azure), google-cloud (GCP)
-- **ORM**: SQLAlchemy
+```bash
+cd backend
+python -m venv multi-venv
+source multi-venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
 ### Frontend
 
-- **Framework**: React + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Charts**: Recharts
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-
-### Infrastructure
-
-- **Containerization**: Docker + Docker Compose
-- **IaC**: Terraform
-- **Reverse Proxy**: Nginx (production)
-
-## 📁 Project Structure
-
-```
-multi-cloud/
-├── backend/
-│   ├── app/
-│   │   ├── models/              # Database models
-│   │   │   ├── resource_inventory.py  # NEW: Resource cache
-│   │   │   ├── resource.py            # Terraform resources
-│   │   │   ├── user.py
-│   │   │   └── credential.py
-│   │   ├── services/            # Cloud provider integrations
-│   │   │   ├── aws_sync.py      # NEW: AWS SDK
-│   │   │   ├── azure_sync.py    # NEW: Azure SDK
-│   │   │   ├── gcp_sync.py      # NEW: GCP SDK
-│   │   │   └── terraform_runner.py
-│   │   ├── tasks/               # Background jobs
-│   │   │   ├── sync_tasks.py    # NEW: Periodic sync
-│   │   │   └── terraform_tasks.py
-│   │   ├── api/endpoints/       # REST API endpoints
-│   │   │   ├── dashboard.py     # NEW: Dashboard stats
-│   │   │   ├── inventory.py     # NEW: Resource inventory
-│   │   │   ├── billing.py       # NEW: Cost data
-│   │   │   ├── auth.py
-│   │   │   ├── resources.py
-│   │   │   └── credentials.py
-│   │   ├── db/
-│   │   │   ├── base.py
-│   │   │   └── migrate.py       # NEW: DB migration
-│   │   ├── worker.py            # Celery worker
-│   │   └── main.py              # FastAPI app
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx    # UPDATED: Real data
-│   │   │   ├── Login.tsx
-│   │   │   ├── Settings.tsx
-│   │   │   └── ...
-│   │   ├── components/
-│   │   │   ├── CostCharts.tsx
-│   │   │   ├── ResourceList.tsx
-│   │   │   └── ...
-│   │   └── api/
-│   │       └── axios.ts
-│   ├── package.json
-│   └── Dockerfile
-├── docker-compose.yml
-├── test_apis.sh              # NEW: API test script
-└── README.md                 # This file
+```bash
+cd frontend
+npm install
+npm run dev -- --host
 ```
 
-## 🔌 API Endpoints
+### Celery worker and beat
 
-### Dashboard
+```bash
+cd backend
+celery -A app.worker.celery_app worker --loglevel=info
+celery -A app.worker.celery_app beat --loglevel=info
+```
 
-- `GET /dashboard/stats` - Get all dashboard metrics
-- `POST /dashboard/sync/trigger` - Trigger manual sync
-
-### Inventory
-
-- `GET /inventory/vms?provider=aws&region=us-east-1` - List VMs
-- `GET /inventory/storage?provider=azure` - List storage
-- `GET /inventory/networks` - List networks
-- `GET /inventory/{id}` - Get resource details
-
-### Billing
-
-- `GET /billing/costs?group_by=provider` - Get cost data
-- `GET /billing/summary` - Monthly cost summary
-
-### Resources (Terraform)
-
-- `GET /resources/` - List deployed resources
-- `POST /resources/` - Deploy new resource
-- `DELETE /resources/{id}` - Destroy resource
-
-### Authentication
-
-- `POST /auth/signup` - Create account
-- `POST /auth/login` - Login
-- `GET /auth/me` - Get current user
-
-## 🧪 Testing
-
-### Run API Tests
+### Basic API smoke test
 
 ```bash
 ./test_apis.sh
 ```
 
-### Manual API Testing
+## Repository Layout
 
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Get dashboard stats (requires auth token)
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:8000/dashboard/stats
-
-# Trigger manual sync
-curl -X POST -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:8000/dashboard/sync/trigger
+```text
+multi-cloud/
+|-- backend/
+|   |-- app/
+|   |   |-- api/endpoints/
+|   |   |-- core/
+|   |   |-- db/
+|   |   |-- models/
+|   |   |-- schemas/
+|   |   |-- services/
+|   |   `-- tasks/
+|   |-- main.py
+|   `-- requirements.txt
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- context/
+|   |   |-- pages/
+|   |   `-- api/
+|   `-- package.json
+|-- terraform/modules/
+|-- docs/
+|-- docker-compose.yml
+`-- docker-compose.prod.yml
 ```
 
-### View API Documentation
+## Documentation
 
-Open http://localhost:8000/docs for interactive Swagger UI
+- `docs/INDEX.md`
+- `docs/README.md`
+- `docs/API.md`
+- `docs/BACKEND.md`
+- `docs/CLOUD_PROVIDERS.md`
+- `docs/SECURITY.md`
+- `DEPLOYMENT.md`
+- `DEPLOYMENT_CHECKLIST.md`
 
-## 📝 Development
+## License
 
-### Backend Development
+This repository is proprietary and distributed under an all-rights-reserved license. See `LICENSE` for details.
 
-```bash
-cd backend
+## Trademark Note
 
-# Create virtual environment
-python -m venv multi-venv
-source multi-venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run database migration
-python -m app.db.migrate
-
-# Start development server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Frontend Development
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-### Celery Workers (for background sync)
-
-```bash
-# Terminal 1: Start Celery worker
-celery -A app.worker worker --loglevel=info
-
-# Terminal 2: Start Celery Beat (scheduler)
-celery -A app.worker beat --loglevel=info
-```
-
-## 🔐 Security
-
-- JWT-based authentication
-- Encrypted credential storage (AES-256)
-- User isolation for multi-tenancy
-- Rate limiting on provider APIs
-- CORS configuration
-- Environment variable management
-
-## 🚦 Monitoring
-
-### Check Service Status
-
-```bash
-docker-compose ps
-```
-
-### View Logs
-
-```bash
-# Backend logs
-docker logs multi-cloud-backend-1 -f
-
-# Celery worker logs
-docker logs multi-cloud-celery_worker-1 -f
-
-# Frontend logs
-docker logs multi-cloud-frontend-1 -f
-```
-
-### Database Access
-
-```bash
-docker exec -it multi-cloud-db-1 psql -U postgres -d multicloud
-```
-
-## 🎯 Use Cases
-
-1. **Multi-Cloud Resource Management**
-   - View all resources across AWS, Azure, GCP in one place
-   - Monitor resource status and health
-   - Track costs across providers
-
-2. **Infrastructure Deployment**
-   - Deploy VMs and storage via Terraform
-   - Track deployment status
-   - View real-time logs
-
-3. **Cost Optimization**
-   - Analyze spending by provider and service
-   - Compare monthly costs
-   - Identify cost trends
-
-4. **Provider Health Monitoring**
-   - Real-time API connectivity status
-   - Response time tracking
-   - Automated health checks
-
-## 🏆 Project Highlights
-
-### For Final-Year Project Evaluation
-
-✅ **Real-World Application**: Solves actual multi-cloud management challenges
-
-✅ **Production-Ready**: Enterprise-grade architecture with proper error handling
-
-✅ **No Mocked Data**: Every metric comes from real cloud provider APIs
-
-✅ **Modern Tech Stack**: React, FastAPI, Docker, Celery, PostgreSQL
-
-✅ **Scalable Design**: Background workers, caching, microservices-ready
-
-✅ **Security**: JWT auth, encrypted credentials, user isolation
-
-✅ **Documentation**: Comprehensive README, API docs, code comments
-
-✅ **Testing**: API tests, health checks, monitoring
-
-## 🤝 Contributing
-
-This is a final-year major project. For questions or suggestions, please contact the project team.
-
-## 📄 License
-
-This project is created for academic purposes as part of a final-year major project.
-
-## 🙏 Acknowledgments
-
-- Cloud provider SDKs: AWS boto3, Azure SDK, Google Cloud SDK
-- FastAPI framework
-- React and Vite
-- Celery for distributed task processing
-- PostgreSQL database
-
----
-
-## 📞 Support
-
-For issues or questions:
-
-1. Check the logs: `docker-compose logs`
-2. View API docs: http://localhost:8000/docs
-3. Test APIs: `./test_apis.sh`
-
----
-
-**Built with ❤️ for Multi-Cloud Management**
-
-_Last Updated: February 2026_
+AWS, Azure, Google Cloud, Docker, Terraform, React, FastAPI, PostgreSQL, Redis, and Celery names/logos are trademarks of their respective owners.
