@@ -96,6 +96,13 @@ A **production-ready, enterprise-grade** multi-cloud management platform that pr
 # Clone and navigate to project
 cd multi-cloud
 
+# Copy environment template
+cp backend/.env.example backend/.env
+
+# Update backend/.env with your Google OAuth credentials:
+# GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+# GOOGLE_CLIENT_SECRET=your-client-secret
+
 # Start all services with Docker Compose
 docker-compose up -d --build
 ```
