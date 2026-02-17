@@ -21,6 +21,12 @@ import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../../api/axios';
+import {
+  CURRENT_PROJECT_CHANGED_EVENT,
+  readCurrentProjectId,
+  readCurrentProjectName,
+  setCurrentProject,
+} from '../../utils/currentProject';
 
 import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
@@ -36,6 +42,12 @@ interface SearchResultItem {
   subtitle: string;
   path: string;
   kind: SearchKind;
+}
+
+interface ProjectOption {
+  id: number;
+  name: string;
+  resource_count?: number;
 }
 
 const normalizeCollection = (payload: any): any[] => {
@@ -55,9 +67,13 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
+  const [showProjectMenu, setShowProjectMenu] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
   const searchContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const projectMenuRef = React.useRef<HTMLDivElement | null>(null);
+  const [currentProjectId, setCurrentProjectId] = React.useState<number | null>(() => readCurrentProjectId());
+  const [currentProjectName, setCurrentProjectName] = React.useState<string | null>(() => readCurrentProjectName());
 
   const getHistoryIndex = React.useCallback(() => {
     const state = window.history.state as { idx?: number } | null;
@@ -72,6 +88,35 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
     queryFn: async () => (await axios.get('/auth/me')).data,
     retry: 1,
   });
+
+  const { data: projects = [], isLoading: isProjectsLoading } = useQuery<ProjectOption[]>({
+    queryKey: ['projects', 'topbar'],
+    queryFn: async () => {
+      const response = await axios.get('/projects/');
+      const payload = response.data;
+      const items = normalizeCollection(payload);
+      return items.map((project: any) => ({
+        id: Number(project.id),
+        name: String(project.name ?? `Project ${project.id}`),
+        resource_count:
+          typeof project.resource_count === 'number' ? project.resource_count : undefined,
+      }));
+    },
+    staleTime: 30_000,
+    retry: 1,
+  });
+
+  const currentProject = React.useMemo(
+    () => projects.find((project) => project.id === currentProjectId) ?? null,
+    [projects, currentProjectId]
+  );
+
+  const selectProject = React.useCallback((project: ProjectOption) => {
+    setCurrentProjectId(project.id);
+    setCurrentProjectName(project.name);
+    setCurrentProject({ id: project.id, name: project.name });
+    setShowProjectMenu(false);
+  }, []);
 
   React.useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -92,6 +137,53 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, [showSearch]);
+
+  React.useEffect(() => {
+    if (!showProjectMenu) return;
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (!projectMenuRef.current?.contains(event.target as Node)) {
+        setShowProjectMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [showProjectMenu]);
+
+  React.useEffect(() => {
+    if (projects.length === 0) return;
+
+    const storedId = readCurrentProjectId();
+    if (storedId && projects.some((project) => project.id === storedId)) {
+      const selected = projects.find((project) => project.id === storedId) || null;
+      setCurrentProjectId(storedId);
+      setCurrentProjectName(selected?.name ?? readCurrentProjectName());
+      return;
+    }
+
+    const fallbackProject = projects[0];
+    setCurrentProjectId(fallbackProject.id);
+    setCurrentProjectName(fallbackProject.name);
+    setCurrentProject({ id: fallbackProject.id, name: fallbackProject.name });
+  }, [projects]);
+
+  React.useEffect(() => {
+    const onProjectChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id?: number | null; name?: string | null }>;
+      const projectId = customEvent.detail?.id;
+      if (typeof projectId === 'number' && projectId > 0) {
+        setCurrentProjectId(projectId);
+      }
+      const projectName = customEvent.detail?.name;
+      if (projectName && projectName.trim().length > 0) {
+        setCurrentProjectName(projectName);
+      }
+    };
+
+    window.addEventListener(CURRENT_PROJECT_CHANGED_EVENT, onProjectChanged as EventListener);
+    return () => window.removeEventListener(CURRENT_PROJECT_CHANGED_EVENT, onProjectChanged as EventListener);
+  }, []);
 
   const { data: searchResults = [], isFetching: isSearching } = useQuery<SearchResultItem[]>({
     queryKey: ['topbar-search', debouncedSearchTerm],
@@ -312,12 +404,77 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
             <ArrowRight className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        <div className="relative hidden sm:block">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg border border-gray-700/50 transition-all duration-200">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium text-gray-300">Production</span>
+        <div className="relative hidden sm:block" ref={projectMenuRef}>
+          <button
+            onClick={() => setShowProjectMenu((previous) => !previous)}
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg border border-gray-700/50 transition-all duration-200"
+          >
+            <div className={`w-2 h-2 rounded-full ${currentProject ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+            <span className="text-sm font-medium text-gray-300 max-w-[180px] truncate">
+              {isProjectsLoading ? 'Loading projects...' : currentProject?.name || currentProjectName || 'No project selected'}
+            </span>
             <ChevronDown className="w-4 h-4 text-gray-500" />
           </button>
+
+          <AnimatePresence>
+            {showProjectMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="absolute left-0 mt-2 w-72 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden z-50"
+              >
+                <div className="px-4 py-3 border-b border-gray-800/50">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Current Project</p>
+                  <p className="text-sm font-medium text-gray-200 mt-1 truncate">
+                    {currentProject?.name || currentProjectName || 'None selected'}
+                  </p>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+                  {isProjectsLoading ? (
+                    <div className="px-3 py-2 text-sm text-gray-400">Loading projects...</div>
+                  ) : projects.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-gray-400">No projects found. Create one first.</div>
+                  ) : (
+                    projects.map((project) => {
+                      const isSelected = project.id === currentProjectId;
+                      return (
+                        <button
+                          key={project.id}
+                          onClick={() => selectProject(project)}
+                          className={`cursor-pointer w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+                            isSelected
+                              ? 'border-blue-500/40 bg-blue-500/10 text-blue-200'
+                              : 'border-gray-800/50 bg-transparent text-gray-300 hover:bg-gray-800/50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-medium truncate">{project.name}</span>
+                            <span className="text-xs text-gray-500">
+                              {project.resource_count ?? 0}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+
+                <div className="p-2 border-t border-gray-800/50">
+                  <button
+                    onClick={() => {
+                      setShowProjectMenu(false);
+                      navigate('/projects');
+                    }}
+                    className="cursor-pointer w-full rounded-lg px-3 py-2 text-left text-sm text-blue-300 hover:bg-gray-800/50"
+                  >
+                    Manage Projects
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
