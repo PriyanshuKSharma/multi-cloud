@@ -5,6 +5,7 @@ import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
 import PageGuide from '../../components/ui/PageGuide';
+import PageHero from '../../components/ui/PageHero';
 import {
   Network,
   Plus,
@@ -88,32 +89,37 @@ const NetworksPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <Network className="w-8 h-8 text-cyan-500" />
-            <span>Networks</span>
-          </h1>
-          <p className="text-gray-400 mt-1">Manage your multi-cloud virtual networks and VPCs</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => refetch()}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all duration-200"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-          <Link
-            to="/resources/networks/create"
-            className="flex items-center space-x-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-all duration-200"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">Create Network</span>
-          </Link>
-        </div>
-      </div>
+      <PageHero
+        id="networks"
+        tone="cyan"
+        eyebrow="Network topology and controls"
+        eyebrowIcon={<Network className="h-3.5 w-3.5" />}
+        title="Networks"
+        titleIcon={<Network className="w-8 h-8 text-cyan-400" />}
+        description="Manage virtual networks, gateways, and CIDR segmentation across connected providers."
+        chips={[
+          { label: `${networks?.length ?? 0} discovered`, tone: 'cyan' },
+          { label: `${filteredNetworks.length} visible`, tone: 'blue' },
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => refetch()}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all duration-200"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+            <Link
+              to="/resources/networks/create"
+              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-all duration-200"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-medium">Create Network</span>
+            </Link>
+          </>
+        }
+      />
 
       <PageGuide
         title="About Networks"

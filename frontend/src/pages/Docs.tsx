@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Github
 } from 'lucide-react';
+import PageHero from '../components/ui/PageHero';
 
 const Docs: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
@@ -42,25 +43,31 @@ const Docs: React.FC = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-800/50">
-        <div>
-          <h1 className="text-4xl font-bold text-white tracking-tight">Documentation</h1>
-          <p className="text-gray-400 mt-2 text-lg">
-            Complete guide to the Multi-Cloud SaaS Orchestration Platform.
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-           <a href="https://github.com/PriyanshuKSharma/multi-cloud" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700">
-             <Github className="w-4 h-4" />
-             <span>GitHub Repo</span>
-           </a>
-           <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20">
-             <LifeBuoy className="w-4 h-4" />
-             <span>Support</span>
-           </button>
-        </div>
-      </div>
+      <PageHero
+        id="documentation"
+        tone="blue"
+        eyebrow="Knowledge base and API guidance"
+        eyebrowIcon={<Book className="h-3.5 w-3.5" />}
+        title="Documentation"
+        titleIcon={<Book className="w-8 h-8 text-blue-300" />}
+        description="Complete guide to the Multi-Cloud SaaS Orchestration Platform."
+        chips={[
+          { label: `${tabs.length} sections`, tone: 'blue' },
+          { label: 'Frontend + Backend + API', tone: 'cyan' },
+        ]}
+        actions={
+          <>
+            <a href="https://github.com/PriyanshuKSharma/multi-cloud" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700">
+              <Github className="w-4 h-4" />
+              <span>GitHub Repo</span>
+            </a>
+            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20">
+              <LifeBuoy className="w-4 h-4" />
+              <span>Support</span>
+            </button>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">

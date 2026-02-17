@@ -3,6 +3,7 @@ import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 from app.api.endpoints import auth
 from app.db.base import engine, Base
@@ -45,6 +46,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Add SessionMiddleware for OAuth
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "super-secret-key-change-this-in-prod")
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

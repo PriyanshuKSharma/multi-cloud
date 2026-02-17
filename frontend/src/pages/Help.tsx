@@ -2,6 +2,7 @@ import React from 'react';
 import { Book, LifeBuoy, FileCode, Search, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 
 type FAQItem = {
     question: string;
@@ -68,7 +69,19 @@ const HelpPage: React.FC = () => {
 
     return (
         <div className="p-8 max-w-5xl mx-auto space-y-8">
-            <h1 className="text-3xl font-bold text-white mb-6">Help & Support</h1>
+            <PageHero
+                id="help-support"
+                tone="indigo"
+                eyebrow="Guides and support channels"
+                eyebrowIcon={<LifeBuoy className="h-3.5 w-3.5" />}
+                title="Help & Support"
+                titleIcon={<LifeBuoy className="w-8 h-8 text-indigo-300" />}
+                description="Get documentation, API references, FAQ guidance, and direct support options."
+                chips={[
+                    { label: `${FAQ_ITEMS.length} FAQ entries`, tone: 'indigo' },
+                    { label: 'Docs + API + Support', tone: 'blue' },
+                ]}
+            />
 
             <PageGuide
                 title="About Help & Support"

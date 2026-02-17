@@ -70,7 +70,7 @@ const Login: React.FC = () => {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
 
-      login(response.data.access_token);
+      await login(response.data.access_token);
       navigate('/');
     } catch (err: any) {
         setError('root', {

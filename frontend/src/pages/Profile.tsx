@@ -3,6 +3,7 @@ import { Shield, Mail } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 
 interface UserProfile {
   id: number;
@@ -144,7 +145,19 @@ const Profile: React.FC = () => {
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold text-white mb-8">My Profile</h1>
+      <PageHero
+        id="profile"
+        tone="indigo"
+        eyebrow="Account identity and security"
+        eyebrowIcon={<Shield className="h-3.5 w-3.5" />}
+        title="My Profile"
+        titleIcon={<Shield className="w-8 h-8 text-indigo-300" />}
+        description="Manage your personal details, password, and multi-factor security settings."
+        chips={[
+          { label: currentUser.email, tone: 'indigo' },
+          { label: currentUser.two_factor_enabled ? '2FA enabled' : '2FA disabled', tone: currentUser.two_factor_enabled ? 'emerald' : 'default' },
+        ]}
+      />
 
       <PageGuide
         title="About Profile"

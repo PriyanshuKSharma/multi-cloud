@@ -2,7 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
+import { normalizeLogText } from '../utils/terraformOutput';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
 import {
@@ -172,6 +174,10 @@ const CloudConsole: React.FC = () => {
 
   const terminalCommand = (deployment: Deployment) =>
     `cloudorch provision --provider ${deployment.provider} --type ${deployment.resource_type} --name "${deployment.resource_name}" --project ${deployment.project_id}`;
+  const formattedDetailLogs = React.useMemo(
+    () => normalizeLogText(deploymentDetail?.logs ?? ''),
+    [deploymentDetail?.logs]
+  );
 
   const resourcesCount = resources?.length ?? 0;
   const vmCount = resources?.filter((item) => item.type === 'vm').length ?? 0;
@@ -182,22 +188,28 @@ const CloudConsole: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <Terminal className="w-8 h-8 text-cyan-400" />
-            <span>Cloud Console</span>
-          </h1>
-          <p className="text-gray-400 mt-1">Live command-style view of provisioning jobs and created resources</p>
-        </div>
-        <button
-          onClick={refreshAll}
-          className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all"
-        >
-          <RefreshCw className={`w-4 h-4 ${(deploymentsLoading || resourcesLoading) ? 'animate-spin' : ''}`} />
-          <span className="text-sm font-medium">Refresh</span>
-        </button>
-      </div>
+      <PageHero
+        id="cloud-console"
+        tone="cyan"
+        eyebrow="Live provisioning console"
+        eyebrowIcon={<Terminal className="h-3.5 w-3.5" />}
+        title="Cloud Console"
+        titleIcon={<Terminal className="w-8 h-8 text-cyan-300" />}
+        description="Live command-style view of provisioning jobs, logs, and created resource records."
+        chips={[
+          { label: `${deployments?.length ?? 0} deployments`, tone: 'cyan' },
+          { label: `${resourcesCount} resources`, tone: 'blue' },
+        ]}
+        actions={
+          <button
+            onClick={refreshAll}
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all"
+          >
+            <RefreshCw className={`w-4 h-4 ${(deploymentsLoading || resourcesLoading) ? 'animate-spin' : ''}`} />
+            <span className="text-sm font-medium">Refresh</span>
+          </button>
+        }
+      />
 
       <PageGuide
         title="About Cloud Console"
@@ -312,7 +324,7 @@ const CloudConsole: React.FC = () => {
                   </div>
                 </div>
                 <pre className="whitespace-pre-wrap break-all">
-                  {deploymentDetail.logs || 'No logs available yet. Provisioning output will appear here when available.'}
+                  {formattedDetailLogs || 'No logs available yet. Provisioning output will appear here when available.'}
                 </pre>
               </div>
             ) : (

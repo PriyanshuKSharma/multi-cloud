@@ -25,8 +25,8 @@ const CostCharts: React.FC<CostChartsProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
         <h3 className="text-lg font-bold text-white mb-4">Cost by Provider</h3>
-        <div className="h-64 chart-container">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 chart-container min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
             <BarChart data={providerData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="name" stroke="#9CA3AF" />
@@ -44,8 +44,8 @@ const CostCharts: React.FC<CostChartsProps> = ({
 
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
         <h3 className="text-lg font-bold text-white mb-4">Cost by Service Type</h3>
-        <div className="h-64 chart-container">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 chart-container min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
             <PieChart>
               <Pie
                 data={serviceData}
