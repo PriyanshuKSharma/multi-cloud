@@ -338,17 +338,30 @@ def create_resource(
             detail=f"No {provider.upper()} credential found. Connect a cloud account first.",
         )
 
-    # Verify project belongs to user
-    project = db.query(Project).filter(Project.id == resource_in.project_id, Project.user_id == current_user.id).first()
-    if not project:
-        # Auto-create default project for MVP ease
-        if resource_in.project_id == 0:
-             project = Project(name="Default Project", user_id=current_user.id)
-             db.add(project)
-             db.commit()
-             db.refresh(project)
-        else:
-             raise HTTPException(status_code=404, detail="Project not found")
+    requested_project_id = int(resource_in.project_id or 0)
+    project = None
+
+    if requested_project_id > 0:
+        project = (
+            db.query(Project)
+            .filter(Project.id == requested_project_id, Project.user_id == current_user.id)
+            .first()
+        )
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+    else:
+        # Backward compatibility for older clients that still send project_id=0.
+        project = (
+            db.query(Project)
+            .filter(Project.user_id == current_user.id, Project.name == "Default Project")
+            .order_by(Project.id.asc())
+            .first()
+        )
+        if not project:
+            project = Project(name="Default Project", user_id=current_user.id)
+            db.add(project)
+            db.commit()
+            db.refresh(project)
 
     base_configuration = dict(resource_in.configuration or {})
 
