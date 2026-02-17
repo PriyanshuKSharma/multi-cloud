@@ -7,6 +7,7 @@ const isLocalBrowser =
 
 // Local dev -> localhost backend. Hosted frontend -> default to same-origin /api (use platform rewrite/proxy).
 export const API_BASE_URL = configuredApiUrl || (isLocalBrowser ? 'http://localhost:8000' : '/api');
+export const AUTH_INVALID_EVENT = 'nebula:auth-invalid';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,5 +26,24 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   config.headers.set('ngrok-skip-browser-warning', 'true'); // Also good for ngrok
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const requestUrl = String(error?.config?.url ?? '');
+    const isAuthEndpoint =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register') ||
+      requestUrl.includes('/auth/me');
+
+    if (status === 401 && !isAuthEndpoint && isBrowser) {
+      localStorage.removeItem('token');
+      window.dispatchEvent(new CustomEvent(AUTH_INVALID_EVENT));
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;
