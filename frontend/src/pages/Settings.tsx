@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import AddCredentialModal from '../components/AddCredentialModal';
 import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
 import { Trash2, Plus, Shield, Key, Calendar, Cloud, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -58,13 +59,19 @@ const Settings: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-4xl mx-auto space-y-8 pb-12"
     >
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight">Security & Settings</h1>
-          <p className="text-gray-400 mt-2">Manage your cloud provider credentials and global configurations.</p>
-        </div>
-      </div>
+      <PageHero
+        id="settings"
+        tone="indigo"
+        eyebrow="Global account controls"
+        eyebrowIcon={<Shield className="h-3.5 w-3.5" />}
+        title="Security & Settings"
+        titleIcon={<Shield className="w-8 h-8 text-indigo-300" />}
+        description="Manage cloud credentials and security posture for provisioning and API operations."
+        chips={[
+          { label: `${credentials.length} credentials`, tone: 'indigo' },
+          { label: isLoading ? 'syncing...' : 'synced', tone: isLoading ? 'default' : 'emerald' },
+        ]}
+      />
 
       <PageGuide
         title="About Settings"
