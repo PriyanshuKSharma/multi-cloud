@@ -7,6 +7,7 @@ import boto3
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from app.db.base import get_db
 from app.models.resource import Resource, Project
@@ -31,6 +32,52 @@ AWS_DEFAULT_AMI_BY_REGION: Dict[str, str] = {
     "eu-west-1": "ami-08f312f60f5433162",
     "ap-southeast-1": "ami-047126e50991d067b",
 }
+
+
+class StorageWebsiteConfig(BaseModel):
+    index_document: str = Field(default="index.html", min_length=1, max_length=255)
+    error_document: str = Field(default="error.html", min_length=1, max_length=255)
+    public_read: bool = True
+
+
+def _normalize_s3_key(value: str) -> str:
+    return value.replace("\\", "/").strip().lstrip("/")
+
+
+def _resolve_bucket_region(s3_client, bucket_name: str) -> str:
+    fallback_region = s3_client.meta.region_name or "us-east-1"
+    try:
+        response = s3_client.get_bucket_location(Bucket=bucket_name)
+    except ClientError:
+        return fallback_region
+
+    location_constraint = response.get("LocationConstraint")
+    if location_constraint in (None, ""):
+        return "us-east-1"
+    if location_constraint == "EU":
+        return "eu-west-1"
+    return str(location_constraint)
+
+
+LEGACY_DASH_WEBSITE_REGIONS = {
+    "us-east-1",
+    "us-west-1",
+    "us-west-2",
+    "eu-west-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-northeast-1",
+    "sa-east-1",
+}
+
+
+def _build_s3_website_urls(bucket_name: str, region: str) -> Tuple[str, str]:
+    dash_style = f"http://{bucket_name}.s3-website-{region}.amazonaws.com"
+    dotted_style = f"http://{bucket_name}.s3-website.{region}.amazonaws.com"
+
+    if region in LEGACY_DASH_WEBSITE_REGIONS:
+        return dash_style, dotted_style
+    return dotted_style, dash_style
 
 
 def _get_storage_resource_for_user(
@@ -679,7 +726,7 @@ def upload_storage_object(
         
     s3_client, bucket_name = _get_aws_s3_client_for_storage_resource(resource, current_user, db)
 
-    object_key = (key or file.filename or "").strip()
+    object_key = _normalize_s3_key(key or file.filename or "")
     if not object_key:
         raise HTTPException(status_code=400, detail="Object key is required")
 
@@ -705,6 +752,76 @@ def upload_storage_object(
         "bucket": bucket_name,
         "key": object_key,
         "content_type": file.content_type,
+    }
+
+
+@router.post("/{resource_id}/storage/upload-folder")
+def upload_storage_folder(
+    resource_id: int,
+    files: List[UploadFile] = File(...),
+    keys: Optional[List[str]] = Form(None),
+    prefix: str = Form(""),
+    source: str = Query("provisioning", description="Source of the resource: 'provisioning' or 'inventory'"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if source == "inventory":
+        resource = _get_inventory_resource_for_user(resource_id, current_user, db)
+    else:
+        resource = _get_storage_resource_for_user(resource_id, current_user, db)
+
+    s3_client, bucket_name = _get_aws_s3_client_for_storage_resource(resource, current_user, db)
+
+    if not files:
+        raise HTTPException(status_code=400, detail="At least one file is required")
+
+    provided_keys = keys or []
+    if provided_keys and len(provided_keys) != len(files):
+        raise HTTPException(status_code=400, detail="Number of object keys must match number of files")
+
+    normalized_prefix = _normalize_s3_key(prefix)
+    if normalized_prefix:
+        normalized_prefix = f"{normalized_prefix}/"
+
+    uploaded_keys: List[str] = []
+    try:
+        for index, upload_file in enumerate(files):
+            raw_key = provided_keys[index] if index < len(provided_keys) else (upload_file.filename or "")
+            object_key = _normalize_s3_key(raw_key)
+            if not object_key:
+                continue
+
+            if normalized_prefix:
+                object_key = f"{normalized_prefix}{object_key}"
+
+            extra_args = {}
+            if upload_file.content_type:
+                extra_args["ContentType"] = upload_file.content_type
+
+            if extra_args:
+                s3_client.upload_fileobj(upload_file.file, bucket_name, object_key, ExtraArgs=extra_args)
+            else:
+                s3_client.upload_fileobj(upload_file.file, bucket_name, object_key)
+
+            uploaded_keys.append(object_key)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to upload folder: {detail}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Folder upload failed: {exc}") from exc
+    finally:
+        for upload_file in files:
+            upload_file.file.close()
+
+    if not uploaded_keys:
+        raise HTTPException(status_code=400, detail="No valid files were uploaded")
+
+    return {
+        "message": "Folder uploaded successfully",
+        "bucket": bucket_name,
+        "uploaded_count": len(uploaded_keys),
+        "uploaded_keys": uploaded_keys[:100],
+        "prefix": normalized_prefix or "",
     }
 
 
@@ -738,3 +855,135 @@ def download_storage_object(
     headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
 
     return StreamingResponse(body, media_type=media_type, headers=headers)
+
+
+@router.get("/{resource_id}/storage/website")
+def get_storage_website_config(
+    resource_id: int,
+    source: str = Query("provisioning", description="Source of the resource: 'provisioning' or 'inventory'"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if source == "inventory":
+        resource = _get_inventory_resource_for_user(resource_id, current_user, db)
+    else:
+        resource = _get_storage_resource_for_user(resource_id, current_user, db)
+
+    s3_client, bucket_name = _get_aws_s3_client_for_storage_resource(resource, current_user, db)
+    region = _resolve_bucket_region(s3_client, bucket_name)
+    website_url, alternate_website_url = _build_s3_website_urls(bucket_name, region)
+
+    try:
+        config = s3_client.get_bucket_website(Bucket=bucket_name)
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code", "")
+        if str(error_code) in {"NoSuchWebsiteConfiguration", "NoSuchWebsiteConfigurationException", "404"}:
+            return {
+                "bucket": bucket_name,
+                "enabled": False,
+                "region": region,
+                "website_url": website_url,
+                "alternate_website_url": alternate_website_url,
+            }
+
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to read website configuration: {detail}") from exc
+
+    index_suffix = (
+        config.get("IndexDocument", {}).get("Suffix")
+        if isinstance(config.get("IndexDocument"), dict)
+        else None
+    )
+    error_key = (
+        config.get("ErrorDocument", {}).get("Key")
+        if isinstance(config.get("ErrorDocument"), dict)
+        else None
+    )
+
+    return {
+        "bucket": bucket_name,
+        "enabled": True,
+        "region": region,
+        "website_url": website_url,
+        "alternate_website_url": alternate_website_url,
+        "index_document": index_suffix,
+        "error_document": error_key,
+    }
+
+
+@router.post("/{resource_id}/storage/website/enable")
+def enable_storage_website(
+    resource_id: int,
+    payload: StorageWebsiteConfig,
+    source: str = Query("provisioning", description="Source of the resource: 'provisioning' or 'inventory'"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if source == "inventory":
+        resource = _get_inventory_resource_for_user(resource_id, current_user, db)
+    else:
+        resource = _get_storage_resource_for_user(resource_id, current_user, db)
+
+    s3_client, bucket_name = _get_aws_s3_client_for_storage_resource(resource, current_user, db)
+    region = _resolve_bucket_region(s3_client, bucket_name)
+
+    index_document = _normalize_s3_key(payload.index_document)
+    error_document = _normalize_s3_key(payload.error_document)
+    if not index_document:
+        raise HTTPException(status_code=400, detail="index_document is required")
+    if not error_document:
+        raise HTTPException(status_code=400, detail="error_document is required")
+
+    website_configuration = {
+        "IndexDocument": {"Suffix": index_document},
+        "ErrorDocument": {"Key": error_document},
+    }
+
+    try:
+        s3_client.put_bucket_website(
+            Bucket=bucket_name,
+            WebsiteConfiguration=website_configuration,
+        )
+
+        if payload.public_read:
+            s3_client.put_public_access_block(
+                Bucket=bucket_name,
+                PublicAccessBlockConfiguration={
+                    "BlockPublicAcls": False,
+                    "IgnorePublicAcls": False,
+                    "BlockPublicPolicy": False,
+                    "RestrictPublicBuckets": False,
+                },
+            )
+
+            public_read_policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Sid": "PublicReadGetObject",
+                        "Effect": "Allow",
+                        "Principal": "*",
+                        "Action": ["s3:GetObject"],
+                        "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+                    }
+                ],
+            }
+            s3_client.put_bucket_policy(
+                Bucket=bucket_name,
+                Policy=json.dumps(public_read_policy),
+            )
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to enable static website hosting: {detail}") from exc
+
+    website_url, alternate_website_url = _build_s3_website_urls(bucket_name, region)
+    return {
+        "message": "Static website hosting enabled",
+        "bucket": bucket_name,
+        "region": region,
+        "website_url": website_url,
+        "alternate_website_url": alternate_website_url,
+        "index_document": index_document,
+        "error_document": error_document,
+        "public_read": payload.public_read,
+    }
