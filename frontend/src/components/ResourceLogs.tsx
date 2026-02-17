@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Terminal, Copy, Check } from 'lucide-react';
+import { normalizeLogText } from '../utils/terraformOutput';
 
 interface ResourceLogsProps {
   isOpen: boolean;
@@ -12,15 +13,16 @@ interface ResourceLogsProps {
 const ResourceLogs: React.FC<ResourceLogsProps> = ({ isOpen, onClose, logs, resourceName }) => {
   const [copied, setCopied] = React.useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const formattedLogs = React.useMemo(() => normalizeLogText(logs), [logs]);
 
   useEffect(() => {
     if (isOpen) {
       logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isOpen, logs]);
+  }, [isOpen, formattedLogs]);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(logs);
+    navigator.clipboard.writeText(formattedLogs);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -67,9 +69,9 @@ const ResourceLogs: React.FC<ResourceLogsProps> = ({ isOpen, onClose, logs, reso
 
           {/* Logs Area */}
           <div className="flex-1 overflow-auto bg-[#0d1117] p-4 font-mono text-sm leading-relaxed">
-            {logs ? (
+            {formattedLogs ? (
               <pre className="text-gray-300 whitespace-pre-wrap break-all">
-                {logs.split('\n').map((line, i) => (
+                {formattedLogs.split('\n').map((line, i) => (
                   <div key={i} className="hover:bg-gray-800/30 px-2 rounded -mx-2">
                     <span className="text-gray-600 select-none mr-3 text-xs">{(i + 1).toString().padStart(3, ' ')}</span>
                     {line}
