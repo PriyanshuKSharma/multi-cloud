@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import PageGuide from '../../components/ui/PageGuide';
+import PageHero from '../../components/ui/PageHero';
+import { extractProvisioningErrorMessage } from '../../utils/terraformOutput';
 import {
   Database,
   ArrowLeft,
@@ -113,9 +115,10 @@ const CreateStorage: React.FC = () => {
     onSuccess: (resource) => {
       if (resource?.status === 'failed') {
         setSubmitError(
-          resource.terraform_output?.detail ||
-          resource.terraform_output?.error ||
-          'Resource request was accepted but provisioning could not be queued.'
+          extractProvisioningErrorMessage(
+            resource.terraform_output,
+            'Resource request was accepted but provisioning could not be queued.'
+          )
         );
         return;
       }
@@ -127,16 +130,10 @@ const CreateStorage: React.FC = () => {
     },
     onError: (error: any) => {
       const detail = error?.response?.data?.detail;
-      if (typeof detail === 'string') {
-        setSubmitError(detail);
-        return;
-      }
-      if (Array.isArray(detail)) {
-        const message = detail
-          .map((item) => item?.msg)
-          .filter(Boolean)
-          .join(', ');
-        setSubmitError(message || 'Failed to create storage bucket. Please try again.');
+      if (detail !== undefined) {
+        setSubmitError(
+          extractProvisioningErrorMessage(detail, 'Failed to create storage bucket. Please try again.')
+        );
         return;
       }
       setSubmitError('Failed to create storage bucket. Please try again.');
@@ -150,20 +147,28 @@ const CreateStorage: React.FC = () => {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <button
-          onClick={() => navigate('/resources/storage')}
-          className="flex items-center text-gray-400 hover:text-white mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Storage
-        </button>
-        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <Database className="w-8 h-8 text-purple-500" />
-          Create Storage Bucket
-        </h1>
-        <p className="text-gray-400 mt-2">Provision a new object storage bucket</p>
-      </div>
+      <PageHero
+        id="create-storage"
+        tone="purple"
+        eyebrow="Provision object storage"
+        eyebrowIcon={<Database className="h-3.5 w-3.5" />}
+        title="Create Storage Bucket"
+        titleIcon={<Database className="w-8 h-8 text-purple-400" />}
+        description="Provision a new object storage bucket with region, access, and protection controls."
+        chips={[
+          { label: `provider: ${selectedProvider.toUpperCase()}`, tone: 'purple' },
+          { label: `region: ${watch('region')}`, tone: 'cyan' },
+        ]}
+        actions={
+          <button
+            onClick={() => navigate('/resources/storage')}
+            className="cursor-pointer flex items-center rounded-lg border border-gray-700/60 bg-gray-800/60 px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-gray-800"
+          >
+            <ArrowLeft className="mr-2 w-4 h-4" />
+            Back to Storage
+          </button>
+        }
+      />
 
       <PageGuide
         title="About Create Storage"
