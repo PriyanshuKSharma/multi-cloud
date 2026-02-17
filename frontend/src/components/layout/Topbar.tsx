@@ -1,5 +1,22 @@
 import React from 'react';
-import { Search, Bell, User, ChevronDown, Settings, LogOut, HelpCircle, ArrowLeft, ArrowRight, Menu } from 'lucide-react';
+import {
+  Search,
+  Bell,
+  User,
+  ChevronDown,
+  Settings,
+  LogOut,
+  HelpCircle,
+  ArrowLeft,
+  ArrowRight,
+  Menu,
+  Loader2,
+  Server,
+  Database,
+  Network,
+  Rocket,
+  FolderKanban,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +28,25 @@ interface TopbarProps {
   onOpenSidebar?: () => void;
 }
 
+type SearchKind = 'project' | 'vm' | 'storage' | 'network' | 'deployment';
+
+interface SearchResultItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  path: string;
+  kind: SearchKind;
+}
+
+const normalizeCollection = (payload: any): any[] => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
+};
+
+const includesQuery = (value: unknown, query: string): boolean =>
+  String(value ?? '').toLowerCase().includes(query);
+
 const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -19,6 +55,9 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
+  const searchContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const getHistoryIndex = React.useCallback(() => {
     const state = window.history.state as { idx?: number } | null;
@@ -33,6 +72,163 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
     queryFn: async () => (await axios.get('/auth/me')).data,
     retry: 1,
   });
+
+  React.useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [searchTerm]);
+
+  React.useEffect(() => {
+    if (!showSearch) return;
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (!searchContainerRef.current?.contains(event.target as Node)) {
+        setShowSearch(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [showSearch]);
+
+  const { data: searchResults = [], isFetching: isSearching } = useQuery<SearchResultItem[]>({
+    queryKey: ['topbar-search', debouncedSearchTerm],
+    enabled: showSearch && debouncedSearchTerm.length >= 2,
+    queryFn: async () => {
+      const query = debouncedSearchTerm.toLowerCase();
+
+      const fetchCollection = async (url: string) => {
+        try {
+          const response = await axios.get(url);
+          return normalizeCollection(response.data);
+        } catch {
+          return [];
+        }
+      };
+
+      const [projects, vms, storage, networks, deployments] = await Promise.all([
+        fetchCollection('/projects/'),
+        fetchCollection('/inventory/vms?limit=100'),
+        fetchCollection('/inventory/storage?limit=100'),
+        fetchCollection('/inventory/networks?limit=100'),
+        fetchCollection('/deployments/'),
+      ]);
+
+      const projectResults: SearchResultItem[] = projects
+        .filter((project: any) => includesQuery(project.name, query) || includesQuery(project.description, query))
+        .map((project: any) => ({
+          id: `project-${project.id ?? project.name ?? 'unknown'}`,
+          title: String(project.name ?? 'Unnamed Project'),
+          subtitle: project.description ? `Project • ${String(project.description)}` : 'Project',
+          path: '/projects',
+          kind: 'project' as const,
+        }));
+
+      const vmResults: SearchResultItem[] = vms
+        .filter(
+          (vm: any) =>
+            includesQuery(vm.resource_name ?? vm.name, query) ||
+            includesQuery(vm.provider, query) ||
+            includesQuery(vm.region, query) ||
+            includesQuery(vm.status, query)
+        )
+        .map((vm: any) => {
+          const vmId = vm.id ?? vm.resource_id;
+          return {
+            id: `vm-${vmId ?? vm.resource_name ?? vm.name ?? 'unknown'}`,
+            title: String(vm.resource_name ?? vm.name ?? 'Unnamed VM'),
+            subtitle: `VM • ${String(vm.provider ?? '').toUpperCase()} • ${String(vm.region ?? 'unknown')}`,
+            path: vmId ? `/resources/vms/${vmId}` : '/resources/vms',
+            kind: 'vm' as const,
+          };
+        });
+
+      const storageResults: SearchResultItem[] = storage
+        .filter(
+          (item: any) =>
+            includesQuery(item.resource_name ?? item.name, query) ||
+            includesQuery(item.provider, query) ||
+            includesQuery(item.region, query) ||
+            includesQuery(item.status, query)
+        )
+        .map((item: any) => ({
+          id: `storage-${item.id ?? item.resource_id ?? item.name ?? 'unknown'}`,
+          title: String(item.resource_name ?? item.name ?? 'Unnamed Storage'),
+          subtitle: `Storage • ${String(item.provider ?? '').toUpperCase()} • ${String(item.region ?? 'unknown')}`,
+          path: '/resources/storage',
+          kind: 'storage' as const,
+        }));
+
+      const networkResults: SearchResultItem[] = networks
+        .filter(
+          (item: any) =>
+            includesQuery(item.resource_name ?? item.name, query) ||
+            includesQuery(item.provider, query) ||
+            includesQuery(item.status, query)
+        )
+        .map((item: any) => ({
+          id: `network-${item.id ?? item.resource_id ?? item.name ?? 'unknown'}`,
+          title: String(item.resource_name ?? item.name ?? 'Unnamed Network'),
+          subtitle: `Network • ${String(item.provider ?? '').toUpperCase()}`,
+          path: '/resources/networks',
+          kind: 'network' as const,
+        }));
+
+      const deploymentResults: SearchResultItem[] = deployments
+        .filter(
+          (deployment: any) =>
+            includesQuery(deployment.resource_name, query) ||
+            includesQuery(deployment.provider, query) ||
+            includesQuery(deployment.resource_type, query) ||
+            includesQuery(deployment.status, query)
+        )
+        .map((deployment: any) => ({
+          id: `deployment-${deployment.id ?? 'unknown'}`,
+          title: String(deployment.resource_name ?? 'Unnamed Deployment'),
+          subtitle: `Deployment • ${String(deployment.provider ?? '').toUpperCase()} • ${String(
+            deployment.status ?? 'unknown'
+          )}`,
+          path: deployment.id ? `/deployments/${deployment.id}` : '/deployments',
+          kind: 'deployment' as const,
+        }));
+
+      return [
+        ...projectResults,
+        ...vmResults,
+        ...storageResults,
+        ...networkResults,
+        ...deploymentResults,
+      ].slice(0, 25);
+    },
+    staleTime: 5000,
+    retry: 1,
+  });
+
+  const getSearchIcon = (kind: SearchKind) => {
+    switch (kind) {
+      case 'project':
+        return <FolderKanban className="w-4 h-4 text-blue-400" />;
+      case 'vm':
+        return <Server className="w-4 h-4 text-cyan-400" />;
+      case 'storage':
+        return <Database className="w-4 h-4 text-purple-400" />;
+      case 'network':
+        return <Network className="w-4 h-4 text-teal-400" />;
+      case 'deployment':
+        return <Rocket className="w-4 h-4 text-orange-400" />;
+      default:
+        return <Search className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const openSearchResult = (result: SearchResultItem) => {
+    navigate(result.path);
+    setShowSearch(false);
+    setSearchTerm('');
+    setDebouncedSearchTerm('');
+  };
 
   const currentUser = profileUser || user || {
     full_name: 'Admin User',
@@ -128,10 +324,10 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
       {/* Right: Search, Notifications, User */}
       <div className="flex items-center space-x-1 sm:space-x-3">
         {/* Global Search */}
-        <div className="relative">
+        <div className="relative" ref={searchContainerRef}>
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="p-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200 relative"
+            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200 relative"
           >
             <Search className="w-5 h-5 text-gray-400" />
           </button>
@@ -150,13 +346,52 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                     <input
                       type="text"
                       placeholder="Search resources, deployments..."
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Escape') {
+                          setShowSearch(false);
+                          return;
+                        }
+                        if (event.key === 'Enter' && searchResults.length > 0) {
+                          event.preventDefault();
+                          openSearchResult(searchResults[0]);
+                        }
+                      }}
                       className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                       autoFocus
                     />
                   </div>
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Recent Searches</p>
-                    <div className="text-sm text-gray-400">No recent searches</div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Search Results</p>
+
+                    {searchTerm.trim().length < 2 ? (
+                      <div className="text-sm text-gray-400">Type at least 2 characters to search.</div>
+                    ) : isSearching ? (
+                      <div className="flex items-center space-x-2 text-sm text-gray-400">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Searching...</span>
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="text-sm text-gray-400">No matching resources found.</div>
+                    ) : (
+                      <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
+                        {searchResults.map((result) => (
+                          <button
+                            key={result.id}
+                            type="button"
+                            onClick={() => openSearchResult(result)}
+                            className="cursor-pointer w-full flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left"
+                          >
+                            <div className="mt-0.5">{getSearchIcon(result.kind)}</div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-200 truncate">{result.title}</p>
+                              <p className="text-xs text-gray-500 truncate">{result.subtitle}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
