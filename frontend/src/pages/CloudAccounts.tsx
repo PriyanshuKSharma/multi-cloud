@@ -26,13 +26,40 @@ interface CloudAccount {
   is_default: boolean;
 }
 
+const normalizeCloudAccount = (item: unknown): CloudAccount => {
+  const value = item && typeof item === 'object' ? (item as Record<string, unknown>) : {};
+  const provider = String(value.provider ?? 'aws').toLowerCase();
+
+  return {
+    id: Number(value.id ?? 0),
+    provider,
+    account_name: String(value.account_name ?? value.name ?? `${provider.toUpperCase()} Account`),
+    account_id: String(value.account_id ?? value.id ?? '-'),
+    status: String(value.status ?? 'active').toLowerCase(),
+    region: String(value.region ?? value.default_region ?? 'global'),
+    resources_count:
+      typeof value.resources_count === 'number'
+        ? value.resources_count
+        : value.resources_count
+          ? Number(value.resources_count)
+          : 0,
+    last_synced: String(value.last_synced ?? value.created_at ?? new Date().toISOString()),
+    is_default: Boolean(value.is_default),
+  };
+};
+
 const CloudAccountsPage: React.FC = () => {
   const { data: accounts, isLoading, refetch } = useQuery<CloudAccount[]>({
     queryKey: ['cloud-accounts'],
     queryFn: async () => {
       const response = await axios.get('/credentials');
       const payload = response.data;
-      return Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : [];
+      const items: unknown[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.items)
+          ? payload.items
+          : [];
+      return items.map(normalizeCloudAccount).filter((item: CloudAccount) => item.id > 0);
     },
   });
 
