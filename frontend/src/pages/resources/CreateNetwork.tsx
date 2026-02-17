@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import PageGuide from '../../components/ui/PageGuide';
+import PageHero from '../../components/ui/PageHero';
 import {
   Network,
   ArrowLeft,
@@ -91,20 +92,28 @@ const CreateNetwork: React.FC = () => {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <button
-          onClick={() => navigate('/resources/networks')}
-          className="flex items-center text-gray-400 hover:text-white mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Networks
-        </button>
-        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <Network className="w-8 h-8 text-cyan-500" />
-          Create Virtual Network
-        </h1>
-        <p className="text-gray-400 mt-2">Provision a new VPC or VNET</p>
-      </div>
+      <PageHero
+        id="create-network"
+        tone="cyan"
+        eyebrow="Provision networking fabric"
+        eyebrowIcon={<Network className="h-3.5 w-3.5" />}
+        title="Create Virtual Network"
+        titleIcon={<Network className="w-8 h-8 text-cyan-400" />}
+        description="Provision a new VPC/VNET and define DNS, NAT, and CIDR behavior."
+        chips={[
+          { label: `provider: ${selectedProvider.toUpperCase()}`, tone: 'cyan' },
+          { label: `region: ${watch('region')}`, tone: 'blue' },
+        ]}
+        actions={
+          <button
+            onClick={() => navigate('/resources/networks')}
+            className="cursor-pointer flex items-center rounded-lg border border-gray-700/60 bg-gray-800/60 px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-gray-800"
+          >
+            <ArrowLeft className="mr-2 w-4 h-4" />
+            Back to Networks
+          </button>
+        }
+      />
 
       <PageGuide
         title="About Create Network"
