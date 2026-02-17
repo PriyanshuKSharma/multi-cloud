@@ -18,6 +18,7 @@ import {
   Trash2,
   Download,
   Upload,
+  FolderUp,
   Layers3,
   ShieldCheck,
   Globe2,
@@ -28,6 +29,7 @@ import {
   Tag,
   Lock,
   Unlock,
+  ExternalLink,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -73,6 +75,13 @@ interface StorageObject {
 interface DownloadDialogState {
   resource: StorageResource;
   objects: StorageObject[];
+}
+
+interface StorageWebsiteResponse {
+  website_url: string;
+  index_document: string;
+  error_document: string;
+  public_read: boolean;
 }
 
 const normalizeInventoryStorage = (item: any): StorageResource => {
@@ -147,8 +156,13 @@ const StoragePage: React.FC = () => {
   });
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
-  const [actionMessage, setActionMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [actionMessage, setActionMessage] = React.useState<{
+    type: 'success' | 'error';
+    text: string;
+    href?: string;
+  } | null>(null);
   const [uploadTarget, setUploadTarget] = React.useState<StorageResource | null>(null);
+  const [folderUploadTarget, setFolderUploadTarget] = React.useState<StorageResource | null>(null);
   const [downloadDialog, setDownloadDialog] = React.useState<DownloadDialogState | null>(null);
   const [downloadKeyInput, setDownloadKeyInput] = React.useState('');
   const [downloadDialogError, setDownloadDialogError] = React.useState<string | null>(null);
@@ -158,7 +172,18 @@ const StoragePage: React.FC = () => {
   const [uploadKeyInput, setUploadKeyInput] = React.useState('');
   const [uploadDialogError, setUploadDialogError] = React.useState<string | null>(null);
   const [isUploadSubmitting, setIsUploadSubmitting] = React.useState(false);
+  const [pendingFolderFiles, setPendingFolderFiles] = React.useState<File[]>([]);
+  const [folderPrefixInput, setFolderPrefixInput] = React.useState('');
+  const [folderUploadError, setFolderUploadError] = React.useState<string | null>(null);
+  const [isFolderUploading, setIsFolderUploading] = React.useState(false);
+  const [websiteTarget, setWebsiteTarget] = React.useState<StorageResource | null>(null);
+  const [websiteIndexDocument, setWebsiteIndexDocument] = React.useState('index.html');
+  const [websiteErrorDocument, setWebsiteErrorDocument] = React.useState('error.html');
+  const [websitePublicRead, setWebsitePublicRead] = React.useState(true);
+  const [websiteDialogError, setWebsiteDialogError] = React.useState<string | null>(null);
+  const [isWebsiteSubmitting, setIsWebsiteSubmitting] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const folderInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const { data: storage, isLoading, error, refetch } = useQuery<StorageResource[]>({
     queryKey: ['inventory', 'storage', filters],
@@ -217,6 +242,12 @@ const StoragePage: React.FC = () => {
     },
     refetchInterval: 10000,
   });
+
+  React.useEffect(() => {
+    if (!folderInputRef.current) return;
+    folderInputRef.current.setAttribute('webkitdirectory', '');
+    folderInputRef.current.setAttribute('directory', '');
+  }, []);
 
   const filteredStorage = (storage ?? []).filter((item) =>
     item.resource_name.toLowerCase().includes(filters.search.toLowerCase())
@@ -407,6 +438,148 @@ const StoragePage: React.FC = () => {
     }
   };
 
+  const handleFolderUploadClick = (item: StorageResource) => {
+    setDeleteError(null);
+    setActionMessage(null);
+    if (item.source === 'inventory' && item.provider !== 'aws') {
+      setActionMessage({
+        type: 'error',
+        text: 'Folder upload is currently supported only for AWS inventory resources.',
+      });
+      return;
+    }
+    setFolderUploadTarget(item);
+    folderInputRef.current?.click();
+  };
+
+  const handleFolderSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    if (!selectedFiles.length || !folderUploadTarget) return;
+
+    setPendingFolderFiles(selectedFiles);
+    setFolderPrefixInput('');
+    setFolderUploadError(null);
+    event.target.value = '';
+  };
+
+  const cancelFolderUploadDialog = () => {
+    if (isFolderUploading) return;
+    setPendingFolderFiles([]);
+    setFolderPrefixInput('');
+    setFolderUploadError(null);
+    setFolderUploadTarget(null);
+  };
+
+  const submitFolderUpload = async () => {
+    if (!folderUploadTarget || pendingFolderFiles.length === 0) return;
+
+    const formData = new FormData();
+    pendingFolderFiles.forEach((file) => {
+      const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
+      formData.append('files', file);
+      formData.append('keys', relativePath);
+    });
+    formData.append('prefix', folderPrefixInput.trim());
+
+    setIsFolderUploading(true);
+    setFolderUploadError(null);
+
+    try {
+      const response = await axios.post(`/resources/${folderUploadTarget.id}/storage/upload-folder`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        params: { source: folderUploadTarget.source },
+      });
+
+      const uploadedCount =
+        typeof response.data?.uploaded_count === 'number' ? response.data.uploaded_count : pendingFolderFiles.length;
+      setActionMessage({
+        type: 'success',
+        text: `Uploaded ${uploadedCount} files to "${folderUploadTarget.resource_name}".`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'storage'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      setPendingFolderFiles([]);
+      setFolderPrefixInput('');
+      setFolderUploadTarget(null);
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setFolderUploadError(typeof detail === 'string' ? detail : 'Failed to upload folder contents.');
+    } finally {
+      setIsFolderUploading(false);
+    }
+  };
+
+  const openWebsiteDialog = (item: StorageResource) => {
+    setDeleteError(null);
+    setActionMessage(null);
+    if (item.provider !== 'aws') {
+      setActionMessage({
+        type: 'error',
+        text: 'Static website hosting is currently supported only for AWS S3 buckets.',
+      });
+      return;
+    }
+
+    setWebsiteTarget(item);
+    setWebsiteIndexDocument('index.html');
+    setWebsiteErrorDocument('error.html');
+    setWebsitePublicRead(true);
+    setWebsiteDialogError(null);
+  };
+
+  const cancelWebsiteDialog = () => {
+    if (isWebsiteSubmitting) return;
+    setWebsiteTarget(null);
+    setWebsiteDialogError(null);
+  };
+
+  const enableWebsiteHosting = async () => {
+    if (!websiteTarget) return;
+
+    const trimmedIndexDocument = websiteIndexDocument.trim();
+    const trimmedErrorDocument = websiteErrorDocument.trim();
+    if (!trimmedIndexDocument) {
+      setWebsiteDialogError('Index document is required.');
+      return;
+    }
+    if (!trimmedErrorDocument) {
+      setWebsiteDialogError('Error document is required.');
+      return;
+    }
+
+    setIsWebsiteSubmitting(true);
+    setWebsiteDialogError(null);
+
+    try {
+      const response = await axios.post<StorageWebsiteResponse>(
+        `/resources/${websiteTarget.id}/storage/website/enable`,
+        {
+          index_document: trimmedIndexDocument,
+          error_document: trimmedErrorDocument,
+          public_read: websitePublicRead,
+        },
+        {
+          params: { source: websiteTarget.source },
+        }
+      );
+
+      setActionMessage({
+        type: 'success',
+        text: `Static website hosting enabled for "${websiteTarget.resource_name}".`,
+        href: response.data.website_url,
+      });
+      setWebsiteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'storage'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setWebsiteDialogError(typeof detail === 'string' ? detail : 'Failed to enable static website hosting.');
+    } finally {
+      setIsWebsiteSubmitting(false);
+    }
+  };
+
   const formatSize = (sizeGb?: number) => {
     if (!sizeGb) return 'N/A';
     if (sizeGb < 1) return `${(sizeGb * 1024).toFixed(2)} MB`;
@@ -505,7 +678,20 @@ const StoragePage: React.FC = () => {
               : 'border-red-500/30 bg-red-500/10 text-red-300'
           }`}
         >
-          {actionMessage.text}
+          <div className="flex flex-wrap items-center gap-2">
+            <span>{actionMessage.text}</span>
+            {actionMessage.href && (
+              <a
+                href={actionMessage.href}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-white"
+              >
+                Open website
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
+          </div>
         </div>
       )}
 
@@ -612,6 +798,7 @@ const StoragePage: React.FC = () => {
             const lastSeen = item.last_synced || item.created_at;
             const supportsObjectActions =
               item.source === 'provisioning' || (item.source === 'inventory' && item.provider === 'aws');
+            const supportsWebsiteHosting = item.provider === 'aws' && supportsObjectActions;
             const isProvisioning = item.source === 'provisioning';
             const providerTone =
               item.provider === 'aws'
@@ -769,7 +956,7 @@ const StoragePage: React.FC = () => {
                 </div>
 
                 <div className="mt-4 border-t border-gray-800/70 pt-4 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
                   {supportsObjectActions ? (
                     <>
                       <button
@@ -784,7 +971,14 @@ const StoragePage: React.FC = () => {
                         className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-gray-700/60 bg-gray-800/60 px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-gray-800"
                       >
                         <Upload className="w-3 h-3" />
-                        <span>Upload</span>
+                        <span>Upload File</span>
+                      </button>
+                      <button
+                        onClick={() => handleFolderUploadClick(item)}
+                        className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-gray-700/60 bg-gray-800/60 px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-gray-800"
+                      >
+                        <FolderUp className="w-3 h-3" />
+                        <span>Upload Folder</span>
                       </button>
                     </>
                   ) : (
@@ -803,9 +997,35 @@ const StoragePage: React.FC = () => {
                         title="Upload is available for provisioned resources or AWS inventory"
                       >
                         <Upload className="mr-1 inline-block h-3 w-3" />
-                        <span>Upload</span>
+                        <span>Upload File</span>
+                      </button>
+                      <button
+                        disabled
+                        className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                        title="Folder upload is available for provisioned resources or AWS inventory"
+                      >
+                        <FolderUp className="mr-1 inline-block h-3 w-3" />
+                        <span>Upload Folder</span>
                       </button>
                     </>
+                  )}
+                  {supportsWebsiteHosting ? (
+                    <button
+                      onClick={() => openWebsiteDialog(item)}
+                      className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-xs text-blue-200 transition-colors hover:bg-blue-500/20"
+                    >
+                      <Globe2 className="w-3 h-3" />
+                      <span>Host Website</span>
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                      title="Static website hosting is currently available for AWS buckets"
+                    >
+                      <Globe2 className="mr-1 inline-block h-3 w-3" />
+                      <span>Host Website</span>
+                    </button>
                   )}
                   {isProvisioning ? (
                     <button
@@ -960,6 +1180,98 @@ const StoragePage: React.FC = () => {
         onConfirm={submitUploadObject}
       />
 
+      <TextInputDialog
+        open={pendingFolderFiles.length > 0 && folderUploadTarget !== null}
+        title="Upload Folder"
+        description={
+          folderUploadTarget
+            ? `Bucket: ${folderUploadTarget.resource_name} • ${pendingFolderFiles.length} files selected`
+            : undefined
+        }
+        label="Optional Prefix"
+        placeholder="example: site-assets/"
+        value={folderPrefixInput}
+        error={folderUploadError}
+        confirmLabel="Upload Folder"
+        cancelLabel="Cancel"
+        isLoading={isFolderUploading}
+        onChange={setFolderPrefixInput}
+        onCancel={cancelFolderUploadDialog}
+        onConfirm={submitFolderUpload}
+      />
+
+      {websiteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={cancelWebsiteDialog}
+        >
+          <div
+            className="w-full max-w-xl bg-[#0f0f11] border border-gray-800/70 rounded-xl shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-800/60">
+              <h3 className="text-lg font-semibold text-white">Enable Static Website Hosting</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Bucket: <span className="text-gray-200">{websiteTarget.resource_name}</span>
+              </p>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Index Document</label>
+                <input
+                  type="text"
+                  value={websiteIndexDocument}
+                  onChange={(event) => setWebsiteIndexDocument(event.target.value)}
+                  className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="index.html"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Error Document</label>
+                <input
+                  type="text"
+                  value={websiteErrorDocument}
+                  onChange={(event) => setWebsiteErrorDocument(event.target.value)}
+                  className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="error.html"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={websitePublicRead}
+                  onChange={(event) => setWebsitePublicRead(event.target.checked)}
+                  className="h-4 w-4 rounded border-gray-700 bg-gray-900 text-blue-500 focus:ring-blue-500/50"
+                />
+                Enable public read for website objects
+              </label>
+
+              {websiteDialogError && <p className="text-sm text-red-400">{websiteDialogError}</p>}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-800/60 flex items-center justify-end space-x-3">
+              <button
+                onClick={cancelWebsiteDialog}
+                disabled={isWebsiteSubmitting}
+                className="cursor-pointer px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={enableWebsiteHosting}
+                disabled={isWebsiteSubmitting}
+                className="cursor-pointer px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isWebsiteSubmitting ? 'Enabling...' : 'Enable Hosting'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ConfirmDialog
         open={storageToDelete !== null}
         title="Delete Storage Resource Record"
@@ -994,6 +1306,13 @@ const StoragePage: React.FC = () => {
         type="file"
         className="hidden"
         onChange={handleFileSelected}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        className="hidden"
+        multiple
+        onChange={handleFolderSelected}
       />
     </div>
   );
