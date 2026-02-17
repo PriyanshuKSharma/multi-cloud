@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Onboarding from './pages/Onboarding';
@@ -69,52 +70,54 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            
-            {/* Onboarding */}
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <Onboarding />
-              </ProtectedRoute>
-            } />
-            
-            {/* Protected Routes with New Layout */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<DashboardNew />} />
+          <NotificationProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               
-              {/* Resources */}
-              <Route path="resources">
-                <Route path="vms" element={<VirtualMachines />} />
-                <Route path="vms/:id" element={<VMDetail />} />
-                <Route path="vms/create" element={<CreateVM />} />
-                <Route path="storage" element={<Storage />} />
-                <Route path="storage/create" element={<CreateStorage />} />
-                <Route path="networks" element={<Networks />} />
-                <Route path="networks/create" element={<CreateNetwork />} />
+              {/* Onboarding */}
+              <Route path="/onboarding" element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              } />
+              
+              {/* Protected Routes with New Layout */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<DashboardNew />} />
+                
+                {/* Resources */}
+                <Route path="resources">
+                  <Route path="vms" element={<VirtualMachines />} />
+                  <Route path="vms/:id" element={<VMDetail />} />
+                  <Route path="vms/create" element={<CreateVM />} />
+                  <Route path="storage" element={<Storage />} />
+                  <Route path="storage/create" element={<CreateStorage />} />
+                  <Route path="networks" element={<Networks />} />
+                  <Route path="networks/create" element={<CreateNetwork />} />
+                </Route>
+                
+                {/* Other Routes */}
+                <Route path="projects" element={<Projects />} />
+                <Route path="deployments" element={<Deployments />} />
+                <Route path="deployments/:id" element={<DeploymentDetail />} />
+                <Route path="billing" element={<Billing />} />
+                <Route path="accounts" element={<CloudAccounts />} />
+                <Route path="activity" element={<Activity />} />
+                <Route path="console" element={<CloudConsole />} />
+                <Route path="blueprints" element={<Blueprints />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="help" element={<HelpPage />} />
+                <Route path="docs" element={<Docs />} />
               </Route>
-              
-              {/* Other Routes */}
-              <Route path="projects" element={<Projects />} />
-              <Route path="deployments" element={<Deployments />} />
-              <Route path="deployments/:id" element={<DeploymentDetail />} />
-              <Route path="billing" element={<Billing />} />
-              <Route path="accounts" element={<CloudAccounts />} />
-              <Route path="activity" element={<Activity />} />
-              <Route path="console" element={<CloudConsole />} />
-              <Route path="blueprints" element={<Blueprints />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="help" element={<HelpPage />} />
-              <Route path="docs" element={<Docs />} />
-            </Route>
-          </Routes>
+            </Routes>
+          </NotificationProvider>
         </AuthProvider>
       </Router>
     </QueryClientProvider>
