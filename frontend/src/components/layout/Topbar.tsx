@@ -17,12 +17,15 @@ import {
   Rocket,
   FolderKanban,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import { useNotifications } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   CURRENT_PROJECT_CHANGED_EVENT,
   readCurrentProjectId,
@@ -64,6 +67,7 @@ const includesQuery = (value: unknown, query: string): boolean =>
 const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAllRead, clearNotifications, removeNotification, formatTime } = useNotifications();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const navigationType = useNavigationType();
@@ -365,7 +369,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   }, [markAllRead, showNotifications]);
 
   return (
-    <header className="h-16 bg-[#0f0f11] border-b border-gray-800/50 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40">
+    <header className="app-topbar h-16 border-b border-gray-800/50 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40">
       {/* Left: Project Selector */}
       <div className="flex items-center space-x-2 sm:space-x-4">
         <button
@@ -414,7 +418,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="absolute left-0 mt-2 w-72 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden z-50"
+                className="app-topbar-popover absolute left-0 mt-2 w-72 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden z-50"
               >
                 <div className="px-4 py-3 border-b border-gray-800/50">
                   <p className="text-xs uppercase tracking-wide text-gray-500">Current Project</p>
@@ -487,7 +491,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="app-topbar-popover absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-4">
                   <div className="relative">
@@ -507,7 +511,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                           openSearchResult(searchResults[0]);
                         }
                       }}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="app-topbar-input w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                       autoFocus
                     />
                   </div>
@@ -566,7 +570,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="app-topbar-popover absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-4 border-b border-gray-800/50 flex items-center justify-between gap-3">
                   <h3 className="text-sm font-semibold text-gray-300">Notifications</h3>
@@ -668,7 +672,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-56 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="app-topbar-popover absolute right-0 mt-2 w-56 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-3 border-b border-gray-800/50">
                   <p className="text-sm font-medium text-gray-300">{currentUser.full_name}</p>
@@ -681,6 +685,24 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                   >
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-300">Profile</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      toggleTheme();
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                    title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                    aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="w-4 h-4 text-amber-400" />
+                    ) : (
+                      <Moon className="w-4 h-4 text-indigo-400" />
+                    )}
+                    <span className="text-sm text-gray-300">
+                      {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+                    </span>
                   </button>
                   <button 
                     onClick={() => handleNavigation('/settings')}
