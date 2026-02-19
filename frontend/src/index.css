@@ -66,17 +66,92 @@
   --ring: hsl(212.7 26.8% 83.9%);
   
   --radius: 0.5rem;
+
+  --surface-panel: rgba(17, 24, 39, 0.35);
+  --surface-panel-border: rgba(31, 41, 55, 0.9);
+  --surface-card: rgba(31, 41, 55, 0.5);
+  --surface-card-border: rgba(55, 65, 81, 0.6);
+  --surface-input: rgba(17, 24, 39, 0.5);
+  --surface-input-border: rgba(55, 65, 81, 0.9);
+  --surface-input-text: rgb(243 244 246);
+  --surface-muted: rgba(17, 24, 39, 0.55);
+  --app-shell-bg: #0a0a0c;
+  --app-main-bg: #0a0a0c;
+  --app-topbar-bg: rgba(15, 15, 17, 0.92);
+  --app-sidebar-bg: #0f0f11;
+  --app-popover-bg: #1a1a1d;
+  --app-border-soft: rgba(55, 65, 81, 0.45);
+  --app-text-main: #f3f4f6;
+  --app-text-muted: #94a3b8;
+}
+
+:root[data-theme='light'] {
+  --background: hsl(210 40% 98%);
+  --foreground: hsl(222 47% 11%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222 47% 11%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222 47% 11%);
+
+  --primary: hsl(221 83% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  --secondary: hsl(215 32% 91%);
+  --secondary-foreground: hsl(222 47% 11%);
+
+  --muted: hsl(210 40% 96%);
+  --muted-foreground: hsl(215 16% 47%);
+
+  --accent: hsl(210 40% 96%);
+  --accent-foreground: hsl(222 47% 11%);
+
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 91%);
+  --ring: hsl(221 83% 53%);
+
+  --surface-panel: rgba(255, 255, 255, 0.9);
+  --surface-panel-border: rgba(203, 213, 225, 0.95);
+  --surface-card: rgba(255, 255, 255, 0.92);
+  --surface-card-border: rgba(203, 213, 225, 0.85);
+  --surface-input: rgba(248, 250, 252, 0.95);
+  --surface-input-border: rgba(203, 213, 225, 0.95);
+  --surface-input-text: rgb(15 23 42);
+  --surface-muted: rgba(241, 245, 249, 0.95);
+  --app-shell-bg: #f4f9ff;
+  --app-main-bg: #f6faff;
+  --app-topbar-bg: rgba(255, 255, 255, 0.9);
+  --app-sidebar-bg: rgba(255, 255, 255, 0.95);
+  --app-popover-bg: rgba(255, 255, 255, 0.98);
+  --app-border-soft: rgba(203, 213, 225, 0.95);
+  --app-text-main: #0f172a;
+  --app-text-muted: #64748b;
 }
 
 /* Custom Components using @layer components is deprecated/different in v4, 
    but we can just use standard CSS or @utility */
 
 .glass-panel {
-  @apply bg-gray-900/30 backdrop-blur-lg border border-gray-800 shadow-xl;
+  background: var(--surface-panel);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--surface-panel-border);
+  box-shadow: 0 16px 42px rgba(2, 6, 23, 0.2);
 }
 
 .glass-card {
-  @apply bg-gray-800/50 backdrop-blur-md border border-gray-700/50 shadow-lg transition-all duration-300 hover:border-primary/50;
+  background: var(--surface-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--surface-card-border);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
 }
 
 .btn-primary {
@@ -84,7 +159,63 @@
 }
 
 .input-field {
-  @apply bg-gray-900/50 border border-gray-700 text-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none;
+  background: var(--surface-input);
+  border: 1px solid var(--surface-input-border);
+  color: var(--surface-input-text);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.input-field::placeholder {
+  color: color-mix(in srgb, var(--surface-input-text) 55%, transparent);
+}
+
+.input-field:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 70%, var(--surface-input-border));
+}
+
+.app-shell {
+  background: var(--app-shell-bg);
+  color: var(--app-text-main);
+}
+
+.app-main {
+  background: var(--app-main-bg);
+}
+
+.app-topbar {
+  background: var(--app-topbar-bg);
+  border-color: var(--app-border-soft);
+  backdrop-filter: blur(14px);
+}
+
+.app-topbar-popover {
+  background: var(--app-popover-bg);
+  border-color: var(--app-border-soft);
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.18);
+}
+
+.app-topbar-input {
+  background: var(--surface-input);
+  border-color: var(--surface-input-border);
+  color: var(--surface-input-text);
+}
+
+.app-sidebar {
+  background: var(--app-sidebar-bg);
+  border-color: var(--app-border-soft);
+}
+
+.account-metric {
+  border: 1px solid color-mix(in srgb, var(--app-border-soft) 85%, transparent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-muted) 80%, transparent), color-mix(in srgb, var(--surface-card) 70%, transparent));
+}
+
+:root[data-theme='light'] .app-sidebar,
+:root[data-theme='light'] .app-topbar {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
 body {
@@ -97,6 +228,56 @@ body {
     radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
     radial-gradient(at 0% 100%, rgba(34, 197, 94, 0.1) 0px, transparent 50%);
   background-attachment: fixed;
+}
+
+:root[data-theme='light'] body {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(14, 116, 144, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+}
+
+:root[data-theme='light'] [class*='bg-[#0a0a0c]'] {
+  background-color: #f7fbff !important;
+}
+
+:root[data-theme='light'] [class*='bg-[#0f0f11]'],
+:root[data-theme='light'] [class*='bg-[#1a1a1d]'] {
+  background-color: #ffffff !important;
+}
+
+:root[data-theme='light'] [class*='bg-gray-900'] {
+  background-color: #f8fafc !important;
+}
+
+:root[data-theme='light'] [class*='bg-gray-800'] {
+  background-color: #f1f5f9 !important;
+}
+
+:root[data-theme='light'] [class*='border-gray-800'],
+:root[data-theme='light'] [class*='border-gray-700'] {
+  border-color: #cbd5e1 !important;
+}
+
+:root[data-theme='light'] :not(svg)[class*='text-white'] {
+  color: #0f172a !important;
+}
+
+:root[data-theme='light'] :not(svg)[class*='text-gray-300'] {
+  color: #334155 !important;
+}
+
+:root[data-theme='light'] :not(svg)[class*='text-gray-400'] {
+  color: #475569 !important;
+}
+
+:root[data-theme='light'] :not(svg)[class*='text-gray-500'] {
+  color: #64748b !important;
+}
+
+:root[data-theme='light'] :not(svg)[class*='text-gray-600'] {
+  color: #94a3b8 !important;
 }
 
 button,
