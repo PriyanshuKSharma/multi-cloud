@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { useNotifications } from '../context/NotificationContext';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, ChevronLeft, ChevronRight, Server, Database, Activity, AlertCircle } from 'lucide-react';
@@ -19,6 +20,7 @@ interface Resource {
 const ITEMS_PER_PAGE = 6;
 
 const ResourceList: React.FC = () => {
+  const { addNotification } = useNotifications();
   const [resources, setResources] = useState<Resource[]>([]);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,14 +56,35 @@ const ResourceList: React.FC = () => {
 
   const handleDelete = async () => {
     if (!resourceToDelete) return;
+    const deletedResource = resourceToDelete;
     setIsDeleting(true);
     try {
-      await api.delete(`/resources/${resourceToDelete.id}`);
-      setResources(resources.filter((r) => r.id !== resourceToDelete.id));
+      await api.delete(`/resources/${deletedResource.id}`);
+      setResources(resources.filter((r) => r.id !== deletedResource.id));
+      addNotification({
+        type: 'success',
+        title: 'Resource Deleted',
+        message: `${deletedResource.name} was removed from your managed resources.`,
+        provider: deletedResource.provider,
+        resourceName: deletedResource.name,
+        status: 'inactive',
+        action: 'Resource deleted',
+        source: 'system',
+      });
       setResourceToDelete(null);
     } catch (error) {
       console.error('Failed to delete resource', error);
       setDeleteError('Failed to delete resource record');
+      addNotification({
+        type: 'error',
+        title: 'Delete Failed',
+        message: `Could not delete ${deletedResource.name}. Try again.`,
+        provider: deletedResource.provider,
+        resourceName: deletedResource.name,
+        status: 'failed',
+        action: 'Resource delete failed',
+        source: 'system',
+      });
     } finally {
       setIsDeleting(false);
     }
