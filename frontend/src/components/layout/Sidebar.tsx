@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
   };
 
   return (
-    <aside className={`bg-[#0f0f11] border-r border-gray-800/50 flex flex-col ${className}`}>
+    <aside className={`app-sidebar bg-[#0f0f11] border-r border-gray-800/50 flex flex-col ${className}`}>
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-800/50">
         <div className="flex items-center space-x-3">
