@@ -24,7 +24,7 @@ const AppLayout: React.FC = () => {
   }, [isMobileSidebarOpen]);
 
   return (
-    <div className="flex h-screen bg-[#0a0a0c] overflow-hidden">
+    <div className="app-shell flex h-screen overflow-hidden">
       {/* Sidebar */}
       <Sidebar className="hidden lg:flex w-64 h-screen sticky top-0 shrink-0" />
 
@@ -62,7 +62,7 @@ const AppLayout: React.FC = () => {
         <Topbar onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-[#0a0a0c]">
+        <main className="app-main flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>
