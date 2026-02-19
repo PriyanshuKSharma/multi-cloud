@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface AddCredentialModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (createdCredential?: { id: number; name: string; provider: string }) => void;
 }
 
 const REGIONS = {
@@ -63,9 +63,22 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
           };
       }
 
-      await api.post('/credentials/', payload);
+      const response = await api.post('/credentials/', payload);
       reset();
-      onSuccess();
+      const created = response?.data as Partial<{ id: number; name: string; provider: string }> | undefined;
+      onSuccess(
+        created && typeof created === 'object'
+          ? {
+              id: Number(created.id ?? 0),
+              name: String(created.name ?? data.name ?? 'Cloud Account'),
+              provider: String(created.provider ?? data.provider ?? 'aws').toLowerCase(),
+            }
+          : {
+              id: 0,
+              name: String(data.name ?? 'Cloud Account'),
+              provider: String(data.provider ?? 'aws').toLowerCase(),
+            }
+      );
       onClose();
     } catch (err) {
       console.error(err);
