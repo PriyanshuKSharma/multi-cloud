@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -23,6 +24,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   if (!open) return null;
 
   const confirmClassName =
@@ -38,22 +41,30 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       }}
     >
       <div
-        className="w-full max-w-md bg-[#0f0f11] border border-gray-800/70 rounded-xl shadow-2xl"
+        className={`w-full max-w-md rounded-xl shadow-2xl ${
+          isLight
+            ? 'bg-white border border-slate-200'
+            : 'bg-[#0f0f11] border border-gray-800/70'
+        }`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-gray-800/60">
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <div className={`px-6 py-4 border-b ${isLight ? 'border-slate-200' : 'border-gray-800/60'}`}>
+          <h3 className={`text-lg font-semibold ${isLight ? 'text-slate-900' : 'text-white'}`}>{title}</h3>
         </div>
 
         <div className="px-6 py-5">
-          <p className="text-sm text-gray-300 whitespace-pre-wrap">{message}</p>
+          <p className={`text-sm whitespace-pre-wrap ${isLight ? 'text-slate-600' : 'text-gray-300'}`}>{message}</p>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-800/60 flex items-center justify-end space-x-3">
+        <div className={`px-6 py-4 border-t flex items-center justify-end space-x-3 ${isLight ? 'border-slate-200' : 'border-gray-800/60'}`}>
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="cursor-pointer px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className={`cursor-pointer px-4 py-2 rounded-lg border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              isLight
+                ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+                : 'bg-gray-800/50 hover:bg-gray-800 text-gray-300 border-gray-700/50'
+            }`}
           >
             {cancelLabel}
           </button>
