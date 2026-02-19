@@ -30,6 +30,7 @@ interface DeploymentSnapshot {
 interface NotificationContextType {
   notifications: AppNotification[];
   unreadCount: number;
+  addNotification: (input: AddNotificationInput) => void;
   markAllRead: () => void;
   clearNotifications: () => void;
   removeNotification: (id: string) => void;
@@ -323,12 +324,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     () => ({
       notifications,
       unreadCount,
+      addNotification,
       markAllRead,
       clearNotifications,
       removeNotification,
       formatTime: formatTimeSince,
     }),
-    [notifications, unreadCount, markAllRead, clearNotifications, removeNotification]
+    [notifications, unreadCount, addNotification, markAllRead, clearNotifications, removeNotification]
   );
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
