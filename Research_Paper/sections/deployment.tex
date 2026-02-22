@@ -1,6 +1,6 @@
 The deployment model is designed for reproducibility, operational clarity, and incremental scale. Containerization is used to ensure that service behavior remains consistent across local development and controlled staging environments.
 
-\subsection{A. Deployment Workflow}
+\subsection{Deployment Workflow}
 A standard deployment begins with \texttt{docker-compose up --build}. This launches frontend, backend API, PostgreSQL, Redis, and Celery worker services in an isolated network. The workflow supports rapid environment bring-up while preserving deterministic service dependencies.
 
 From an operational standpoint, this pattern offers three advantages:
@@ -10,11 +10,11 @@ From an operational standpoint, this pattern offers three advantages:
     \item \textbf{Iteration speed}: deployment updates can be validated quickly without platform-specific orchestration overhead.
 \end{itemize}
 
-\subsection{B. Current Production Scope: AWS}
+\subsection{Current Production Scope: AWS}
 The currently validated provisioning pipeline is AWS-specific. Resource synchronization, health checks, and cost retrieval operate on AWS resource classes (EC2, S3, VPC), and Terraform execution paths are bound to AWS modules in the current release. This constrained scope is intentional: stability and observability are prioritized before broader provider expansion.
 
-\subsection{C. Operational Readiness Considerations}
+\subsection{Operational Readiness Considerations}
 For production-grade reliability, deployment workflows should include environment-variable governance, credential rotation policy, worker-level monitoring, and backup strategy for persistent stores. The current implementation already establishes a base for these controls through modular service boundaries and explicit task routing.
 
-\subsection{D. Scalability Direction}
+\subsection{Scalability Direction}
 Horizontal scaling is achieved at the worker layer. As request volume increases, additional Celery workers can be attached to the Redis queue to process provisioning and synchronization tasks in parallel. This allows throughput growth while keeping the API layer responsive and predictable.

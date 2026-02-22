@@ -1,6 +1,6 @@
 The implementation of Cloud Simplify is designed as an AWS-focused orchestration stack that translates user intent into reproducible infrastructure actions. The implementation objective is not only feature delivery, but operational determinism: identical inputs should result in predictable execution paths, auditable state transitions, and observable outcomes.
 
-\subsection{A. Implementation Design Principles}
+\subsection{Implementation Design Principles}
 The platform is built around four design principles:
 \begin{itemize}
     \item \textbf{Separation of concerns}: user interaction, API orchestration, background execution, and infrastructure provisioning are isolated into distinct layers.
@@ -9,7 +9,7 @@ The platform is built around four design principles:
     \item \textbf{Security-by-default}: credentials remain encrypted at rest and are only materialized in short-lived worker contexts.
 \end{itemize}
 
-\subsection{B. Technology Stack with References}
+\subsection{Technology Stack with References}
 Each layer of the system uses a well-established toolchain with explicit technical purpose and documented references, summarized in Table \ref{tab:techstack}.
 
 \begin{table}[h]
@@ -29,7 +29,7 @@ Container Runtime & Docker Compose & Reproducible local and server deployment of
 \end{tabular}
 \end{table}
 
-\subsection{C. Service Decomposition and Runtime Responsibilities}
+\subsection{Service Decomposition and Runtime Responsibilities}
 The runtime is composed of cooperating services with explicit responsibilities:
 \begin{itemize}
     \item \textbf{Frontend}: captures intent, validates form-level constraints, and displays lifecycle updates.
@@ -42,7 +42,7 @@ The runtime is composed of cooperating services with explicit responsibilities:
 
 This decomposition allows each component to scale independently and reduces blast radius when one subsystem degrades.
 
-\subsection{D. Website Screenshot Placeholders}
+\subsection{Website Screenshot Placeholders}
 The following placeholders indicate where project UI screenshots should be inserted in the final manuscript.
 
 \begin{figure}[h]
@@ -84,7 +84,7 @@ The following placeholders indicate where project UI screenshots should be inser
 \end{figure}
 
 
-\subsection{E. Core Execution Workflows}
+\subsection{Core Execution Workflows}
 
 \subsubsection{Authentication Flow}
 The authentication path uses JWT-based authorization, where frontend credentials are validated by the API and a signed token is returned for subsequent calls.
@@ -137,7 +137,7 @@ Provisioning requests are validated quickly at API layer and then delegated to w
 \label{fig:lifecycle}
 \end{figure}
 
-\subsection{F. Code-Level Trace and Layer Coupling}
+\subsection{Code-Level Trace and Layer Coupling}
 The execution path from UI action to infrastructure provisioning is traceable across application layers.
 
 \begin{figure}[h]
@@ -158,7 +158,7 @@ The execution path from UI action to infrastructure provisioning is traceable ac
 \label{fig:code_trace}
 \end{figure}
 
-\subsection{G. Data Model and Operational Entities}
+\subsection{Data Model and Operational Entities}
 The platform's persistence layer supports both transactional control and analytical visibility. Key entities include:
 \begin{itemize}
     \item \textbf{Cloud credentials}: encrypted provider access records associated with user accounts.
@@ -170,7 +170,7 @@ The platform's persistence layer supports both transactional control and analyti
 
 This schema design supports both control-plane actions and retrospective analysis.
 
-\subsection{H. Security and Credential Lifecycle}
+\subsection{Security and Credential Lifecycle}
 Security is implemented using a zero-trust execution model.
 \begin{itemize}
     \item \textbf{Identity Layer}: JWT authentication protects API endpoints and user-specific operations.
@@ -179,8 +179,8 @@ Security is implemented using a zero-trust execution model.
     \item \textbf{Surface minimization}: user interfaces never expose raw provider secrets after submission.
 \end{itemize}
 
-\subsection{I. Provisioning Logic and Failure Handling}
+\subsection{Provisioning Logic and Failure Handling}
 The core provisioning routine in \texttt{terraform\_tasks.py} dynamically creates a workspace, injects provider credentials as environment variables, and executes the three-stage Terraform lifecycle: \textit{init}, \textit{plan}, and \textit{apply}. Failure handling is explicit: if initialization, planning, or apply stages fail, resource state is marked accordingly and execution logs are persisted for diagnostics. This behavior is essential for operational transparency in asynchronous systems.
 
-\subsection{J. Reproducibility Considerations}
+\subsection{Reproducibility Considerations}
 Implementation reproducibility is supported through containerized deployment, environment-variable based configuration, deterministic Terraform module selection, and stored execution artifacts. These choices improve comparability across environments and make the paper's reported behavior easier to validate in follow-up studies.

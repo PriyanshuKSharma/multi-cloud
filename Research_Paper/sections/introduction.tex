@@ -1,7 +1,7 @@
-Cloud computing has matured from an infrastructure alternative into a primary execution environment for application delivery, data processing, and digital service integration. In practice, however, operational workflows remain fragmented. Teams still switch between service-specific consoles, one-off scripts, and partially automated pipelines to complete routine cloud tasks. In Amazon Web Services (AWS) environments, this fragmentation appears in recurring activities such as provisioning EC2 instances, validating S3 configuration, checking VPC network state, and reconciling cost reports. The result is not only slower operations but also weaker governance visibility and reduced repeatability across environments \cite{cloud_governance_2024, morris2016iac}.
+Cloud computing has matured from an infrastructure alternative into a primary execution environment for application delivery, data processing, and digital service integration. In practice, however, operational workflows remain fragmenteTeams still switch between service-specific consoles, one-off scripts, and partially automated pipelines to complete routine cloud tasks. In Amazon Web Services (AWS) environments, this fragmentation appears in recurring activities such as provisioning EC2 instances, validating S3 configuration, checking VPC network state, and reconciling cost reports. The result is not only slower operations but also weaker governance visibility and reduced repeatability across environments \cite{cloud_governance_2024, morris2016iac}.
 
-\subsection{A. Problem Context}
-The broad discussion around cloud lock-in is often positioned as a strategic issue. At implementation level, the immediate pain point is operational inconsistency. Different AWS services expose different control surfaces, parameter models, and operational semantics. As teams scale, the same logical action (for example, "prepare a deployment-ready environment") may be executed through multiple toolchains depending on who performs it and which service is involved.
+\subsection{Problem Context}
+The broad discussion around cloud lock-in is often positioned as a strategic issuAt implementation level, the immediate pain point is operational inconsistency. Different AWS services expose different control surfaces, parameter models, and operational semantics. As teams scale, the same logical action (for example, "prepare a deployment-ready environment") may be executed through multiple toolchains depending on who performs it and which service is involved.
 
 This inconsistency creates a measurable execution burden:
 \begin{itemize}
@@ -12,8 +12,8 @@ This inconsistency creates a measurable execution burden:
 
 Prior work already links these conditions to slower platform delivery and higher drift probability \cite{karamitsos2023multicloud, idc2024skills}. For academic and industrial relevance, the key requirement is therefore not only "more automation," but \textit{standardized automation} with traceable control points.
 
-\subsection{B. AWS-Centric Research Scope and Motivation}
-This study deliberately focuses on AWS because the current production-ready implementation of Cloud Simplify is AWS-backed. Rather than presenting a broad but partially validated multi-cloud claim, the paper follows a depth-first strategy: validate one provider with real data, then use that baseline for future extension.
+\subsection{AWS-Centric Research Scope and Motivation}
+This study deliberately focuses on AWS because the current production-ready implementation of Cloud Simplify is AWS-backeRather than presenting a broad but partially validated multi-cloud claim, the paper follows a depth-first strategy: validate one provider with real data, then use that baseline for future extension.
 
 The scope includes:
 \begin{itemize}
@@ -25,8 +25,8 @@ The scope includes:
 
 The core motivation is practical: if a unified orchestration model can reduce operational friction within a single provider domain while retaining security and responsiveness, then the same pattern can be generalized with lower risk.
 
-\subsection{C. System Architecture Overview (Moved from Prior Architecture Section)}
-Cloud Simplify applies a layered architecture that separates interaction logic from execution logic and persistence logic. The architecture is summarized through five cooperating layers:
+\subsection{System Architecture Overview (Moved from Prior Architecture Section)}
+Cloud Simplify applies a layered architecture that separates interaction logic from execution logic and persistence logiThe architecture is summarized through five cooperating layers:
 \begin{itemize}
     \item \textbf{Presentation Layer (React + Vite)}: presents unified user workflows for credentials, provisioning, dashboard analytics, and deployment tracking.
     \item \textbf{Application API Layer (FastAPI)}: validates requests, enforces authentication and authorization boundaries, and exposes orchestration endpoints.
@@ -37,7 +37,7 @@ Cloud Simplify applies a layered architecture that separates interaction logic f
 
 This decomposition improves maintainability because each layer can evolve independently while preserving a stable interface contract. It also improves reliability: failures in provisioning tasks can be isolated from API responsiveness.
 
-\subsection{D. Research Questions and Contributions}
+\subsection{Research Questions and Contributions}
 The paper is guided by three implementation-centered research questions:
 \begin{itemize}
     \item \textbf{RQ1}: Can an AWS-focused unified control plane reduce manual operational overhead in routine provisioning and monitoring workflows?
@@ -53,5 +53,5 @@ To answer these questions, the paper contributes:
     \item a future-scope risk and challenge roadmap aligned with production hardening.
 \end{itemize}
 
-\subsection{E. Structure of the Paper}
+\subsection{Structure of the Paper}
 The remaining sections are organized as follows. Section II reviews literature on IaC, lock-in, and standardization frameworks. Section III explains strategic value and operational standardization outcomes. Section IV details feature abstractions and AI-oriented extensions. Section V documents implementation architecture, technology stack rationale, and workflow traceability. Section VI presents performance evidence with real project values. Section VII covers deployment scope and future risk-management directions. Section VIII concludes with findings, limitations, and expansion pathway.

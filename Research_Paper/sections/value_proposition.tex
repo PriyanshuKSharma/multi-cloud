@@ -1,15 +1,15 @@
 Cloud Simplify's value proposition is centered on operational standardization, not only automation volume. The platform aims to convert fragmented AWS routines into a coherent lifecycle that can be executed, observed, and audited through one interface and one API contract.
 
-\subsection{A. Why Standardization Matters More Than Isolated Automation}
+\subsection{Why Standardization Matters More Than Isolated Automation}
 Teams often automate selected tasks (for example, provisioning scripts) while leaving adjacent tasks (health checks, cost reconciliation, and inventory refresh) manual. This partial automation model creates local speedups but preserves end-to-end inconsistency. Cloud Simplify addresses this by enforcing standardized states and synchronized data flows across provisioning, monitoring, and cost governance.
 
-\subsection{B. AWS Operational Consolidation}
+\subsection{AWS Operational Consolidation}
 In conventional AWS usage, engineers navigate across EC2, S3, VPC, and Cost Explorer consoles while maintaining custom scripts to bridge gaps between systems. This pattern increases handoff time and creates process variability. Cloud Simplify centralizes these interactions through uniform request and response semantics, reducing the need for service-specific workflow memorization.
 
-\subsection{C. Governance and Cost Interpretability}
+\subsection{Governance and Cost Interpretability}
 Operational decisions are financially meaningful only when cost visibility is integrated into execution workflows \cite{mckinsey2023costs, flexera2024}. The platform links resource metadata and billing signals, enabling direct interpretation of spend structure by service class. This reduces reporting delay and supports faster governance decisions at engineering level.
 
-\subsection{D. Operational Standardization with Real Project Data (Table 1)}
+\subsection{Operational Standardization with Real Project Data (Table 1)}
 Table \ref{tab:time_comp} compares traditional AWS operations with observed Cloud Simplify behavior from the implemented project.
 
 \begin{table}[h]
@@ -27,10 +27,10 @@ Lifecycle tracking & Status checked separately per AWS service console. & Single
 \end{tabular}
 \end{table}
 
-\subsection{E. Interpreting Table 1}
+\subsection{Interpreting Table 1}
 The comparison reveals three practical outcomes. First, process cadence becomes deterministic through scheduled synchronization, replacing ad hoc checks. Second, control-plane responsiveness is preserved through asynchronous design, so user interaction does not wait for infrastructure runtime. Third, cost and health telemetry are operationalized as first-class workflow outputs rather than post-facto reports.
 
 From an organizational perspective, this has additional implications. Standardized flow definitions reduce onboarding friction for new operators and improve traceability for compliance-oriented reviews. In short, the platform transforms AWS operations from service-centric execution to workflow-centric execution.
 
-\subsection{F. Strategic Positioning}
+\subsection{Strategic Positioning}
 Although this phase is AWS-specific, the standardized control logic is intentionally architected for extension. The immediate strategic value is therefore two-layered: near-term reduction in operational inconsistency and long-term readiness for provider diversification once baseline reliability targets are consistently met.

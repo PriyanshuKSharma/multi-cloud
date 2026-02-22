@@ -1,29 +1,29 @@
 The literature on cloud operations repeatedly converges on a shared conclusion: the technical ability to provision infrastructure is no longer the primary bottleneck; operational coordination and governance consistency are \cite{karamitsos2023multicloud, gartner2024multicloud}. This section synthesizes findings most relevant to an AWS-first orchestration implementation.
 
-\subsection{A. Infrastructure as Code as an Operational Foundation}
+\subsection{Infrastructure as Code as an Operational Foundation}
 Infrastructure as Code (IaC) reframes infrastructure state as a versioned artifact rather than an implicit side effect of manual configuration \cite{morris2016iac}. This framing introduces software-like controls to infrastructure delivery: repeatability, reviewability, and predictable rollback patterns. Terraform has become one of the dominant IaC tools because it provides declarative configuration, dependency-aware planning, and broad provider integration through a unified execution model \cite{hashicorp2024terraform, terraform_docs}.
 
 For this work, the significance of IaC is twofold. First, it creates a stable contract between user intent and runtime execution. Second, it allows orchestration logic to reason about lifecycle phases (\texttt{init}, \texttt{plan}, \texttt{apply}) in a provider-independent way, even when only AWS is currently deployed.
 
-\subsection{B. Vendor Lock-In Beyond Technical APIs}
+\subsection{Vendor Lock-In Beyond Technical APIs}
 Lock-in is often reduced to proprietary APIs, but studies show that lock-in has at least four dimensions: technical dependencies, operational habits, financial coupling, and strategic planning inertia \cite{karamitsos2023multicloud, mckinsey2023costs}. Even when migration paths exist, organizations delay transition because internal processes and team workflows are optimized around a single vendor's control model.
 
 This nuance is important for the present study. A platform can remain AWS-focused and still reduce lock-in pressure by enforcing portable operational practices: declarative templates, explicit workflow state transitions, and provider-agnostic orchestration boundaries.
 
-\subsection{C. Standardization and Cloud Governance Frameworks}
+\subsection{Standardization and Cloud Governance Frameworks}
 NIST and ISO/IEC guidance emphasizes consistency in service definitions, management interfaces, and governance controls as prerequisites for robust cloud operations \cite{nist800145, nist500292, iso17788}. Complementary frameworks such as TOSCA and OCCI extend this conversation to portability and interoperable service representation \cite{oasisTOSCA, ogfOCCI}.
 
 These references do not prescribe one implementation stack, but they collectively support a key engineering principle: control plane standardization should be explicit, not incidental. Cloud Simplify aligns with this principle by centralizing authentication, resource state transitions, and telemetry access behind a single API surface.
 
-\subsection{D. Asynchronous Orchestration and Performance Evidence}
+\subsection{Asynchronous Orchestration and Performance Evidence}
 Prior benchmarking work indicates that orchestration overhead is generally lower than provider-side resource creation time, especially when long-running tasks are decoupled from synchronous request handling \cite{terraform_performance_2023, wjarr2024}. This supports a design where API endpoints acknowledge quickly while background workers execute provisioning and synchronization routines.
 
 The literature also reports that asynchronous patterns improve failure handling and throughput under concurrency, provided that queue semantics and task observability are well designed \cite{celery_docs}. These findings are directly reflected in our architecture choices for Redis-backed task routing and worker-driven Terraform execution.
 
-\subsection{E. Cost Visibility and Governance Analytics}
+\subsection{Cost Visibility and Governance Analytics}
 Industry reports continue to identify cost opacity as a recurring challenge in cloud programs \cite{flexera2024, mckinsey2023costs}. The challenge is not only forecasting; teams often lack operational linkage between resources and cost signals. Without a unified view, optimization decisions become delayed or ad hoc.
 
 For this reason, Cloud Simplify integrates resource inventory and billing outputs into the same operational plane. The literature suggests this integration is central to practical governance maturity, especially in environments where finance and engineering decisions must be synchronized.
 
-\subsection{F. Research Gap and Positioning of This Work}
+\subsection{Research Gap and Positioning of This Work}
 Existing research provides strong strategic guidance, yet implementation papers with transparent operational values are less common. Many studies discuss architecture patterns conceptually but provide limited reproducible observations from working systems. This paper positions itself in that gap by delivering an AWS-first implementation with explicit metrics, workflow traces, and section-level constraints. The objective is not to over-claim universal cloud generalization, but to establish a concrete baseline that can be evaluated, critiqued, and extended.

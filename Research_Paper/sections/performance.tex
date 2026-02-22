@@ -1,6 +1,6 @@
 This section evaluates Cloud Simplify using implementation-level evidence from the AWS-backed deployment. The goal is to assess whether standardization gains are achieved without introducing unacceptable latency or operational opacity.
 
-\subsection{A. Measurement Scope and Method}
+\subsection{Measurement Scope and Method}
 The evaluation focuses on control-plane behavior rather than raw cloud hardware performance. Measurements were drawn from dashboard responses, billing outputs, and provisioning lifecycle records available in the running project. The observed sample emphasizes practical operator-facing metrics:
 \begin{itemize}
     \item synchronization cadence and data freshness,
@@ -10,7 +10,7 @@ The evaluation focuses on control-plane behavior rather than raw cloud hardware 
     \item lifecycle completion traceability for provisioned resources.
 \end{itemize}
 
-\subsection{B. Measured AWS Results (Table 4)}
+\subsection{Measured AWS Results (Table 4)}
 Table \ref{tab:aws_real_values} consolidates the reported values.
 
 \begin{table}[h]
@@ -30,16 +30,16 @@ Sample VM lifecycle duration & 5 minutes & Resource timestamps: 2024-01-15 10:30
 \end{tabular}
 \end{table}
 
-\subsection{C. Detailed Interpretation of Table 4}
+\subsection{Detailed Interpretation of Table 4}
 Table \ref{tab:aws_real_values} indicates that the platform's primary performance benefit is \textit{operational consistency}. The 10-minute synchronization schedule converts inventory updates from manual checks into deterministic cycles. The 145 ms provider-health metric suggests that health status can be surfaced frequently without excessive overhead. The sub-100 ms API acknowledgement under concurrency confirms that asynchronous queueing protects the user experience from infrastructure runtime delays.
 
 The cost row is especially relevant for governance. Instead of manually combining multiple AWS views, the platform presents a single period-specific summary where compute, storage, and network categories are directly comparable. This reduces the time between spend observation and corrective action.
 
-\subsection{D. Throughput and Responsiveness Discussion}
+\subsection{Throughput and Responsiveness Discussion}
 Performance in orchestration systems should be interpreted as a two-layer model: control-plane responsiveness and execution-plane completion. Cloud Simplify intentionally optimizes control-plane responsiveness by acknowledging user requests quickly and delegating long-running work to Celery workers. This design aligns with published observations that queue and coordination overhead are typically smaller than provider-side provisioning latency \cite{terraform_performance_2023, wjarr2024}.
 
-\subsection{E. Reliability and Traceability Outcomes}
+\subsection{Reliability and Traceability Outcomes}
 Beyond speed, the evaluated behavior shows improved traceability. Lifecycle states (\texttt{pending}, \texttt{provisioning}, \texttt{active}) and captured logs provide a reproducible narrative for each operation. This is significant in production settings where debugging, auditability, and post-incident analysis are as important as raw completion time.
 
-\subsection{F. Limitations of Current Evaluation}
+\subsection{Limitations of Current Evaluation}
 The evaluation scope is intentionally bounded. Results are derived from the AWS-backed implementation and do not yet represent cross-provider variance. In addition, some values are sample observations from project dashboards and should be interpreted as implementation evidence rather than universal benchmarks. Future evaluation can extend to repeated trial design, larger concurrency profiles, and cross-region statistical analysis.
