@@ -1,7 +1,10 @@
-Infrastructure as Code (IaC) represents a fundamental paradigm shift, treating infrastructure as software that is versioned, tested, and automated \cite{morris2016iac}. By moving away from manual configurations, IaC ensures reproducibility, auditability, and scalability across environments.
+Infrastructure as Code (IaC) reframes infrastructure management as a software engineering process, where environments are declared, versioned, and reproducible \cite{morris2016iac}. This approach has become central to modern cloud operations because it reduces manual drift and improves auditability.
 
-\subsection{Terraform: The Multi-Cloud Standard}
-Terraform has emerged as the industry-leading IaC platform, supporting over 300 providers \cite{hashicorp2024terraform}. Its provider-agnostic design allow for writing configurations in HashiCorp Configuration Language (HCL) and deploying across multiple clouds with minimal modification. Cloud Simplify leverages this capability to underpin its vision of cloud independence.
+\subsection{IaC and Automation Foundations}
+HashiCorp Terraform is widely adopted for declarative provisioning and provides a consistent execution model (\texttt{init}, \texttt{plan}, \texttt{apply}) across deployment targets \cite{hashicorp2024terraform}. Prior benchmarking work reports that orchestration overhead is typically much smaller than provider-side provisioning latency, which supports asynchronous design choices in orchestration platforms \cite{terraform_performance_2023, wjarr2024}.
 
-\subsection{Standardization and Portability}
-The adoption of open standards such as TOSCA \cite{oasisTOSCA}, OCCI \cite{ogfOCCI}, and CIMI \cite{dmtfCIMI} is critical for cross-cloud portability. Cloud Simplify aligns with these frameworks by abstracting provider differences behind a unified API layer \cite{nist500292, iso17788}. Recent benchmarking studies \cite{terraform_performance_2023, wjarr2024} further validate the efficiency of such abstraction layers in large-scale deployments.
+\subsection{Vendor Lock-In and Standardization Literature}
+Research on cloud governance emphasizes that lock-in is not only technical but also operational and organizational \cite{karamitsos2023multicloud, idc2024skills}. Standards and reference architectures (NIST, ISO/IEC, OASIS) argue for abstract interfaces and policy consistency as prerequisites for portability and control \cite{nist500292, iso17788, oasisTOSCA}.
+
+\subsection{Gap Addressed by This Work}
+While existing studies define strategic multi-cloud goals, fewer works provide implementation-level evidence showing how a unified control layer improves daily cloud operations. This paper addresses that gap with an AWS-first deployment that reports concrete synchronization cadence, health latency, provisioning flow, and cost aggregation metrics from a working system. The AWS-only focus keeps the evaluation grounded in validated functionality while preserving a path to broader cloud coverage.

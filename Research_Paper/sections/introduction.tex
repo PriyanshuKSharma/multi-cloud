@@ -1,13 +1,40 @@
-The rapid shift toward cloud-native architectures has led organizations to adopt multi-cloud strategies to ensure high availability, cost optimization, and regional compliance. However, the lack of a standardized interface across leading Cloud Service Providers (CSPs) such as Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP) has introduced significant interoperability challenges. Developers are often burdened with mastering multiple vendor-specific consoles and APIs, leading to slower deployment cycles and increased risk of configuration drift \cite{cloud_governance_2024}.
+The rapid growth of cloud-native systems has made Amazon Web Services (AWS) a default platform for startups, student teams, and enterprise pilots. However, operational work in AWS is still fragmented across multiple consoles, service-specific APIs, and manual scripts. This creates repeated friction in day-to-day activities such as inventory refresh, deployment tracking, and cost verification. Teams spend substantial effort on integration work rather than infrastructure outcomes \cite{cloud_governance_2024, morris2016iac}.
 
-\subsection{The Vendor Lock-In Crisis}
-Contemporary enterprise IT operates under a critical constraint: organizational dependencies on individual CSPs create structural vulnerabilities, commonly termed ``vendor lock-in.'' This manifests across four dimensions:
+\subsection{A. Problem Context}
+Vendor lock-in is frequently discussed as a strategic issue, but at implementation level the immediate challenge is operational inconsistency. In AWS environments, teams commonly maintain separate processes for EC2 provisioning, S3 configuration, VPC inspection, and Cost Explorer analysis. This separation produces three recurring issues:
 \begin{itemize}
-    \item \textbf{Technical Lock-In}: Proprietary services (e.g., AWS Lambda, Azure Functions) bind architectures to specific provider implementations, requiring substantial re-engineering for migration \cite{karamitsos2023multicloud}.
-    \item \textbf{Operational Lock-In}: Teams develop specialized expertise in provider-specific tools, creating a barrier to multi-cloud strategies \cite{idc2024skills}.
-    \item \textbf{Financial Lock-In}: Sophisticated pricing structures and long-term commitments economically constrain provider switching \cite{mckinsey2023costs}.
-    \item \textbf{Strategic Lock-In}: Enterprise roadmaps become inseparably intertwined with individual provider decisions \cite{gartner2024multicloud}.
+    \item \textbf{Workflow fragmentation}: each resource domain has different tools and response formats.
+    \item \textbf{Low operational visibility}: status and health are distributed across independent dashboards.
+    \item \textbf{Slow repeatability}: recreating equivalent environments requires manual parameter recall and script updates.
 \end{itemize}
+These issues directly affect deployment speed and increase the probability of configuration drift \cite{karamitsos2023multicloud, idc2024skills}.
 
-\subsection{The Multi-Cloud Imperative}
-Recent research confirms that 89\% of leading enterprises are pursuing multi-cloud strategies to counteract lock-in \cite{gartner2024multicloud}. Despite the benefits, adoption remains constrained by operational complexity. Cloud Simplify addresses these barriers by providing a unified abstraction layer built on Infrastructure-as-Code (IaC) \cite{nist800145}.
+\subsection{B. AWS-Centric Research Scope and Motivation}
+This paper intentionally narrows implementation scope to AWS, because the current production-ready state of the project is AWS-backed. The objective is not to claim full multi-cloud completion, but to demonstrate that a unified orchestration model can be validated with real operational data before generalizing to additional providers. The scope includes:
+\begin{itemize}
+    \item AWS inventory synchronization for EC2, S3, and VPC resources.
+    \item Terraform-based provisioning workflow for AWS compute and storage modules.
+    \item Unified cost and health reporting through centralized APIs.
+    \item Secure credential lifecycle with application-layer encryption and isolated execution contexts.
+\end{itemize}
+By constraining scope to one provider, the study emphasizes measurable standardization outcomes over speculative breadth.
+
+\subsection{C. System Architecture Overview (Moved from Prior Architecture Section)}
+Cloud Simplify follows a layered architecture designed for AWS operations:
+\begin{itemize}
+    \item \textbf{Presentation Layer}: React frontend provides a single web interface for credential onboarding, resource actions, and monitoring.
+    \item \textbf{API Layer}: FastAPI exposes authenticated endpoints for resources, dashboard analytics, billing, and deployment state.
+    \item \textbf{Orchestration Layer}: Celery workers and Redis queues decouple user requests from long-running provisioning tasks.
+    \item \textbf{Provisioning Layer}: Terraform modules execute provider-specific plans for AWS infrastructure creation and updates.
+    \item \textbf{Data Layer}: PostgreSQL persists users, encrypted credentials, inventory snapshots, health checks, and cost records.
+\end{itemize}
+This architecture establishes a repeatable control plane where operational processes are standardized regardless of AWS service category.
+
+\subsection{D. Research Contributions}
+The paper contributes an implementation-driven AWS orchestration study with:
+\begin{itemize}
+    \item a literature-grounded problem framing for operational standardization,
+    \item a production-aligned system architecture integrated directly into the introduction,
+    \item comparative evidence between traditional AWS workflows and the proposed platform, and
+    \item real project metrics for synchronization, cost breakdown, and provider health.
+\end{itemize}

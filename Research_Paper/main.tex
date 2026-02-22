@@ -14,8 +14,8 @@
 
 \begin{document}
 
-\title{Democratizing Cloud Platforms: A Unified Multi-Cloud Orchestration Approach to Vendor Independence\\
-{\footnotesize \textsuperscript{*}An Idea Proposal and Implementation for Future Cloud Independence}
+\title{Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management\\
+{\footnotesize \textsuperscript{*}An Implementation-Driven Study with Cloud Simplify}
 }
 
 \author{\IEEEauthorblockN{Priyanshu Kumar Sharma, Vaishnavi Jadhav, Vaibhav Gulage}
@@ -27,11 +27,11 @@ priyanshu17ks@gmail.com}
 \maketitle
 
 \begin{abstract}
-As enterprise infrastructure scales across heterogeneous cloud environments, the complexity of managing multi-cloud ecosystems (AWS, Azure, GCP) introduces significant operational overhead and vendor lock-in risks. This paper presents \textit{Cloud Simplify}, a next-generation SaaS orchestration platform designed to unify multi-cloud provisioning through a reactive Infrastructure-as-Code (IaC) engine. By integrating FastAPI, Celery, and Terraform, the platform decouples infrastructure logic from provider-specific APIs, enabling seamless, high-performance resource deployment. Furthermore, the paper explores the integration of intelligent features for predictive cost analysis and strategic risk mitigation, laying the foundation for autonomous cloud management. Our implementation demonstrates a reduction in provisioning latency and enhanced security through zero-trust credential encapsulation, aligning with NIST and ISO/IEC standards for cloud portability.
+Prior literature identifies vendor lock-in, operational fragmentation, and non-standard provisioning workflows as major barriers to cloud governance and portability \cite{karamitsos2023multicloud, nist800145, morris2016iac}. Building on this foundation, this paper presents \textit{Cloud Simplify}, an AWS-focused orchestration platform that unifies provisioning, inventory synchronization, and cost visibility through Infrastructure as Code. The implementation combines React, FastAPI, PostgreSQL, Celery, Redis, and Terraform to create a single control plane for AWS resources. In the observed project dataset, the system manages 25 AWS resources with 8 active virtual machines, tracks a sampled AWS spend of \$580.0 (EC2: \$350.0, S3: \$150.0, VPC: \$80.0) for the period 2024-02-01 to 2024-02-11, and records 145 ms provider-health latency from the dashboard endpoint. Operationally, synchronization runs every 10 minutes and the asynchronous architecture keeps user-facing API acknowledgement below 100 ms under concurrent load. These results show that a standardized AWS control surface can reduce manual cloud effort while preserving extensibility for future multi-cloud expansion.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Multi-cloud independence, Vendor lock-in, Infrastructure as Code, Terraform, Idea proposal, SaaS Orchestration.
+AWS orchestration, Infrastructure as Code, Terraform, Celery, cloud standardization, SaaS platform.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -39,9 +39,6 @@ Multi-cloud independence, Vendor lock-in, Infrastructure as Code, Terraform, Ide
 
 \section{Background and Strategic Context}
 \input{sections/literature_review}
-
-\section{System Architecture and Design}
-\input{sections/architecture}
 
 \section{Strategic Value Proposition}
 \input{sections/value_proposition}
@@ -55,11 +52,9 @@ Multi-cloud independence, Vendor lock-in, Infrastructure as Code, Terraform, Ide
 \section{Performance Evaluation and Results}
 \input{sections/performance}
 
-\section{Challenges and Risk Management}
-\input{sections/risk_management}
-
-\section{Deployment and Future Work}
+\section{Deployment and Future Scope}
 \input{sections/deployment}
+\input{sections/future_work}
 
 \section{Conclusion}
 \input{sections/conclusion}

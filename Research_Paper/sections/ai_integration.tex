@@ -1,26 +1,27 @@
-While the current implementation focus on robust provisioning, the "Intelligent Plane" of Cloud Simplify is designed for proactive infrastructure management.
+While the current implementation emphasizes stable provisioning and monitoring, the intelligence layer is designed to improve decision quality for AWS operations.
 
 \subsection{Predictive Resource Sizing}
-Using historical performance metrics (CPU utilization, memory pressure), the platform integrates a lightweight regression model to recommend optimal instance types \cite{researchgate_ml_2025}. This prevents the common problem of over-provisioning, which leads to unnecessary cloud expenditure \cite{cost_optim_2025}. For example, the system can detect if an \text{m5.large} instance is consistently under-utilized and suggest a downgrade to \text{t3.medium}.
+The proposed intelligence pipeline uses historical utilization signals to recommend right-sized EC2 instance classes \cite{researchgate_ml_2025}. For example, persistently low utilization on larger instances can trigger recommendations to shift toward burstable families such as \texttt{t3.medium}, reducing unnecessary compute cost \cite{cost_optim_2025}.
 
-\subsection{Anomaly Detection in Cloud Utilization}
-The integration layer monitors usage patterns across all configured accounts \cite{ijsat_ai_2024}. By applying unsupervised learning (Isolation Forests), the platform can identify anomalous spikes in resource consumption, which may indicate security breaches (e.g., unauthorized crypto-mining) or misconfigured deployment scripts.
+\subsection{Anomaly Detection in AWS Utilization}
+The monitoring layer can apply unsupervised anomaly detection to AWS resource and billing traces. This helps identify unusual cost or activity spikes that may indicate over-provisioning, misconfiguration, or security-relevant misuse \cite{ijsat_ai_2024}.
 
-\subsection{Smart Cost Optimization}
-The platform leverages generative AI to analyze multi-cloud billing documents \cite{cost_optim_2025}. By correlating resource tags with cost data, it provides natural language summaries of "orphaned" resources (e.g., unattached EBS volumes or unused elastic IPs) that should be terminated to save costs \cite{hashicorp_sentinel_2024}.
+\subsection{Smart AWS Cost Optimization}
+Cost intelligence correlates AWS service spend with provisioned resources and tags, producing actionable summaries such as unattached volumes, idle instances, and low-value network allocations \cite{hashicorp_sentinel_2024}.
 
-\subsection{Resource Mapping and Abstraction}
-To ensure interoperability, Cloud Simplify maintains a mapping layer that translates high-level service requests into provider-specific parameters. Table \ref{tab:mapping} illustrates this abstraction for common compute and storage resources.
+\subsection{AWS Resource Mapping and Abstraction}
+Cloud Simplify maintains an abstraction layer that maps user-facing labels to AWS-native services and parameter sets. Table \ref{tab:aws_mapping} shows this mapping in the current implementation.
 
 \begin{table}[h]
 \centering
-\caption{Cross-Provider Resource Mapping}
-\label{tab:mapping}
-\begin{tabular}{|l|l|l|l|}
+\caption{AWS Resource Mapping in Cloud Simplify}
+\label{tab:aws_mapping}
+\begin{tabular}{|l|l|l|}
 \hline
-\textbf{Resource Type} & \textbf{AWS} & \textbf{Azure} & \textbf{GCP} \\ \hline
-General Purpose VM & t3.medium & Standard\_D2s & n2-standard-2 \\ \hline
-Compute Optimized & c6g.large & Standard\_F2s & c2-standard-4 \\ \hline
-Object Storage & S3 Bucket & Blob Storage & Cloud Storage \\ \hline
+\textbf{Intent Layer} & \textbf{Cloud Simplify Label} & \textbf{AWS Service/Shape} \\ \hline
+General Compute & \texttt{standard-vm-v1} & EC2 \texttt{t3.medium} \\ \hline
+Burst Workload Compute & \texttt{burst-vm-v1} & EC2 \texttt{t3.small}/\texttt{t3.medium} \\ \hline
+Object Storage & \texttt{storage-standard-v1} & S3 Standard Bucket \\ \hline
+Network Foundation & \texttt{network-base-v1} & VPC + Subnet + Security Group \\ \hline
 \end{tabular}
 \end{table}

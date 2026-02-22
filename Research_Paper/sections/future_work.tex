@@ -1,6 +1,16 @@
-Future enhancements for Cloud Simplify include:
+\subsection{Future Scope: Risk and Challenge Management}
+In the current project phase, risk and challenge handling is treated as a future-scope engineering roadmap rather than a standalone evaluated section. The planned roadmap includes:
 \begin{itemize}
-    \item \textbf{Auto-Healing Infrastructure}: Implementing a feedback loop where the platform automatically detects a resource failure and triggers a "terraform apply" to restore the desired state.
-    \item \textbf{Cross-Cloud Migration}: A feature to automatically migrate workloads between AWS and Azure based on real-time cost-saving opportunities or regional latency changes.
-    \item \textbf{Websocket-Based Live Logs}: Moving from polling to real-time streaming of Terraform execution logs to the frontend.
+    \item \textbf{State Integrity Controls}: move Terraform state to hardened remote backends (S3 + locking strategy) with recovery workflows for interrupted runs.
+    \item \textbf{Credential Governance}: automated rotation windows, least-privilege IAM templates, and audit trails for key usage.
+    \item \textbf{Failure-Oriented Testing}: periodic chaos and rollback drills for worker failures, API outages, and partial applies.
+    \item \textbf{Policy Enforcement}: policy-as-code checks before apply to block non-compliant infrastructure configurations.
+\end{itemize}
+
+\subsection{Functional Enhancements}
+Planned product extensions include:
+\begin{itemize}
+    \item \textbf{WebSocket Live Logs}: real-time Terraform and sync logs streamed directly to the frontend.
+    \item \textbf{Automated Cost Advisories}: recommendation engine for idle resources and right-sizing opportunities.
+    \item \textbf{Cross-Cloud Expansion}: Azure and GCP provider modules reintroduced after AWS baseline hardening.
 \end{itemize}

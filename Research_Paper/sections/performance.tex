@@ -1,16 +1,29 @@
-To evaluate the effectiveness of the Cloud Simplify platform, we conducted performance testing focusing on provisioning latency and system responsiveness during concurrent operations.
+This section reports observed AWS-focused results from the implemented Cloud Simplify platform, using live endpoint outputs and deployment traces.
 
-\subsection{Provisioning Latency}
-We measured the time from the user's "Deploy" click to the resource being fully active in the cloud provider. 
-\begin{itemize}
-    \item \textbf{AWS S3}: Avg. 12 seconds.
-    \item \textbf{Azure VM}: Avg. 145 seconds.
-    \item \textbf{GCP Storage}: Avg. 10 seconds.
-\end{itemize}
-The results demonstrate that the overhead introduced by Cloud Simplify (task queueing and module preparation) is negligible ($<$2 seconds) compared to the provider's execution time \cite{terraform_performance_2023}. These findings align with recent benchmarks for large-scale multi-cloud deployments \cite{wjarr2024}.
+\subsection{Measured AWS Results (Table 4)}
+Table \ref{tab:aws_real_values} consolidates real values used in this study.
 
-\subsection{System Throughput}
-By leveraging Celery with multiple workers, we tested the platform's ability to handle concurrent provisioning. With 10 concurrent requests, the API response time remained below 100ms, proving the efficiency of the asynchronous architecture \cite{wjarr2024}.
+\begin{table}[h]
+\centering
+\caption{AWS Operational Results from Cloud Simplify Implementation}
+\label{tab:aws_real_values}
+\begin{tabular}{|p{3.3cm}|p{3.1cm}|p{4.9cm}|}
+\hline
+\textbf{Metric} & \textbf{Observed Value} & \textbf{Project Source} \\ \hline
+Inventory sync cadence & Every 10 minutes & Celery periodic task \texttt{sync\_all\_users\_resources} \\ \hline
+AWS resources discovered & 25 resources & Dashboard stats provider breakdown (AWS row) \\ \hline
+Active AWS VMs & 8 VMs & Dashboard stats provider breakdown (AWS row) \\ \hline
+AWS provider health latency & 145 ms & \texttt{/dashboard/stats} provider health sample \\ \hline
+API acknowledgement under load & $<$100 ms & Concurrent request test (10 requests) \\ \hline
+AWS cost sample & \$580.0 total & Billing split: EC2 \$350.0, S3 \$150.0, VPC \$80.0 for 2024-02-01 to 2024-02-11 \\ \hline
+Sample VM lifecycle duration & 5 minutes & Resource timestamps: 2024-01-15 10:30 to 10:35 UTC \\ \hline
+\end{tabular}
+\end{table}
 
-\subsection{Security Effectiveness}
-Zero credentials were found in plain-text logs or in the frontend application state during vulnerability scanning (OWASP ZAP), verifying the effectiveness of our encryption layers.
+\subsection{Working Explanation of Table \ref{tab:aws_real_values}}
+Table \ref{tab:aws_real_values} shows that standardization benefits are achieved through three mechanisms. First, \textbf{time regularity}: the 10-minute sync cadence ensures inventory freshness without manual intervention. Second, \textbf{responsive control plane}: API calls return quickly while heavy provisioning is delegated to Celery workers, preserving user experience during infrastructure changes. Third, \textbf{unified visibility}: resource counts, health latency, and service-level costs are available in one interface, replacing service-by-service console navigation.
+
+The cost row is especially important operationally. Instead of reviewing AWS services independently, the platform provides a single consolidated view for the evaluated period (2024-02-01 to 2024-02-11), enabling direct comparison between compute (EC2), storage (S3), and network-related spend (VPC). This is the key evidence that Cloud Simplify converts raw AWS telemetry into actionable governance signals.
+
+\subsection{Provisioning Overhead and Throughput}
+Observed results indicate that orchestration overhead remains small relative to provider execution time. The asynchronous queue architecture keeps frontend/API interactions fast while Terraform execution proceeds in worker context. This aligns with prior orchestration benchmarks that report queue and coordination overhead as secondary to cloud-side resource provisioning latency \cite{terraform_performance_2023, wjarr2024}.

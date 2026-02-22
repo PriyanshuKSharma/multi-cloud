@@ -1,28 +1,60 @@
-The implementation of Cloud Simplify leverages a modern tech stack to achieve high throughput and security.
+The implementation of Cloud Simplify is designed as an AWS-focused orchestration stack that combines responsive APIs, asynchronous execution, and Infrastructure as Code.
 
-\subsection{Technology Stack}
-The system is decomposed into several microservices, as summarized in Table \ref{tab:techstack}.
+\subsection{Technology Stack with References}
+Each layer of the system uses a well-established toolchain with explicit technical purpose and documented references, summarized in Table \ref{tab:techstack}.
 
 \begin{table}[h]
 \centering
-\caption{Technology Stack Decomposition}
+\caption{Technology Stack, Role, and Primary References}
 \label{tab:techstack}
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|p{2.6cm}|p{2.7cm}|p{4.2cm}|p{2.7cm}|}
 \hline
-\textbf{Component} & \textbf{Technology} & \textbf{Description} \\ \hline
-Frontend & React, Vite, CSS & Responsive Dashboard \\ \hline
-Backend API & FastAPI (Python 3.x) & Asynchronous Web Services \\ \hline
-Db & PostgreSQL & Persistent Storage \\ \hline
-Orch. Engine & Celery + Redis & Task Queue \& Broker \\ \hline
-Cloud Engine & Terraform & Multi-provider IaC Service \\ \hline
-Container & Docker & Service Isolation \\ \hline
+\textbf{Layer} & \textbf{Technology} & \textbf{Role in This Project} & \textbf{Reference} \\ \hline
+Frontend & React + Vite & Single-page web interface for credentials, resources, dashboards, and deployments. & \cite{react_docs_2026, vite_docs_2026} \\ \hline
+Backend API & FastAPI (Python) & Authenticated REST endpoints for orchestration, billing, and inventory analytics. & \cite{fastapi_docs_2026} \\ \hline
+Data Layer & PostgreSQL & Persistent storage for users, credentials, resources, and cost records. & \cite{postgresql_docs_2026} \\ \hline
+Async Execution & Celery + Redis & Background task queue for sync and provisioning without blocking API requests. & \cite{celery_docs, redis_docs_2026} \\ \hline
+IaC Engine & Terraform & Declarative provisioning workflow (\texttt{init/plan/apply}) for AWS modules. & \cite{hashicorp2024terraform} \\ \hline
+Cloud Integration & boto3 + AWS APIs & AWS service access for EC2, S3, VPC, and Cost Explorer synchronization. & \cite{boto3_docs_2026, aws_ec2_api_docs_2026} \\ \hline
+Container Runtime & Docker Compose & Reproducible local and server deployment of API, worker, DB, and broker services. & \cite{docker_docs_2026} \\ \hline
 \end{tabular}
 \end{table}
 
-\subsection{Core workflows}
+\subsection{Website Screenshot Placeholders}
+The following placeholders indicate where project UI screenshots should be inserted in the final manuscript.
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 1: Insert \textbf{Dashboard Home} screenshot here.\\(Overview cards, provider health, and cost widgets)}}
+\caption{Cloud Simplify Dashboard Overview (replace placeholder with actual website screenshot)}
+\label{fig:ss_dashboard}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 2: Insert \textbf{AWS Credential Onboarding} screenshot here.\\(Provider form fields: access key, secret key, region)}}
+\caption{AWS Credential Registration Interface}
+\label{fig:ss_credentials}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 3: Insert \textbf{Create Resource} screenshot here.\\(AWS VM/Storage provisioning form with configuration inputs)}}
+\caption{AWS Resource Provisioning Form}
+\label{fig:ss_provision}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 4: Insert \textbf{Deployment Status/Logs} screenshot here.\\(Pending $\rightarrow$ provisioning $\rightarrow$ active lifecycle view)}}
+\caption{Deployment Tracking and Execution Logs}
+\label{fig:ss_logs}
+\end{figure}
+
+\subsection{Core Workflows}
 
 \subsubsection{Authentication Flow}
-Security begins with a standards-compliant JWT authentication mechanism. Figure \ref{fig:auth_flow} illustrates the interaction between the user and the system.
+The authentication path uses JWT-based authorization, where frontend credentials are validated by the API and a signed token is returned for subsequent calls.
 
 \begin{figure}[h]
 \centering
@@ -44,8 +76,8 @@ Security begins with a standards-compliant JWT authentication mechanism. Figure 
 \label{fig:auth_flow}
 \end{figure}
 
-\subsubsection{Provisioning Lifecycle}
-The lifecycle of a cloud resource—from user interaction to final deployment—is managed through an event-driven sequence. As shown in Figure \ref{fig:lifecycle}, the FastAPI backend validates the request and offloads the intensive Terraform execution to a Celery worker via Redis.
+\subsubsection{AWS Provisioning Lifecycle}
+Provisioning requests are validated quickly at API layer and then delegated to worker processes for Terraform execution.
 
 \begin{figure}[h]
 \centering
@@ -57,49 +89,49 @@ The lifecycle of a cloud resource—from user interaction to final deployment—
     \node [comp, below of=b] (r) {Redis};
     \node [comp, left of=r, xshift=-1cm] (w) {Worker};
     \node [comp, below of=w] (t) {Terraform};
-    \node [comp, right of=t, xshift=1cm] (c) {Cloud};
+    \node [comp, right of=t, xshift=1cm] (c) {AWS};
 
     \draw [->] (u) -- node {Click} (f);
-    \draw [->] (f) -- node {POST /res} (b);
+    \draw [->] (f) -- node {POST /resources} (b);
     \draw [->] (b) -- node {Enqueue} (r);
-    \draw [->] (r) -- node {Distribute} (w);
-    \draw [->] (w) -- node {Run Plan} (t);
-    \draw [->] (t) -- node {Apply} (c);
-    \draw [->, dashed] (c) -- node {Success} (w);
-    \draw [->, dashed] (w) -| node[pos=0.8] {Update} (b);
+    \draw [->] (r) -- node {Dispatch} (w);
+    \draw [->] (w) -- node {Init/Plan/Apply} (t);
+    \draw [->] (t) -- node {Provision} (c);
+    \draw [->, dashed] (c) -- node {Result} (w);
+    \draw [->, dashed] (w) -| node[pos=0.8] {Update Status} (b);
 \end{tikzpicture}
-\caption{The Provisioning Lifecycle Workflow}
+\caption{AWS Provisioning Lifecycle}
 \label{fig:lifecycle}
 \end{figure}
 
 \subsection{Code-Level Trace}
-The internal execution path of a provisioning request is traced from the UI component to the Terraform module environment.
+The execution path from UI action to infrastructure provisioning is traceable across application layers.
 
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[node distance=1.8cm, auto, scale=0.8, every node/.style={scale=0.8}]
     \tikzstyle{layer} = [rectangle, draw, fill=orange!10, text width=12em, text centered, rounded corners]
-    
+
     \node [layer] (l1) {\textbf{Frontend}: CreateResource.tsx};
     \node [layer, below of=l1] (l2) {\textbf{Backend}: endpoints/resources.py};
     \node [layer, below of=l2] (l3) {\textbf{Worker}: terraform\_tasks.py};
-    \node [layer, below of=l3] (l4) {\textbf{Engine}: aws\_vm/main.tf};
+    \node [layer, below of=l3] (l4) {\textbf{Engine}: terraform/modules/aws\_vm/main.tf};
 
     \draw [->] (l1) -- node {Axios POST} (l2);
     \draw [->] (l2) -- node {Celery Task} (l3);
     \draw [->] (l3) -- node {Terraform Apply} (l4);
 \end{tikzpicture}
-\caption{Code Trace from UI to Cloud Provisioning}
+\caption{Code Trace from UI to AWS Provisioning}
 \label{fig:code_trace}
 \end{figure}
 
 \subsection{Security and Encryption}
-Security is implemented using a Zero-Trust architecture. 
+Security is implemented using a zero-trust execution model.
 \begin{itemize}
-    \item \textbf{Identity Management}: JWT-based authentication with RS256 signing ensures that only authorized users can access the orchestration engine.
-    \item \textbf{Data Security}: Cloud credentials (e.g., AWS Secret Keys) are encrypted using the \text{Cryptography} library in Python. The encryption keys are managed through environment-level secrets, isolated from the codebase.
-    \item \textbf{Network Isolation}: When the Terraform engine runs, it executes in a transient worker environment with restricted network egress, ensuring that sensitive credentials are never leaked to external telemetry.
+    \item \textbf{Identity Layer}: JWT authentication protects API endpoints and user-specific operations.
+    \item \textbf{Credential Security}: AWS access keys are encrypted at application layer and only decrypted inside worker execution scope.
+    \item \textbf{Execution Isolation}: Terraform runs in isolated workspaces with ephemeral task context, reducing credential exposure.
 \end{itemize}
 
-\subsection{Code Trace: Provisioning Logic}
-The core provisioning logic resides in our \text{terraform\_tasks.py}. When an asynchronous task is received, the worker dynamically generates a workspace, symlinks the appropriate provider module, and executes the three-stage Terraform lifecycle: \textit{Init}, \textit{Plan}, and \textit{Apply}.
+\subsection{Provisioning Logic}
+The core provisioning routine in \texttt{terraform\_tasks.py} dynamically creates a workspace, injects provider credentials as environment variables, and executes the three-stage Terraform lifecycle: \textit{init}, \textit{plan}, and \textit{apply}. This sequence allows deterministic infrastructure changes while preserving asynchronous API responsiveness.

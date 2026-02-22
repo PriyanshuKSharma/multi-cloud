@@ -1,7 +1,10 @@
-The platform is containerized using Docker Compose, allowing for rapid deployment in any environment.
+The platform is containerized with Docker Compose, allowing reproducible deployment for development and controlled staging environments.
 
 \subsection{Deployment Workflow}
-The deployment starts with a one-command build: \text{docker-compose up --build}. This orchestrates the database, broker, api, and workers into a secure internal network \cite{cloud_governance_2024}. For production environments, the system is designed to be deployed onto Kubernetes clusters (EKS/AKS/GKE), using Helm charts for lifecycle management \cite{wjarr2024}.
+Deployment begins with \texttt{docker-compose up --build}, which starts the frontend, backend API, PostgreSQL, Redis, and Celery worker within an isolated internal network. This pattern provides deterministic service startup and simplifies environment replication.
 
-\subsection{Horizontal Scalability}
-The architecture scales horizontally at the worker level. As provisioning demand increases, additional Celery workers can be spawned to process the Redis queue, ensuring linear performance scaling without affecting the main API performance.
+\subsection{Current Production Scope: AWS}
+The currently validated provisioning path is AWS-specific. Resource synchronization, health checks, and cost aggregation are operational for AWS resources (EC2, S3, VPC), and Terraform execution paths are configured around AWS modules. This scoped deployment strategy keeps implementation reliability high while additional provider integrations are matured.
+
+\subsection{Scalability Direction}
+The architecture scales horizontally at worker layer. As infrastructure demand increases, additional Celery workers can be attached to the Redis queue, allowing parallel provisioning without degrading synchronous API responsiveness.

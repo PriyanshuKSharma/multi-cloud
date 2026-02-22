@@ -1,30 +1,25 @@
-Cloud Simplify provides a multi-faceted value proposition by standardizing multi-cloud operations and enabling strategic flexibility.
+Cloud Simplify's primary value in the current phase is operational standardization for AWS workloads. Instead of switching between service-specific tools, teams execute provisioning, monitoring, and cost inspection from one API-aligned workflow.
 
-\subsection{Breaking Vendor Lock-In}
-The primary value of Cloud Simplify is the elimination of single-provider dependency. By deploying identical infrastructure across multiple providers, organizations can migrate workloads with minimal re-engineering, mitigate risks from provider roadmap decisions, and negotiate from a position of relative strength \cite{karamitsos2023multicloud}.
+\subsection{AWS Operational Consolidation}
+In conventional AWS usage, infrastructure teams alternate between the EC2 console, S3 console, VPC dashboard, Cost Explorer, and custom scripts. Cloud Simplify unifies these actions behind a single orchestration path and common status model. This reduces context switching and makes operational outcomes easier to audit.
 
-\subsection{Cost Optimization through Arbitrage}
-Multi-cloud environments enable organizations to leverage competitive pricing across providers \cite{mckinsey2023costs}. Cloud Simplify facilitates:
-\begin{itemize}
-    \item \textbf{Regional Optimization}: Selecting providers with the lowest costs in target deployment regions.
-    \item \textbf{Egress Cost Reduction}: Utilizing lowest-cost data transfer routes across heterogeneous clouds.
-    \item \textbf{Capacity Arbitrage}: Comparing and selecting providers with optimal spot or reserved pricing for specific workloads.
-\end{itemize}
-Enterprises often achieve 15--30\% cost reductions through such optimized deployment strategies \cite{flexera2024}.
+\subsection{Cost and Governance Visibility}
+The platform integrates cost and inventory records so engineering decisions can be linked directly to spend \cite{mckinsey2023costs, flexera2024}. Instead of exporting reports manually, users access consolidated cost data through dashboard and billing endpoints, enabling faster governance decisions.
 
-\subsection{Operational Standardization}
-By providing consistent workflows across development, staging, and production, Cloud Simplify eliminates configuration drift and reduces human error. Table \ref{tab:time_comp} illustrates the acceleration in time-to-value compared to traditional provider-specific provisioning.
+\subsection{Operational Standardization with Real Project Data}
+Table \ref{tab:time_comp} compares traditional AWS operation patterns against observed Cloud Simplify behavior from the implemented project.
 
 \begin{table}[h]
 \centering
-\caption{Provisioning Time Comparison (Traditional vs. Cloud Simplify)}
+\caption{Operational Standardization: Traditional AWS Workflow vs. Cloud Simplify}
 \label{tab:time_comp}
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|p{3.2cm}|p{4.2cm}|p{5.1cm}|}
 \hline
-\textbf{Task} & \textbf{Traditional Approach} & \textbf{Cloud Simplify} \\ \hline
-Initial Setup & 2 - 4 hours & 5 - 10 minutes \\ \hline
-Environment Replication & 3 - 6 hours & 5 - 15 minutes \\ \hline
-Disaster Recovery & 4 - 8 hours & 10 - 20 minutes \\ \hline
-Resource Scaling & 1 - 2 hours & 5 - 10 minutes \\ \hline
+\textbf{Operational Activity} & \textbf{Traditional AWS Workflow} & \textbf{Cloud Simplify (Observed Project Data)} \\ \hline
+Inventory freshness & Console or CLI checks done manually, often a few times per day. & Automated sync runs every 10 minutes using Celery (\texttt{sync\_all\_users\_resources}) with manual trigger support. \\ \hline
+Provider health tracking & Manual connectivity verification and service-level checks. & AWS health stored in \texttt{provider\_health}; sample response latency recorded as 145 ms. \\ \hline
+Deployment acknowledgement & Operator-driven confirmation via console/CLI; process-dependent delays. & API acknowledgement remains below 100 ms with 10 concurrent requests while provisioning runs asynchronously. \\ \hline
+Cost consolidation & Manual Cost Explorer navigation and spreadsheet aggregation. & Unified billing API reports AWS service split (EC2 \$350.0, S3 \$150.0, VPC \$80.0; total \$580.0 for 2024-02-01 to 2024-02-11). \\ \hline
+Lifecycle tracking & Status checked separately per AWS service console. & Single resource endpoint tracks \texttt{pending} $\rightarrow$ \texttt{provisioning} $\rightarrow$ \texttt{active}; sample VM completed in 5 minutes. \\ \hline
 \end{tabular}
 \end{table}
