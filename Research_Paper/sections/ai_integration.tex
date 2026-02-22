@@ -1,16 +1,19 @@
-While the current implementation emphasizes stable provisioning and monitoring, the intelligence layer is designed to improve decision quality for AWS operations.
+The current implementation of Cloud Simplify prioritizes deterministic provisioning and reliable telemetry collection. On top of this baseline, the project defines an "intelligence layer" intended to improve operational decisions without replacing operator control.
 
-\subsection{Predictive Resource Sizing}
-The proposed intelligence pipeline uses historical utilization signals to recommend right-sized EC2 instance classes \cite{researchgate_ml_2025}. For example, persistently low utilization on larger instances can trigger recommendations to shift toward burstable families such as \texttt{t3.medium}, reducing unnecessary compute cost \cite{cost_optim_2025}.
+\subsection{A. Baseline First, Intelligence Second}
+A common failure pattern in cloud tooling is adding predictive features before stabilizing operational data pipelines. This work takes the opposite route: synchronization, state tracking, and cost collection are treated as prerequisites for trustworthy recommendations. In this context, AI integration is positioned as a decision-support capability rather than an autonomous control loop.
 
-\subsection{Anomaly Detection in AWS Utilization}
-The monitoring layer can apply unsupervised anomaly detection to AWS resource and billing traces. This helps identify unusual cost or activity spikes that may indicate over-provisioning, misconfiguration, or security-relevant misuse \cite{ijsat_ai_2024}.
+\subsection{B. Predictive Resource Sizing for AWS Workloads}
+Using historical utilization indicators, the platform can recommend right-sized EC2 instance classes and flag persistent over-provisioning patterns \cite{researchgate_ml_2025, cost_optim_2025}. For example, workloads with low sustained utilization can be mapped from larger families toward burstable tiers such as \texttt{t3.medium}, reducing excess compute spend while preserving application availability targets.
 
-\subsection{Smart AWS Cost Optimization}
-Cost intelligence correlates AWS service spend with provisioned resources and tags, producing actionable summaries such as unattached volumes, idle instances, and low-value network allocations \cite{hashicorp_sentinel_2024}.
+\subsection{C. Utilization Anomaly Detection}
+Anomaly detection in AWS telemetry can identify abrupt deviations in activity and cost signatures. Such deviations may indicate configuration errors, demand spikes, unoptimized scaling policies, or potentially malicious consumption patterns \cite{ijsat_ai_2024}. In practical terms, anomaly output can be linked to alerting and investigation workflows rather than automatic destructive actions, preserving operational safety.
 
-\subsection{AWS Resource Mapping and Abstraction}
-Cloud Simplify maintains an abstraction layer that maps user-facing labels to AWS-native services and parameter sets. Table \ref{tab:aws_mapping} shows this mapping in the current implementation.
+\subsection{D. Cost-Aware Recommendations}
+Cost signals become more useful when correlated with resource state and tags. Cloud Simplify's planned recommendation layer identifies candidates for cleanup (idle resources, unattached components, underused instances) and surfaces ranked actions with expected financial impact \cite{hashicorp_sentinel_2024}. This framing keeps optimization actionable and auditable.
+
+\subsection{E. AWS Mapping and Abstraction Layer}
+A robust intelligence layer requires stable semantic mapping between user intent and provider-native resources. Table \ref{tab:aws_mapping} summarizes the current abstraction design.
 
 \begin{table}[h]
 \centering
@@ -25,3 +28,6 @@ Object Storage & \texttt{storage-standard-v1} & S3 Standard Bucket \\ \hline
 Network Foundation & \texttt{network-base-v1} & VPC + Subnet + Security Group \\ \hline
 \end{tabular}
 \end{table}
+
+\subsection{F. Research Value of the AI Layer}
+Even in its planned form, the intelligence strategy contributes to the paper's thesis: standardization is not only about provisioning APIs, but also about producing data quality sufficient for reliable optimization. The more consistent the operational substrate, the more defensible AI-guided decisions become.

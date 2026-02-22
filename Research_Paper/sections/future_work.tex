@@ -1,16 +1,22 @@
-\subsection{Future Scope: Risk and Challenge Management}
-In the current project phase, risk and challenge handling is treated as a future-scope engineering roadmap rather than a standalone evaluated section. The planned roadmap includes:
+\subsection{A. Future Scope: Risk and Challenge Management}
+In this project phase, risk and challenge management is framed as an explicit future-scope roadmap rather than a closed evaluation result. The roadmap emphasizes operational hardening and governance maturity.
+
 \begin{itemize}
-    \item \textbf{State Integrity Controls}: move Terraform state to hardened remote backends (S3 + locking strategy) with recovery workflows for interrupted runs.
-    \item \textbf{Credential Governance}: automated rotation windows, least-privilege IAM templates, and audit trails for key usage.
-    \item \textbf{Failure-Oriented Testing}: periodic chaos and rollback drills for worker failures, API outages, and partial applies.
-    \item \textbf{Policy Enforcement}: policy-as-code checks before apply to block non-compliant infrastructure configurations.
+    \item \textbf{Terraform State Integrity}: migrate state handling to hardened remote backends (for example, S3-backed state with locking strategy), and define recovery playbooks for interrupted applies.
+    \item \textbf{Credential Governance}: introduce policy-driven key rotation windows, least-privilege IAM templates, and auditable credential usage trails.
+    \item \textbf{Failure Engineering}: institutionalize chaos-style drills for queue backlog, worker crash, API degradation, and partial provisioning failures.
+    \item \textbf{Policy-as-Code Enforcement}: integrate pre-apply policy checks to block non-compliant configuration before resource creation.
+    \item \textbf{Compliance Traceability}: add structured event logs aligned with governance and audit reporting requirements.
 \end{itemize}
 
-\subsection{Functional Enhancements}
-Planned product extensions include:
+\subsection{B. Functional Evolution Roadmap}
+The next functional expansions are planned in staged form:
 \begin{itemize}
-    \item \textbf{WebSocket Live Logs}: real-time Terraform and sync logs streamed directly to the frontend.
-    \item \textbf{Automated Cost Advisories}: recommendation engine for idle resources and right-sizing opportunities.
-    \item \textbf{Cross-Cloud Expansion}: Azure and GCP provider modules reintroduced after AWS baseline hardening.
+    \item \textbf{Stage 1 - Live Operational Feedback}: WebSocket-based real-time logs for synchronization and Terraform execution.
+    \item \textbf{Stage 2 - Cost Intelligence}: recommendation engine for idle assets, right-sizing opportunities, and budget alerts.
+    \item \textbf{Stage 3 - Predictive Governance}: anomaly scoring and risk-prioritized action queues.
+    \item \textbf{Stage 4 - Controlled Multi-Cloud Extension}: reintroduce Azure and GCP modules only after AWS baseline hardening targets are consistently met.
 \end{itemize}
+
+\subsection{C. Research Extensions}
+Future academic work can evaluate comparative outcomes across providers, perform longitudinal drift studies, and test decision-support effectiveness of AI-guided optimization against manual operator baselines. These directions would strengthen external validity while preserving the implementation-centered approach introduced in this paper.

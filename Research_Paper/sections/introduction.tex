@@ -1,40 +1,57 @@
-The rapid growth of cloud-native systems has made Amazon Web Services (AWS) a default platform for startups, student teams, and enterprise pilots. However, operational work in AWS is still fragmented across multiple consoles, service-specific APIs, and manual scripts. This creates repeated friction in day-to-day activities such as inventory refresh, deployment tracking, and cost verification. Teams spend substantial effort on integration work rather than infrastructure outcomes \cite{cloud_governance_2024, morris2016iac}.
+Cloud computing has matured from an infrastructure alternative into a primary execution environment for application delivery, data processing, and digital service integration. In practice, however, operational workflows remain fragmented. Teams still switch between service-specific consoles, one-off scripts, and partially automated pipelines to complete routine cloud tasks. In Amazon Web Services (AWS) environments, this fragmentation appears in recurring activities such as provisioning EC2 instances, validating S3 configuration, checking VPC network state, and reconciling cost reports. The result is not only slower operations but also weaker governance visibility and reduced repeatability across environments \cite{cloud_governance_2024, morris2016iac}.
 
 \subsection{A. Problem Context}
-Vendor lock-in is frequently discussed as a strategic issue, but at implementation level the immediate challenge is operational inconsistency. In AWS environments, teams commonly maintain separate processes for EC2 provisioning, S3 configuration, VPC inspection, and Cost Explorer analysis. This separation produces three recurring issues:
+The broad discussion around cloud lock-in is often positioned as a strategic issue. At implementation level, the immediate pain point is operational inconsistency. Different AWS services expose different control surfaces, parameter models, and operational semantics. As teams scale, the same logical action (for example, "prepare a deployment-ready environment") may be executed through multiple toolchains depending on who performs it and which service is involved.
+
+This inconsistency creates a measurable execution burden:
 \begin{itemize}
-    \item \textbf{Workflow fragmentation}: each resource domain has different tools and response formats.
-    \item \textbf{Low operational visibility}: status and health are distributed across independent dashboards.
-    \item \textbf{Slow repeatability}: recreating equivalent environments requires manual parameter recall and script updates.
+    \item \textbf{High cognitive switching cost}: engineers repeatedly translate intent between API payloads, console flows, and command-line variations.
+    \item \textbf{Observability discontinuity}: system status, costs, and health indicators are distributed across dashboards that are not operationally synchronized.
+    \item \textbf{Reproducibility risk}: infrastructure steps that are manually chained become difficult to validate, replay, or audit at scale.
 \end{itemize}
-These issues directly affect deployment speed and increase the probability of configuration drift \cite{karamitsos2023multicloud, idc2024skills}.
+
+Prior work already links these conditions to slower platform delivery and higher drift probability \cite{karamitsos2023multicloud, idc2024skills}. For academic and industrial relevance, the key requirement is therefore not only "more automation," but \textit{standardized automation} with traceable control points.
 
 \subsection{B. AWS-Centric Research Scope and Motivation}
-This paper intentionally narrows implementation scope to AWS, because the current production-ready state of the project is AWS-backed. The objective is not to claim full multi-cloud completion, but to demonstrate that a unified orchestration model can be validated with real operational data before generalizing to additional providers. The scope includes:
+This study deliberately focuses on AWS because the current production-ready implementation of Cloud Simplify is AWS-backed. Rather than presenting a broad but partially validated multi-cloud claim, the paper follows a depth-first strategy: validate one provider with real data, then use that baseline for future extension.
+
+The scope includes:
 \begin{itemize}
-    \item AWS inventory synchronization for EC2, S3, and VPC resources.
-    \item Terraform-based provisioning workflow for AWS compute and storage modules.
-    \item Unified cost and health reporting through centralized APIs.
-    \item Secure credential lifecycle with application-layer encryption and isolated execution contexts.
+    \item synchronized AWS inventory collection (EC2, S3, VPC),
+    \item Terraform-based provisioning workflows for compute and storage,
+    \item API-level operational telemetry (resource state and provider health), and
+    \item integrated cost summarization for governance workflows.
 \end{itemize}
-By constraining scope to one provider, the study emphasizes measurable standardization outcomes over speculative breadth.
+
+The core motivation is practical: if a unified orchestration model can reduce operational friction within a single provider domain while retaining security and responsiveness, then the same pattern can be generalized with lower risk.
 
 \subsection{C. System Architecture Overview (Moved from Prior Architecture Section)}
-Cloud Simplify follows a layered architecture designed for AWS operations:
+Cloud Simplify applies a layered architecture that separates interaction logic from execution logic and persistence logic. The architecture is summarized through five cooperating layers:
 \begin{itemize}
-    \item \textbf{Presentation Layer}: React frontend provides a single web interface for credential onboarding, resource actions, and monitoring.
-    \item \textbf{API Layer}: FastAPI exposes authenticated endpoints for resources, dashboard analytics, billing, and deployment state.
-    \item \textbf{Orchestration Layer}: Celery workers and Redis queues decouple user requests from long-running provisioning tasks.
-    \item \textbf{Provisioning Layer}: Terraform modules execute provider-specific plans for AWS infrastructure creation and updates.
-    \item \textbf{Data Layer}: PostgreSQL persists users, encrypted credentials, inventory snapshots, health checks, and cost records.
+    \item \textbf{Presentation Layer (React + Vite)}: presents unified user workflows for credentials, provisioning, dashboard analytics, and deployment tracking.
+    \item \textbf{Application API Layer (FastAPI)}: validates requests, enforces authentication and authorization boundaries, and exposes orchestration endpoints.
+    \item \textbf{Asynchronous Control Layer (Celery + Redis)}: queues long-running tasks so front-end interactions are not blocked by infrastructure runtime.
+    \item \textbf{Provisioning Layer (Terraform + AWS modules)}: executes deterministic infrastructure state transitions using declarative plans.
+    \item \textbf{Data and Audit Layer (PostgreSQL)}: stores user context, encrypted credentials metadata, inventory snapshots, health records, and cost artifacts.
 \end{itemize}
-This architecture establishes a repeatable control plane where operational processes are standardized regardless of AWS service category.
 
-\subsection{D. Research Contributions}
-The paper contributes an implementation-driven AWS orchestration study with:
+This decomposition improves maintainability because each layer can evolve independently while preserving a stable interface contract. It also improves reliability: failures in provisioning tasks can be isolated from API responsiveness.
+
+\subsection{D. Research Questions and Contributions}
+The paper is guided by three implementation-centered research questions:
 \begin{itemize}
-    \item a literature-grounded problem framing for operational standardization,
-    \item a production-aligned system architecture integrated directly into the introduction,
-    \item comparative evidence between traditional AWS workflows and the proposed platform, and
-    \item real project metrics for synchronization, cost breakdown, and provider health.
+    \item \textbf{RQ1}: Can an AWS-focused unified control plane reduce manual operational overhead in routine provisioning and monitoring workflows?
+    \item \textbf{RQ2}: Can asynchronous orchestration maintain low user-facing latency while executing provider-bound infrastructure tasks?
+    \item \textbf{RQ3}: Can cost and health telemetry be consolidated into a single governance surface without sacrificing traceability?
 \end{itemize}
+
+To answer these questions, the paper contributes:
+\begin{itemize}
+    \item an AWS-first orchestration architecture with clearly separated execution layers,
+    \item a comparative operational analysis between traditional AWS workflows and Cloud Simplify workflows,
+    \item a real-value results table using project-derived operational metrics, and
+    \item a future-scope risk and challenge roadmap aligned with production hardening.
+\end{itemize}
+
+\subsection{E. Structure of the Paper}
+The remaining sections are organized as follows. Section II reviews literature on IaC, lock-in, and standardization frameworks. Section III explains strategic value and operational standardization outcomes. Section IV details feature abstractions and AI-oriented extensions. Section V documents implementation architecture, technology stack rationale, and workflow traceability. Section VI presents performance evidence with real project values. Section VII covers deployment scope and future risk-management directions. Section VIII concludes with findings, limitations, and expansion pathway.

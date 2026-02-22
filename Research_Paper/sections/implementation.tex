@@ -1,6 +1,15 @@
-The implementation of Cloud Simplify is designed as an AWS-focused orchestration stack that combines responsive APIs, asynchronous execution, and Infrastructure as Code.
+The implementation of Cloud Simplify is designed as an AWS-focused orchestration stack that translates user intent into reproducible infrastructure actions. The implementation objective is not only feature delivery, but operational determinism: identical inputs should result in predictable execution paths, auditable state transitions, and observable outcomes.
 
-\subsection{Technology Stack with References}
+\subsection{A. Implementation Design Principles}
+The platform is built around four design principles:
+\begin{itemize}
+    \item \textbf{Separation of concerns}: user interaction, API orchestration, background execution, and infrastructure provisioning are isolated into distinct layers.
+    \item \textbf{Asynchronous execution}: expensive runtime operations are shifted to queue workers to preserve API responsiveness.
+    \item \textbf{Explicit state transitions}: deployment statuses are persisted and exposed to prevent hidden execution phases.
+    \item \textbf{Security-by-default}: credentials remain encrypted at rest and are only materialized in short-lived worker contexts.
+\end{itemize}
+
+\subsection{B. Technology Stack with References}
 Each layer of the system uses a well-established toolchain with explicit technical purpose and documented references, summarized in Table \ref{tab:techstack}.
 
 \begin{table}[h]
@@ -20,45 +29,69 @@ Container Runtime & Docker Compose & Reproducible local and server deployment of
 \end{tabular}
 \end{table}
 
-\subsection{Website Screenshot Placeholders}
+\subsection{C. Service Decomposition and Runtime Responsibilities}
+The runtime is composed of cooperating services with explicit responsibilities:
+\begin{itemize}
+    \item \textbf{Frontend}: captures intent, validates form-level constraints, and displays lifecycle updates.
+    \item \textbf{FastAPI}: performs authentication checks, request validation, task dispatch, and response normalization.
+    \item \textbf{Redis}: acts as broker for asynchronous orchestration tasks.
+    \item \textbf{Celery Worker}: executes synchronization and Terraform lifecycle jobs.
+    \item \textbf{PostgreSQL}: stores operational records for resources, health, inventory, and cost traces.
+    \item \textbf{Terraform Module Layer}: maps abstract request parameters to AWS-native resources.
+\end{itemize}
+
+This decomposition allows each component to scale independently and reduces blast radius when one subsystem degrades.
+
+\subsection{D. Website Screenshot Placeholders}
 The following placeholders indicate where project UI screenshots should be inserted in the final manuscript.
 
 \begin{figure}[h]
-\centering
-\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 1: Insert \textbf{Dashboard Home} screenshot here.\\(Overview cards, provider health, and cost widgets)}}
-\caption{Cloud Simplify Dashboard Overview (replace placeholder with actual website screenshot)}
-\label{fig:ss_dashboard}
+    \centering
+    \includegraphics[width=0.7\linewidth]{Dashboard.png}
+    \caption{Cloud Simplify Dashboard Overview}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Cloud_Accounts.png}
+    \caption{AWS Cloud Account}
+    \label{fig:placeholder}
 \end{figure}
 
 \begin{figure}[h]
-\centering
-\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 2: Insert \textbf{AWS Credential Onboarding} screenshot here.\\(Provider form fields: access key, secret key, region)}}
-\caption{AWS Credential Registration Interface}
-\label{fig:ss_credentials}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Credentials.png}
+    \caption{AWS Credential Registration Interface}
+    \label{fig:placeholder}
 \end{figure}
+
 
 \begin{figure}[h]
-\centering
-\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 3: Insert \textbf{Create Resource} screenshot here.\\(AWS VM/Storage provisioning form with configuration inputs)}}
-\caption{AWS Resource Provisioning Form}
-\label{fig:ss_provision}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Create_Resource.png}
+    \caption{AWS VM/Storage provisioning form with configuration inputs}
+    \label{fig:placeholder}
 \end{figure}
+
 
 \begin{figure}[h]
-\centering
-\fbox{\parbox[c][4.0cm][c]{0.92\linewidth}{\centering Placeholder 4: Insert \textbf{Deployment Status/Logs} screenshot here.\\(Pending $\rightarrow$ provisioning $\rightarrow$ active lifecycle view)}}
-\caption{Deployment Tracking and Execution Logs}
-\label{fig:ss_logs}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Deployment.png}
+    \caption{Deployment Tracking and Execution Logs}
+    \label{fig:placeholder}
 \end{figure}
 
-\subsection{Core Workflows}
+
+\subsection{E. Core Execution Workflows}
 
 \subsubsection{Authentication Flow}
 The authentication path uses JWT-based authorization, where frontend credentials are validated by the API and a signed token is returned for subsequent calls.
 
 \begin{figure}[h]
 \centering
-\begin{tikzpicture}[node distance=2cm, auto]
+\begin{tikzpicture}[node distance=4.5cm, auto]
     \tikzstyle{actor} = [rectangle, draw, fill=blue!10, minimum width=3em, minimum height=3em]
     \tikzstyle{line} = [draw, -latex]
 
@@ -81,7 +114,7 @@ Provisioning requests are validated quickly at API layer and then delegated to w
 
 \begin{figure}[h]
 \centering
-\begin{tikzpicture}[node distance=1.5cm, auto, scale=0.75, every node/.style={scale=0.75}]
+\begin{tikzpicture}[node distance=4.5cm, auto, scale=0.75, every node/.style={scale=0.75}]
     \tikzstyle{comp} = [rectangle, draw, fill=green!5, text width=6em, text centered, minimum height=2.5em]
     \node [comp] (u) {User};
     \node [comp, right of=u, xshift=1cm] (f) {Frontend};
@@ -104,13 +137,13 @@ Provisioning requests are validated quickly at API layer and then delegated to w
 \label{fig:lifecycle}
 \end{figure}
 
-\subsection{Code-Level Trace}
+\subsection{F. Code-Level Trace and Layer Coupling}
 The execution path from UI action to infrastructure provisioning is traceable across application layers.
 
 \begin{figure}[h]
 \centering
-\begin{tikzpicture}[node distance=1.8cm, auto, scale=0.8, every node/.style={scale=0.8}]
-    \tikzstyle{layer} = [rectangle, draw, fill=orange!10, text width=12em, text centered, rounded corners]
+\begin{tikzpicture}[node distance=2.4cm, auto, scale=0.8, every node/.style={scale=0.8}]
+    \tikzstyle{layer} = [rectangle, draw, fill=orange!12, text width=14em, text centered, rounded corners]
 
     \node [layer] (l1) {\textbf{Frontend}: CreateResource.tsx};
     \node [layer, below of=l1] (l2) {\textbf{Backend}: endpoints/resources.py};
@@ -125,13 +158,29 @@ The execution path from UI action to infrastructure provisioning is traceable ac
 \label{fig:code_trace}
 \end{figure}
 
-\subsection{Security and Encryption}
+\subsection{G. Data Model and Operational Entities}
+The platform's persistence layer supports both transactional control and analytical visibility. Key entities include:
+\begin{itemize}
+    \item \textbf{Cloud credentials}: encrypted provider access records associated with user accounts.
+    \item \textbf{Resource inventory}: normalized representation of discovered AWS resources with status and metadata.
+    \item \textbf{Provider health}: periodic API connectivity and latency records.
+    \item \textbf{Cost data}: service-level spend artifacts used for dashboard and billing summaries.
+    \item \textbf{Provisioned resources}: Terraform-managed objects with lifecycle status and execution output.
+\end{itemize}
+
+This schema design supports both control-plane actions and retrospective analysis.
+
+\subsection{H. Security and Credential Lifecycle}
 Security is implemented using a zero-trust execution model.
 \begin{itemize}
     \item \textbf{Identity Layer}: JWT authentication protects API endpoints and user-specific operations.
     \item \textbf{Credential Security}: AWS access keys are encrypted at application layer and only decrypted inside worker execution scope.
     \item \textbf{Execution Isolation}: Terraform runs in isolated workspaces with ephemeral task context, reducing credential exposure.
+    \item \textbf{Surface minimization}: user interfaces never expose raw provider secrets after submission.
 \end{itemize}
 
-\subsection{Provisioning Logic}
-The core provisioning routine in \texttt{terraform\_tasks.py} dynamically creates a workspace, injects provider credentials as environment variables, and executes the three-stage Terraform lifecycle: \textit{init}, \textit{plan}, and \textit{apply}. This sequence allows deterministic infrastructure changes while preserving asynchronous API responsiveness.
+\subsection{I. Provisioning Logic and Failure Handling}
+The core provisioning routine in \texttt{terraform\_tasks.py} dynamically creates a workspace, injects provider credentials as environment variables, and executes the three-stage Terraform lifecycle: \textit{init}, \textit{plan}, and \textit{apply}. Failure handling is explicit: if initialization, planning, or apply stages fail, resource state is marked accordingly and execution logs are persisted for diagnostics. This behavior is essential for operational transparency in asynchronous systems.
+
+\subsection{J. Reproducibility Considerations}
+Implementation reproducibility is supported through containerized deployment, environment-variable based configuration, deterministic Terraform module selection, and stored execution artifacts. These choices improve comparability across environments and make the paper's reported behavior easier to validate in follow-up studies.
