@@ -24,12 +24,18 @@ const REGIONS = {
       { id: 'westeurope', name: 'West Europe' },
       { id: 'centralindia', name: 'Central India' },
       { id: 'southeastasia', name: 'Southeast Asia' },
+    ],
+    gcp: [
+      { id: 'us-central1', name: 'US Central (Iowa)' },
+      { id: 'us-east1', name: 'US East (South Carolina)' },
+      { id: 'europe-west1', name: 'Europe West (Belgium)' },
+      { id: 'asia-south1', name: 'Asia South (Mumbai)' },
     ]
 };
 
 const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, reset, watch } = useForm<any>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<any>({
       defaultValues: {
           provider: 'aws',
           region: 'us-east-1'
@@ -37,6 +43,16 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
   });
 
   const provider = watch('provider');
+
+  React.useEffect(() => {
+    if (provider === 'aws') {
+      setValue('region', 'us-east-1');
+    } else if (provider === 'azure') {
+      setValue('region', 'eastus');
+    } else {
+      setValue('region', 'us-central1');
+    }
+  }, [provider, setValue]);
 
   const onSubmit = async (data: any) => {
     setLoading(true);
@@ -59,6 +75,20 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
               client_id: data.client_id,
               client_secret: data.client_secret,
               subscription_id: data.subscription_id,
+              region: data.region
+          };
+      } else if (data.provider === 'gcp') {
+          let parsedServiceAccount: any = data.service_account_json;
+          if (typeof parsedServiceAccount === 'string') {
+              try {
+                  parsedServiceAccount = JSON.parse(parsedServiceAccount);
+              } catch {
+                  throw new Error('Invalid GCP service account JSON');
+              }
+          }
+          payload.data = {
+              project_id: data.project_id || parsedServiceAccount?.project_id,
+              service_account_json: parsedServiceAccount,
               region: data.region
           };
       }
@@ -159,24 +189,90 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
                              </select>
                          </div>
                        </>
-                   ) : (
-                       <div className="text-center py-8">
-                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-800/50 mb-3">
-                           <Shield className="w-6 h-6 text-gray-500" />
-                         </div>
-                         <h3 className="text-lg font-medium text-white mb-1">Coming Soon</h3>
-                         <p className="text-sm text-gray-400">
-                           Support for {provider === 'azure' ? 'Microsoft Azure' : 'Google Cloud Platform'} is currently under development.
-                         </p>
-                       </div>
-                   )}
+                   ) : provider === 'azure' ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Tenant ID</label>
+                            <input
+                              {...register('tenant_id')}
+                              className="input-field w-full p-2.5"
+                              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Subscription ID</label>
+                            <input
+                              {...register('subscription_id')}
+                              className="input-field w-full p-2.5"
+                              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Client ID</label>
+                            <input
+                              {...register('client_id')}
+                              className="input-field w-full p-2.5"
+                              placeholder="App registration client ID"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Client Secret</label>
+                            <input
+                              {...register('client_secret')}
+                              type="password"
+                              className="input-field w-full p-2.5"
+                              placeholder="••••"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-blue-400/80 uppercase tracking-widest mb-1 ml-1">Default Region</label>
+                          <select {...register('region')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
+                            {REGIONS.azure.map(r => (
+                              <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Project ID</label>
+                          <input
+                            {...register('project_id')}
+                            className="input-field w-full p-2.5"
+                            placeholder="my-gcp-project-id"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-blue-400/80 uppercase tracking-widest mb-1 ml-1">Default Region</label>
+                          <select {...register('region')} className="input-field w-full p-2.5 cursor-pointer appearance-none">
+                            {REGIONS.gcp.map(r => (
+                              <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Service Account JSON</label>
+                          <textarea
+                            {...register('service_account_json')}
+                            rows={6}
+                            className="input-field w-full p-2.5 font-mono text-xs"
+                            placeholder='{"type":"service_account","project_id":"..."}'
+                          />
+                        </div>
+                      </>
+                    )}
                </div>
 
               <div className="pt-2">
                 <button 
                   type="submit" 
-                  disabled={loading || provider !== 'aws'} 
-                  className={`btn-primary w-full py-3.5 ${provider !== 'aws' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={loading}
+                  className="btn-primary w-full py-3.5"
                 >
                   {loading ? 'Verifying...' : 'Save Credentials'}
                 </button>
