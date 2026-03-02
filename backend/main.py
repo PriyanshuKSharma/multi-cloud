@@ -48,7 +48,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-from app.api.endpoints import resources, credentials, dashboard, inventory, billing, blueprints, projects, deployments
+from app.api.endpoints import resources, credentials, dashboard, inventory, billing, blueprints, projects, deployments, assistant
 app.include_router(resources.router, prefix="/resources", tags=["resources"])
 app.include_router(credentials.router, prefix="/credentials", tags=["credentials"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
@@ -57,6 +57,7 @@ app.include_router(billing.router, prefix="/billing", tags=["billing"])
 app.include_router(blueprints.router, prefix="/blueprints", tags=["blueprints"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(deployments.router, prefix="/deployments", tags=["deployments"])
+app.include_router(assistant.router, prefix="/assistant", tags=["assistant"])
 
 
 @app.exception_handler(Exception)
