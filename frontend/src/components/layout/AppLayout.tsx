@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import GlobalCopilot from './GlobalCopilot';
 
 const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -66,6 +67,8 @@ const AppLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      <GlobalCopilot />
     </div>
   );
 };
