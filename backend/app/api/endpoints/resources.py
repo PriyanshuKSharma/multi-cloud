@@ -34,6 +34,67 @@ AWS_DEFAULT_AMI_BY_REGION: Dict[str, str] = {
 }
 
 
+def _sanitize_kebab_name(value: str, fallback: str, max_length: int = 63) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9-]+", "-", (value or "").strip().lower())
+    cleaned = re.sub(r"-{2,}", "-", cleaned).strip("-")
+    if not cleaned:
+        cleaned = fallback
+    return cleaned[:max_length].rstrip("-")
+
+
+def _sanitize_aws_lambda_name(value: str) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9-_]+", "-", (value or "").strip())
+    cleaned = re.sub(r"-{2,}", "-", cleaned).strip("-_")
+    return (cleaned or "cloud-simplify-function")[:64]
+
+
+def _sanitize_azure_storage_account_name(value: str, resource_id: int) -> str:
+    # Azure storage accounts: 3-24 lowercase alphanumeric, globally unique.
+    stem = re.sub(r"[^a-z0-9]", "", (value or "").strip().lower())
+    suffix = str(resource_id)
+    max_stem_len = max(3, 24 - len(suffix))
+    if len(stem) < 3:
+        stem = f"faas{stem}"
+    stem = stem[:max_stem_len]
+    result = f"{stem}{suffix}"[:24]
+    if len(result) < 3:
+        result = f"faas{suffix}"[:24]
+    return result
+
+
+def _extract_gcp_service_account_info(credential_data: Dict[str, object]) -> Optional[Dict[str, object]]:
+    if not isinstance(credential_data, dict):
+        return None
+
+    inline_payload = credential_data.get("service_account_json")
+    if isinstance(inline_payload, dict):
+        return inline_payload
+    if isinstance(inline_payload, str) and inline_payload.strip():
+        try:
+            parsed = json.loads(inline_payload)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            return None
+
+    # Allow users to store the complete service account JSON directly.
+    if credential_data.get("type") == "service_account" and credential_data.get("private_key"):
+        return credential_data
+
+    return None
+
+
+def _extract_gcp_project_id(credential_data: Dict[str, object], service_account_info: Optional[Dict[str, object]]) -> Optional[str]:
+    explicit_project = credential_data.get("project_id") if isinstance(credential_data, dict) else None
+    if isinstance(explicit_project, str) and explicit_project.strip():
+        return explicit_project.strip()
+
+    inferred_project = (service_account_info or {}).get("project_id")
+    if isinstance(inferred_project, str) and inferred_project.strip():
+        return inferred_project.strip()
+    return None
+
+
 class StorageWebsiteConfig(BaseModel):
     index_document: str = Field(default="index.html", min_length=1, max_length=255)
     error_document: str = Field(default="error.html", min_length=1, max_length=255)
@@ -429,10 +490,13 @@ def create_resource(
     MODULE_MAP = {
         ("aws", "storage"): "aws_s3",
         ("aws", "vm"): "aws_vm",
+        ("aws", "faas"): "aws_lambda",
         ("azure", "storage"): "azure_blob",
         ("azure", "vm"): "azure_vm",
+        ("azure", "faas"): "azure_functions",
         ("gcp", "storage"): "gcp_storage",
         ("gcp", "vm"): "gcp_vm",
+        ("gcp", "faas"): "gcp_functions",
     }
     
     module_name = MODULE_MAP.get((provider, resource_type), f"{provider}_{resource_type}")
@@ -475,6 +539,14 @@ def create_resource(
             tf_vars["vpc_security_group_ids"] = [
                 item.strip() for item in str(tf_vars["vpc_security_group_ids"]).split(",") if item.strip()
             ]
+    elif provider == "aws" and resource_type == "faas":
+        tf_vars.setdefault("region", "us-east-1")
+        tf_vars.setdefault("function_name", _sanitize_aws_lambda_name(resource.name))
+        tf_vars.setdefault("runtime", "python3.11")
+        tf_vars.setdefault("handler", "index.lambda_handler")
+        tf_vars.setdefault("timeout", 30)
+        tf_vars.setdefault("memory_size", 128)
+        tf_vars.setdefault("description", f"Cloud Simplify managed Lambda for {resource.name}")
     elif provider == "azure":
         if resource_type == "vm":
             if "region" in tf_vars and "location" not in tf_vars:
@@ -484,10 +556,41 @@ def create_resource(
         elif resource_type == "storage":
             if "region" in tf_vars and "location" not in tf_vars:
                 tf_vars["location"] = tf_vars["region"]
-    elif provider == "gcp" and resource_type == "vm":
-        tf_vars.setdefault("instance_name", resource.name)
-        if "region" in tf_vars and "zone" not in tf_vars:
-            tf_vars["zone"] = f"{tf_vars['region']}-a"
+        elif resource_type == "faas":
+            if "region" in tf_vars and "location" not in tf_vars:
+                tf_vars["location"] = tf_vars["region"]
+            function_stub = _sanitize_kebab_name(resource.name, "cloud-simplify-fn", max_length=45)
+            tf_vars.setdefault("function_app_name", f"{function_stub}-{resource.id}")
+            tf_vars.setdefault("resource_group_name", f"nebula-fn-rg-{resource.id}")
+            tf_vars.setdefault("service_plan_name", f"nebula-fn-plan-{resource.id}")
+            tf_vars.setdefault("storage_account_name", _sanitize_azure_storage_account_name(resource.name, resource.id))
+            tf_vars.setdefault("runtime_version", "3.11")
+    elif provider == "gcp":
+        tf_vars.setdefault("region", "us-central1")
+        if resource_type == "vm":
+            tf_vars.setdefault("instance_name", resource.name)
+            if "zone" not in tf_vars:
+                tf_vars["zone"] = f"{tf_vars['region']}-a"
+        elif resource_type == "faas":
+            tf_vars.setdefault("function_name", _sanitize_kebab_name(resource.name, "cloud-simplify-fn"))
+            tf_vars.setdefault("runtime", "python311")
+            tf_vars.setdefault("entry_point", "handler")
+            tf_vars.setdefault("memory_mb", 256)
+            tf_vars.setdefault("timeout_seconds", 60)
+
+        gcp_credential_data = _get_provider_credential_data("gcp", current_user, db)
+        service_account_info = _extract_gcp_service_account_info(gcp_credential_data)
+        project_id = _extract_gcp_project_id(gcp_credential_data, service_account_info)
+
+        if project_id and not tf_vars.get("project_id"):
+            tf_vars["project_id"] = project_id
+        if service_account_info and not tf_vars.get("credentials_json"):
+            tf_vars["credentials_json"] = json.dumps(service_account_info)
+        if not tf_vars.get("project_id"):
+            raise HTTPException(
+                status_code=400,
+                detail="GCP project_id is required in resource configuration or credential payload.",
+            )
 
     try:
         provision_resource_task.delay(
