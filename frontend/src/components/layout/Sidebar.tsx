@@ -14,6 +14,7 @@ import {
   FileCode,
   Terminal,
   Settings,
+  Zap,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
@@ -83,6 +84,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
           name: 'Networks',
           path: '/resources/networks',
           icon: <Network className="w-4 h-4" />,
+        },
+        {
+          name: 'Functions',
+          path: '/resources/functions',
+          icon: <Zap className="w-4 h-4" />,
         },
       ],
     },
