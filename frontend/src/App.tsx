@@ -21,6 +21,8 @@ import Storage from './pages/resources/Storage';
 import CreateStorage from './pages/resources/CreateStorage';
 import Networks from './pages/resources/Networks';
 import CreateNetwork from './pages/resources/CreateNetwork';
+import Functions from './pages/resources/Functions';
+import CreateFunction from './pages/resources/CreateFunction';
 import Projects from './pages/Projects';
 import Deployments from './pages/Deployments';
 import DeploymentDetail from './pages/DeploymentDetail';
@@ -102,6 +104,8 @@ function App() {
                     <Route path="storage/create" element={<CreateStorage />} />
                     <Route path="networks" element={<Networks />} />
                     <Route path="networks/create" element={<CreateNetwork />} />
+                    <Route path="functions" element={<Functions />} />
+                    <Route path="functions/create" element={<CreateFunction />} />
                   </Route>
                   
                   {/* Other Routes */}
