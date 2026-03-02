@@ -26,7 +26,7 @@ class Resource(Base):
     project_id = Column(Integer, ForeignKey("projects.id"))
     name = Column(String, index=True)
     provider = Column(String) # aws, azure, gcp
-    type = Column(String) # vm, storage
+    type = Column(String) # vm, storage, faas
     status = Column(String, default="pending") # pending, provisioning, active, failed, destroying
     configuration = Column(JSON)
     terraform_output = Column(JSON, nullable=True)
