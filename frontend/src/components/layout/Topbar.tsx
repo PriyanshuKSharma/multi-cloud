@@ -15,6 +15,7 @@ import {
   Database,
   Network,
   Rocket,
+  Zap,
   FolderKanban,
   X,
   Sun,
@@ -39,7 +40,7 @@ interface TopbarProps {
   onOpenSidebar?: () => void;
 }
 
-type SearchKind = 'project' | 'vm' | 'storage' | 'network' | 'deployment';
+type SearchKind = 'project' | 'vm' | 'storage' | 'network' | 'function' | 'deployment';
 
 interface SearchResultItem {
   id: string;
@@ -207,11 +208,12 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         }
       };
 
-      const [projects, vms, storage, networks, deployments] = await Promise.all([
+      const [projects, vms, storage, networks, resources, deployments] = await Promise.all([
         fetchCollection('/projects/'),
         fetchCollection('/inventory/vms?limit=100'),
         fetchCollection('/inventory/storage?limit=100'),
         fetchCollection('/inventory/networks?limit=100'),
+        fetchCollection('/resources/?limit=200'),
         fetchCollection('/deployments/'),
       ]);
 
@@ -275,6 +277,25 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
           kind: 'network' as const,
         }));
 
+      const functionResults: SearchResultItem[] = resources
+        .filter((item: any) => String(item.type ?? '').toLowerCase() === 'faas')
+        .filter(
+          (item: any) =>
+            includesQuery(item.name, query) ||
+            includesQuery(item.provider, query) ||
+            includesQuery(item.status, query) ||
+            includesQuery(item.type, query)
+        )
+        .map((item: any) => ({
+          id: `function-${item.id ?? item.name ?? 'unknown'}`,
+          title: String(item.name ?? 'Unnamed Function'),
+          subtitle: `Function • ${String(item.provider ?? '').toUpperCase()} • ${String(
+            item.status ?? 'unknown'
+          )}`,
+          path: item.id ? `/deployments/${item.id}` : '/resources/functions',
+          kind: 'function' as const,
+        }));
+
       const deploymentResults: SearchResultItem[] = deployments
         .filter(
           (deployment: any) =>
@@ -298,6 +319,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         ...vmResults,
         ...storageResults,
         ...networkResults,
+        ...functionResults,
         ...deploymentResults,
       ].slice(0, 25);
     },
@@ -315,6 +337,8 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         return <Database className="w-4 h-4 text-purple-400" />;
       case 'network':
         return <Network className="w-4 h-4 text-teal-400" />;
+      case 'function':
+        return <Zap className="w-4 h-4 text-orange-400" />;
       case 'deployment':
         return <Rocket className="w-4 h-4 text-orange-400" />;
       default:
