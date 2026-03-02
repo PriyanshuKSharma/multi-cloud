@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { normalizeLogText } from '../utils/terraformOutput';
@@ -15,6 +15,11 @@ import {
   Network,
   Layers3,
   ExternalLink,
+  Bot,
+  SendHorizontal,
+  Wand2,
+  Loader2,
+  X,
 } from 'lucide-react';
 
 interface Deployment {
@@ -46,6 +51,49 @@ interface ResourceRecord {
   status: string;
   project_id: number;
   created_at: string;
+}
+
+interface CopilotFinding {
+  severity: 'info' | 'warning' | 'error';
+  title: string;
+  evidence?: string | null;
+  recommendation: string;
+}
+
+interface CopilotAction {
+  label: string;
+  action_type: 'navigate' | 'api';
+  description: string;
+  route?: string | null;
+  method?: string | null;
+  endpoint?: string | null;
+  body?: Record<string, unknown> | null;
+  requires_confirmation?: boolean;
+}
+
+interface CopilotResponse {
+  answer: string;
+  findings: CopilotFinding[];
+  actions: CopilotAction[];
+}
+
+type CopilotProvider = 'auto' | 'openai' | 'gemini' | 'anthropic' | 'huggingface' | 'custom';
+
+interface CopilotProvidersResponse {
+  active_provider: string | null;
+  preferred_provider: string | null;
+  provider_priority: string[];
+  available_providers: string[];
+  configured_providers: string[];
+  provider_status: Record<string, boolean>;
+  models: Record<string, string>;
+}
+
+interface ChatMessage {
+  id: string;
+  role: 'assistant' | 'user' | 'system';
+  text: string;
+  response?: CopilotResponse;
 }
 
 const asItemsArray = (payload: unknown): unknown[] => {
@@ -107,8 +155,56 @@ const normalizeResource = (item: unknown): ResourceRecord => {
   };
 };
 
+const QUICK_PROMPTS = [
+  'Why did my latest deployment fail?',
+  'How can I fix credential issues quickly?',
+  'What should I check before creating a VM?',
+  'Suggest next steps for the selected logs.',
+];
+
+const PROVIDER_CHOICES = ['openai', 'gemini', 'anthropic', 'huggingface', 'custom'] as const;
+
+const formatProviderLabel = (provider: string) =>
+  provider === 'huggingface'
+    ? 'Hugging Face'
+    : provider === 'custom'
+      ? 'Custom (Fine-tuned)'
+      : provider.charAt(0).toUpperCase() + provider.slice(1);
+
+const buildMessageId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const getErrorDetail = (error: unknown): string => {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'response' in error &&
+    (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail
+  ) {
+    const detail = (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail;
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+  }
+  return 'Request failed';
+};
+
 const CloudConsole: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedDeploymentId, setSelectedDeploymentId] = React.useState<number | null>(null);
+  const [isCopilotPanelOpen, setIsCopilotPanelOpen] = React.useState(true);
+  const [copilotInput, setCopilotInput] = React.useState('');
+  const [isCopilotLoading, setIsCopilotLoading] = React.useState(false);
+  const [providerPreference, setProviderPreference] = React.useState<CopilotProvider>('auto');
+  const [allowFallback, setAllowFallback] = React.useState(true);
+  const [providerMeta, setProviderMeta] = React.useState<CopilotProvidersResponse | null>(null);
+  const [copilotMessages, setCopilotMessages] = React.useState<ChatMessage[]>([
+    {
+      id: buildMessageId(),
+      role: 'assistant',
+      text: 'Cloud Copilot is ready. Ask me to debug failures, explain logs, or suggest safe next actions.',
+    },
+  ]);
+  const copilotFeedRef = React.useRef<HTMLDivElement | null>(null);
 
   const {
     data: deployments,
@@ -164,6 +260,29 @@ const CloudConsole: React.FC = () => {
     }
   }, [deployments, selectedDeploymentId]);
 
+  React.useEffect(() => {
+    let mounted = true;
+
+    const loadProviders = async () => {
+      try {
+        const response = await axios.get<CopilotProvidersResponse>('/assistant/providers');
+        if (mounted) {
+          setProviderMeta(response.data);
+        }
+      } catch {
+        if (mounted) {
+          setProviderMeta(null);
+        }
+      }
+    };
+
+    void loadProviders();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const refreshAll = () => {
     void refetchDeployments();
     void refetchResources();
@@ -171,6 +290,99 @@ const CloudConsole: React.FC = () => {
       void refetchDetail();
     }
   };
+
+  const appendMessage = React.useCallback((message: ChatMessage) => {
+    setCopilotMessages((previous) => [...previous, message]);
+  }, []);
+
+  const askCopilot = React.useCallback(
+    async (promptText: string) => {
+      const prompt = promptText.trim();
+      if (!prompt || isCopilotLoading) return;
+
+      appendMessage({
+        id: buildMessageId(),
+        role: 'user',
+        text: prompt,
+      });
+      setCopilotInput('');
+      setIsCopilotLoading(true);
+
+      try {
+        const response = await axios.post<CopilotResponse>('/assistant/query', {
+          prompt,
+          deployment_id: selectedDeploymentId,
+          resource_id: deploymentDetail?.resource_id ?? selectedDeploymentId,
+          provider: providerPreference,
+          allow_fallback: allowFallback,
+        });
+        appendMessage({
+          id: buildMessageId(),
+          role: 'assistant',
+          text: response.data.answer,
+          response: response.data,
+        });
+      } catch (error) {
+        appendMessage({
+          id: buildMessageId(),
+          role: 'system',
+          text: `Copilot request failed: ${getErrorDetail(error)}`,
+        });
+      } finally {
+        setIsCopilotLoading(false);
+      }
+    },
+    [allowFallback, appendMessage, deploymentDetail?.resource_id, isCopilotLoading, providerPreference, selectedDeploymentId]
+  );
+
+  const runCopilotAction = React.useCallback(
+    async (action: CopilotAction) => {
+      if (action.requires_confirmation) {
+        const accepted = window.confirm(`Run action: ${action.label}?`);
+        if (!accepted) return;
+      }
+
+      if (action.action_type === 'navigate' && action.route) {
+        navigate(action.route);
+        return;
+      }
+
+      if (action.action_type === 'api' && action.endpoint && action.method) {
+        try {
+          await axios.request({
+            method: action.method,
+            url: action.endpoint,
+            data: action.body ?? undefined,
+          });
+          appendMessage({
+            id: buildMessageId(),
+            role: 'system',
+            text: `Action succeeded: ${action.label}`,
+          });
+          void refetchDeployments();
+          void refetchResources();
+          if (selectedDeploymentId !== null) {
+            void refetchDetail();
+          }
+          return;
+        } catch (error) {
+          appendMessage({
+            id: buildMessageId(),
+            role: 'system',
+            text: `Action failed (${action.label}): ${getErrorDetail(error)}`,
+          });
+          return;
+        }
+      }
+
+      appendMessage({
+        id: buildMessageId(),
+        role: 'system',
+        text: `Action is not configured correctly: ${action.label}`,
+      });
+    },
+    [appendMessage, navigate, refetchDeployments, refetchResources, refetchDetail, selectedDeploymentId]
+  );
 
   const terminalCommand = (deployment: Deployment) =>
     `cloudorch provision --provider ${deployment.provider} --type ${deployment.resource_type} --name "${deployment.resource_name}" --project ${deployment.project_id}`;
@@ -185,9 +397,19 @@ const CloudConsole: React.FC = () => {
   const networkCount =
     resources?.filter((item) => item.type === 'network' || item.type === 'vpc' || item.type === 'resource_group')
       .length ?? 0;
+  const providerOptions =
+    providerMeta?.available_providers?.length
+      ? providerMeta.available_providers
+      : [...PROVIDER_CHOICES];
+  const configuredProviders = providerMeta?.configured_providers ?? [];
+
+  React.useEffect(() => {
+    if (!copilotFeedRef.current) return;
+    copilotFeedRef.current.scrollTop = copilotFeedRef.current.scrollHeight;
+  }, [copilotMessages, isCopilotLoading]);
 
   return (
-    <div className="p-8 space-y-6">
+    <div className={`p-8 space-y-6 transition-[padding] duration-300 ${isCopilotPanelOpen ? 'lg:pr-[27rem]' : ''}`}>
       <PageHero
         id="cloud-console"
         tone="cyan"
@@ -201,13 +423,22 @@ const CloudConsole: React.FC = () => {
           { label: `${resourcesCount} resources`, tone: 'blue' },
         ]}
         actions={
-          <button
-            onClick={refreshAll}
-            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all"
-          >
-            <RefreshCw className={`w-4 h-4 ${(deploymentsLoading || resourcesLoading) ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
+          <>
+            <button
+              onClick={refreshAll}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 ${(deploymentsLoading || resourcesLoading) ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
+            </button>
+            <button
+              onClick={() => setIsCopilotPanelOpen((value) => !value)}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-lg border border-indigo-500/20 transition-all"
+            >
+              <Bot className="w-4 h-4" />
+              <span className="text-sm font-medium">{isCopilotPanelOpen ? 'Hide Copilot' : 'Open Copilot'}</span>
+            </button>
+          </>
         }
       />
 
@@ -395,6 +626,202 @@ const CloudConsole: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {!isCopilotPanelOpen && (
+        <button
+          onClick={() => setIsCopilotPanelOpen(true)}
+          className="cursor-pointer fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-xl border border-cyan-500/35 bg-[#0f131a] px-4 py-3 text-sm font-medium text-cyan-200 shadow-[0_12px_30px_-16px_rgba(34,211,238,0.55)] hover:bg-cyan-500/15"
+        >
+          <Bot className="h-4 w-4" />
+          <span>Open Copilot</span>
+        </button>
+      )}
+
+      {isCopilotPanelOpen && (
+        <div className="fixed inset-0 z-40 pointer-events-none">
+          <button
+            type="button"
+            aria-label="Close Copilot"
+            onClick={() => setIsCopilotPanelOpen(false)}
+            className="absolute inset-0 bg-black/55 lg:hidden pointer-events-auto"
+          />
+
+          <aside
+            className="pointer-events-auto absolute right-0 top-0 flex h-full w-full max-w-[430px] flex-col border-l border-gray-800/70 bg-[#0d1016] shadow-[-22px_0_46px_-28px_rgba(0,0,0,0.85)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="px-4 py-3 border-b border-gray-800/60 bg-[#10141d] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-cyan-300" />
+                <span className="text-sm font-semibold text-white">Cloud Copilot</span>
+              </div>
+              <button
+                onClick={() => setIsCopilotPanelOpen(false)}
+                className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-700/70 bg-gray-900/70 text-gray-300 hover:bg-gray-800"
+                title="Close copilot"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="px-4 py-2 border-b border-gray-800/60 bg-[#0f131a]">
+              {selectedDeploymentId ? (
+                <p className="text-xs text-gray-400 font-mono">context: deployment #{selectedDeploymentId}</p>
+              ) : (
+                <p className="text-xs text-gray-500">No deployment selected. Copilot will use general context.</p>
+              )}
+            </div>
+
+            <div ref={copilotFeedRef} className="flex-1 overflow-auto p-4 space-y-3 bg-[#0b0d12]">
+              {copilotMessages.map((message) => (
+                <div key={message.id} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+                  <div
+                    className={`max-w-[95%] rounded-xl border px-3 py-2 ${
+                      message.role === 'user'
+                        ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-100'
+                        : message.role === 'assistant'
+                          ? 'border-gray-700/70 bg-gray-900/80 text-gray-100'
+                          : 'border-amber-500/30 bg-amber-500/10 text-amber-200'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+
+                    {message.response?.findings && message.response.findings.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400">Findings</p>
+                        {message.response.findings.map((finding, index) => (
+                          <div key={`${message.id}-finding-${index}`} className="rounded-lg border border-gray-700/70 bg-[#0f1118] p-2">
+                            <p
+                              className={`text-xs font-semibold ${
+                                finding.severity === 'error'
+                                  ? 'text-red-300'
+                                  : finding.severity === 'warning'
+                                    ? 'text-yellow-300'
+                                    : 'text-cyan-300'
+                              }`}
+                            >
+                              {finding.title}
+                            </p>
+                            <p className="mt-1 text-xs text-gray-300">{finding.recommendation}</p>
+                            {finding.evidence && (
+                              <p className="mt-1 text-[11px] text-gray-500 font-mono">{finding.evidence}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {message.response?.actions && message.response.actions.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400">Suggested Actions</p>
+                        <div className="flex flex-wrap gap-2">
+                          {message.response.actions.map((action, index) => (
+                            <button
+                              key={`${message.id}-action-${index}`}
+                              onClick={() => {
+                                void runCopilotAction(action);
+                              }}
+                              className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20"
+                              title={action.description}
+                            >
+                              <Wand2 className="h-3 w-3" />
+                              <span>{action.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {isCopilotLoading && (
+                <div className="flex justify-start">
+                  <div className="rounded-xl border border-gray-700/70 bg-gray-900/80 px-3 py-2 text-sm text-gray-300 inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+                    <span>Analyzing logs and context...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-gray-800/60 bg-[#0f131a] px-4 py-3 space-y-3">
+              <div className="rounded-lg border border-gray-800/70 bg-[#0e1219] p-2.5 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="console-copilot-provider" className="text-[11px] uppercase tracking-wide text-gray-400">
+                    AI Provider
+                  </label>
+                  <select
+                    id="console-copilot-provider"
+                    value={providerPreference}
+                    onChange={(event) => setProviderPreference(event.target.value as CopilotProvider)}
+                    className="rounded-md border border-gray-700/70 bg-gray-900/80 px-2 py-1 text-xs text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                  >
+                    <option value="auto">Auto</option>
+                    {providerOptions.map((provider) => (
+                      <option key={provider} value={provider}>
+                        {formatProviderLabel(provider)}
+                        {providerMeta && !providerMeta.provider_status?.[provider] ? ' (not configured)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <label className="inline-flex items-center gap-2 text-xs text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={allowFallback}
+                    onChange={(event) => setAllowFallback(event.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-gray-600 bg-gray-900 text-cyan-400 focus:ring-cyan-500/40"
+                  />
+                  <span>Allow fallback if selected provider fails</span>
+                </label>
+
+                <p className="text-[11px] text-gray-500">
+                  Configured providers: {configuredProviders.length > 0 ? configuredProviders.map(formatProviderLabel).join(', ') : 'none'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {QUICK_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    onClick={() => {
+                      void askCopilot(prompt);
+                    }}
+                    className="cursor-pointer rounded-lg border border-gray-700/70 bg-gray-900/70 px-2.5 py-1.5 text-xs text-gray-200 hover:border-cyan-500/35 hover:bg-cyan-500/10"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void askCopilot(copilotInput);
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  value={copilotInput}
+                  onChange={(event) => setCopilotInput(event.target.value)}
+                  placeholder="Ask Copilot to debug issues..."
+                  className="flex-1 rounded-lg border border-gray-700/70 bg-gray-900/80 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                />
+                <button
+                  type="submit"
+                  disabled={isCopilotLoading || !copilotInput.trim()}
+                  className="cursor-pointer inline-flex h-10 items-center gap-1 rounded-lg border border-cyan-500/35 bg-cyan-500/15 px-3 text-sm font-medium text-cyan-200 hover:bg-cyan-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <SendHorizontal className="h-4 w-4" />
+                  <span>Send</span>
+                </button>
+              </form>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 };
