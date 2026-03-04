@@ -16,6 +16,8 @@ import {
   Network,
   Rocket,
   Zap,
+  BellRing,
+  Inbox,
   FolderKanban,
   X,
   Sun,
@@ -40,7 +42,7 @@ interface TopbarProps {
   onOpenSidebar?: () => void;
 }
 
-type SearchKind = 'project' | 'vm' | 'storage' | 'network' | 'function' | 'deployment';
+type SearchKind = 'project' | 'vm' | 'storage' | 'network' | 'function' | 'sqs' | 'sns' | 'deployment';
 
 interface SearchResultItem {
   id: string;
@@ -296,6 +298,29 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
           kind: 'function' as const,
         }));
 
+      const messagingResults: SearchResultItem[] = resources
+        .filter((item: any) => ['sqs', 'sns'].includes(String(item.type ?? '').toLowerCase()))
+        .filter(
+          (item: any) =>
+            includesQuery(item.name, query) ||
+            includesQuery(item.provider, query) ||
+            includesQuery(item.status, query) ||
+            includesQuery(item.type, query) ||
+            includesQuery(item.configuration?.region, query)
+        )
+        .map((item: any) => {
+          const type = String(item.type ?? '').toLowerCase() === 'sns' ? 'sns' : 'sqs';
+          return {
+            id: `messaging-${type}-${item.id ?? item.name ?? 'unknown'}`,
+            title: String(item.name ?? `Unnamed ${type.toUpperCase()}`),
+            subtitle: `${type.toUpperCase()} • ${String(item.provider ?? '').toUpperCase()} • ${String(
+              item.configuration?.region ?? 'unknown'
+            )}`,
+            path: '/resources/messaging',
+            kind: type as 'sqs' | 'sns',
+          };
+        });
+
       const deploymentResults: SearchResultItem[] = deployments
         .filter(
           (deployment: any) =>
@@ -320,6 +345,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         ...storageResults,
         ...networkResults,
         ...functionResults,
+        ...messagingResults,
         ...deploymentResults,
       ].slice(0, 25);
     },
@@ -339,6 +365,10 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         return <Network className="w-4 h-4 text-teal-400" />;
       case 'function':
         return <Zap className="w-4 h-4 text-orange-400" />;
+      case 'sqs':
+        return <Inbox className="w-4 h-4 text-cyan-400" />;
+      case 'sns':
+        return <BellRing className="w-4 h-4 text-amber-400" />;
       case 'deployment':
         return <Rocket className="w-4 h-4 text-orange-400" />;
       default:
