@@ -23,6 +23,8 @@ import Networks from './pages/resources/Networks';
 import CreateNetwork from './pages/resources/CreateNetwork';
 import Functions from './pages/resources/Functions';
 import CreateFunction from './pages/resources/CreateFunction';
+import Messaging from './pages/resources/Messaging';
+import CreateMessaging from './pages/resources/CreateMessaging';
 import Projects from './pages/Projects';
 import Deployments from './pages/Deployments';
 import DeploymentDetail from './pages/DeploymentDetail';
@@ -106,6 +108,8 @@ function App() {
                     <Route path="networks/create" element={<CreateNetwork />} />
                     <Route path="functions" element={<Functions />} />
                     <Route path="functions/create" element={<CreateFunction />} />
+                    <Route path="messaging" element={<Messaging />} />
+                    <Route path="messaging/create" element={<CreateMessaging />} />
                   </Route>
                   
                   {/* Other Routes */}
