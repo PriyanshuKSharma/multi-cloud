@@ -34,6 +34,66 @@ AWS_DEFAULT_AMI_BY_REGION: Dict[str, str] = {
 }
 
 
+FUNCTION_TRIGGER_OPTIONS: Dict[str, Tuple[str, ...]] = {
+    "aws": ("http", "schedule", "storage", "queue"),
+    "azure": ("http", "schedule", "event"),
+    "gcp": ("http", "pubsub", "storage", "event"),
+}
+
+
+def _as_bool(value: object, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on", "enabled"}:
+            return True
+        if normalized in {"0", "false", "no", "off", "disabled"}:
+            return False
+    return default
+
+
+def _as_int(value: object, default: int) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return default
+        try:
+            return int(text)
+        except ValueError:
+            return default
+    return default
+
+
+def _clean_string(value: object, default: str = "") -> str:
+    if isinstance(value, str):
+        cleaned = value.strip()
+        return cleaned if cleaned else default
+    return default
+
+
+def _normalize_function_trigger(provider: str, trigger_value: object) -> str:
+    raw = _clean_string(trigger_value, "http").lower()
+    allowed = FUNCTION_TRIGGER_OPTIONS.get(provider, ("http",))
+    return raw if raw in allowed else "http"
+
+
+def _as_string_list(value: object) -> List[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return []
+
+
 def _sanitize_kebab_name(value: str, fallback: str, max_length: int = 63) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9-]+", "-", (value or "").strip().lower())
     cleaned = re.sub(r"-{2,}", "-", cleaned).strip("-")
@@ -46,6 +106,32 @@ def _sanitize_aws_lambda_name(value: str) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9-_]+", "-", (value or "").strip())
     cleaned = re.sub(r"-{2,}", "-", cleaned).strip("-_")
     return (cleaned or "cloud-simplify-function")[:64]
+
+
+def _sanitize_aws_sqs_queue_name(value: str, fifo_queue: bool = False) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9_-]+", "-", (value or "").strip())
+    cleaned = re.sub(r"-{2,}", "-", cleaned).strip("-_")
+    base = (cleaned or "cloud-simplify-queue")[:80]
+    if fifo_queue:
+        if not base.endswith(".fifo"):
+            base = base[:75].rstrip("-_") + ".fifo"
+        return base
+    if base.endswith(".fifo"):
+        base = base[:-5]
+    return base
+
+
+def _sanitize_aws_sns_topic_name(value: str, fifo_topic: bool = False) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9_-]+", "-", (value or "").strip())
+    cleaned = re.sub(r"-{2,}", "-", cleaned).strip("-_")
+    base = (cleaned or "cloud-simplify-topic")[:256]
+    if fifo_topic:
+        if not base.endswith(".fifo"):
+            base = base[:251].rstrip("-_") + ".fifo"
+        return base
+    if base.endswith(".fifo"):
+        base = base[:-5]
+    return base
 
 
 def _sanitize_azure_storage_account_name(value: str, resource_id: int) -> str:
@@ -99,6 +185,31 @@ class StorageWebsiteConfig(BaseModel):
     index_document: str = Field(default="index.html", min_length=1, max_length=255)
     error_document: str = Field(default="error.html", min_length=1, max_length=255)
     public_read: bool = True
+
+
+class SqsSendMessagePayload(BaseModel):
+    body: str = Field(min_length=1, max_length=262144)
+    delay_seconds: int = Field(default=0, ge=0, le=900)
+    message_group_id: Optional[str] = None
+    message_deduplication_id: Optional[str] = None
+    message_attributes: Optional[Dict[str, str]] = None
+
+
+class SqsDeleteMessagePayload(BaseModel):
+    receipt_handle: str = Field(min_length=1)
+
+
+class SnsPublishPayload(BaseModel):
+    message: str = Field(min_length=1, max_length=262144)
+    subject: Optional[str] = Field(default=None, max_length=100)
+    message_attributes: Optional[Dict[str, str]] = None
+
+
+class SnsSubscribePayload(BaseModel):
+    protocol: str = Field(min_length=2, max_length=32)
+    endpoint: str = Field(min_length=3, max_length=2048)
+    filter_policy: Optional[Dict[str, object]] = None
+    raw_message_delivery: bool = False
 
 
 def _normalize_s3_key(value: str) -> str:
@@ -281,6 +392,148 @@ def _get_provider_credential_data(
         raise HTTPException(status_code=400, detail=f"{provider.upper()} credential payload is invalid")
 
     return data
+
+
+def _get_resource_for_user(
+    resource_id: int,
+    current_user: User,
+    db: Session,
+) -> Resource:
+    resource = (
+        db.query(Resource)
+        .join(Project)
+        .filter(Resource.id == resource_id, Project.user_id == current_user.id)
+        .first()
+    )
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    return resource
+
+
+def _get_messaging_resource_for_user(
+    resource_id: int,
+    expected_type: str,
+    current_user: User,
+    db: Session,
+) -> Resource:
+    resource = _get_resource_for_user(resource_id, current_user, db)
+    if resource.type != expected_type:
+        raise HTTPException(status_code=400, detail=f"Resource is not a {expected_type.upper()} resource")
+    if (resource.provider or "").lower() != "aws":
+        raise HTTPException(status_code=400, detail=f"{expected_type.upper()} operations are currently supported for AWS only")
+    return resource
+
+
+def _get_aws_sqs_client_for_resource(
+    resource: Resource,
+    current_user: User,
+    db: Session,
+) -> Tuple[object, str]:
+    credential_data = _get_provider_credential_data("aws", current_user, db)
+    access_key = credential_data.get("access_key")
+    secret_key = credential_data.get("secret_key")
+    if not access_key or not secret_key:
+        raise HTTPException(status_code=400, detail="AWS credential is missing access key or secret key")
+
+    configuration = resource.configuration or {}
+    region = (
+        configuration.get("region")
+        or resource.region
+        or credential_data.get("region")
+        or "us-east-1"
+    )
+    sqs_client = boto3.client(
+        "sqs",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name=region,
+    )
+    return sqs_client, str(region)
+
+
+def _resolve_sqs_queue_url(
+    resource: Resource,
+    current_user: User,
+    db: Session,
+) -> Tuple[object, str, str, str]:
+    sqs_client, region = _get_aws_sqs_client_for_resource(resource, current_user, db)
+    configuration = resource.configuration or {}
+
+    queue_url = _clean_string(configuration.get("queue_url"))
+    queue_name = _clean_string(configuration.get("queue_name"), resource.name)
+    if not queue_name:
+        queue_name = _sanitize_aws_sqs_queue_name(resource.name)
+
+    if not queue_url:
+        try:
+            response = sqs_client.get_queue_url(QueueName=queue_name)
+            queue_url = response.get("QueueUrl") or ""
+        except ClientError as exc:
+            detail = exc.response.get("Error", {}).get("Message", str(exc))
+            raise HTTPException(status_code=400, detail=f"Failed to resolve SQS queue URL: {detail}") from exc
+
+    if not queue_url:
+        raise HTTPException(status_code=400, detail="Queue URL could not be resolved")
+    return sqs_client, queue_url, queue_name, region
+
+
+def _get_aws_sns_client_for_resource(
+    resource: Resource,
+    current_user: User,
+    db: Session,
+) -> Tuple[object, str]:
+    credential_data = _get_provider_credential_data("aws", current_user, db)
+    access_key = credential_data.get("access_key")
+    secret_key = credential_data.get("secret_key")
+    if not access_key or not secret_key:
+        raise HTTPException(status_code=400, detail="AWS credential is missing access key or secret key")
+
+    configuration = resource.configuration or {}
+    region = (
+        configuration.get("region")
+        or resource.region
+        or credential_data.get("region")
+        or "us-east-1"
+    )
+    sns_client = boto3.client(
+        "sns",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name=region,
+    )
+    return sns_client, str(region)
+
+
+def _resolve_sns_topic_arn(
+    resource: Resource,
+    current_user: User,
+    db: Session,
+) -> Tuple[object, str, str, str]:
+    sns_client, region = _get_aws_sns_client_for_resource(resource, current_user, db)
+    configuration = resource.configuration or {}
+
+    topic_arn = _clean_string(configuration.get("topic_arn"))
+    fifo_topic = _as_bool(configuration.get("fifo_topic"), False)
+    topic_name = _clean_string(configuration.get("topic_name"), resource.name)
+    topic_name = _sanitize_aws_sns_topic_name(topic_name, fifo_topic=fifo_topic)
+
+    if not topic_arn:
+        create_args = {"Name": topic_name}
+        if fifo_topic:
+            create_args["Attributes"] = {
+                "FifoTopic": "true",
+                "ContentBasedDeduplication": "true" if _as_bool(configuration.get("content_based_deduplication"), True) else "false",
+            }
+        try:
+            response = sns_client.create_topic(**create_args)
+            topic_arn = response.get("TopicArn") or ""
+        except ClientError as exc:
+            detail = exc.response.get("Error", {}).get("Message", str(exc))
+            raise HTTPException(status_code=400, detail=f"Failed to resolve SNS topic ARN: {detail}") from exc
+
+    if not topic_arn:
+        raise HTTPException(status_code=400, detail="Topic ARN could not be resolved")
+    return sns_client, topic_arn, topic_name, region
 
 
 def _get_aws_ec2_client_for_vm_resource(
@@ -488,6 +741,8 @@ def create_resource(
     # Trigger Async Job
     # Map (provider, type) to correct Terraform module directory
     MODULE_MAP = {
+        ("aws", "sqs"): "aws_sqs",
+        ("aws", "sns"): "aws_sns",
         ("aws", "storage"): "aws_s3",
         ("aws", "vm"): "aws_vm",
         ("aws", "faas"): "aws_lambda",
@@ -539,14 +794,101 @@ def create_resource(
             tf_vars["vpc_security_group_ids"] = [
                 item.strip() for item in str(tf_vars["vpc_security_group_ids"]).split(",") if item.strip()
             ]
+    elif provider == "aws" and resource_type == "sqs":
+        tf_vars.setdefault("region", "us-east-1")
+        fifo_queue = _as_bool(tf_vars.get("fifo_queue"), False)
+        queue_name_input = _clean_string(tf_vars.get("queue_name"), resource.name)
+        tf_vars["queue_name"] = _sanitize_aws_sqs_queue_name(queue_name_input, fifo_queue=fifo_queue)
+        tf_vars["fifo_queue"] = fifo_queue
+        tf_vars["content_based_deduplication"] = _as_bool(
+            tf_vars.get("content_based_deduplication"),
+            fifo_queue,
+        )
+        tf_vars["visibility_timeout_seconds"] = _as_int(tf_vars.get("visibility_timeout_seconds"), 30)
+        tf_vars["message_retention_seconds"] = _as_int(tf_vars.get("message_retention_seconds"), 345600)
+        tf_vars["delay_seconds"] = _as_int(tf_vars.get("delay_seconds"), 0)
+        tf_vars["max_message_size"] = _as_int(tf_vars.get("max_message_size"), 262144)
+        tf_vars["receive_wait_time_seconds"] = _as_int(tf_vars.get("receive_wait_time_seconds"), 0)
+        tf_vars["enable_dlq"] = _as_bool(tf_vars.get("enable_dlq"), False)
+        dlq_name_input = _clean_string(tf_vars.get("dlq_name"), f"{resource.name}-dlq")
+        tf_vars["dlq_name"] = _sanitize_aws_sqs_queue_name(dlq_name_input, fifo_queue=fifo_queue)
+        tf_vars["redrive_max_receive_count"] = _as_int(tf_vars.get("redrive_max_receive_count"), 5)
+    elif provider == "aws" and resource_type == "sns":
+        tf_vars.setdefault("region", "us-east-1")
+        fifo_topic = _as_bool(tf_vars.get("fifo_topic"), False)
+        topic_name_input = _clean_string(tf_vars.get("topic_name"), resource.name)
+        tf_vars["topic_name"] = _sanitize_aws_sns_topic_name(topic_name_input, fifo_topic=fifo_topic)
+        tf_vars["fifo_topic"] = fifo_topic
+        tf_vars["content_based_deduplication"] = _as_bool(
+            tf_vars.get("content_based_deduplication"),
+            fifo_topic,
+        )
+        tf_vars["display_name"] = _clean_string(tf_vars.get("display_name"), resource.name)
+        tf_vars["delivery_policy"] = _clean_string(tf_vars.get("delivery_policy"))
     elif provider == "aws" and resource_type == "faas":
         tf_vars.setdefault("region", "us-east-1")
-        tf_vars.setdefault("function_name", _sanitize_aws_lambda_name(resource.name))
+        aws_function_name = _clean_string(tf_vars.get("function_name"), resource.name)
+        tf_vars["function_name"] = _sanitize_aws_lambda_name(aws_function_name)
         tf_vars.setdefault("runtime", "python3.11")
         tf_vars.setdefault("handler", "index.lambda_handler")
         tf_vars.setdefault("timeout", 30)
         tf_vars.setdefault("memory_size", 128)
         tf_vars.setdefault("description", f"Cloud Simplify managed Lambda for {resource.name}")
+        trigger_type = _normalize_function_trigger("aws", tf_vars.get("trigger_type"))
+        trigger_source = _clean_string(tf_vars.get("trigger_source"))
+        schedule_expression = _clean_string(
+            tf_vars.get("trigger_schedule_expression") or tf_vars.get("schedule_expression")
+        )
+        route_path = _clean_string(tf_vars.get("route_path"), "/")
+        if not route_path.startswith("/"):
+            route_path = f"/{route_path}"
+        action_destination_url = _clean_string(tf_vars.get("action_destination_url"))
+        on_success_destination = _clean_string(tf_vars.get("on_success_destination"))
+        on_failure_destination = _clean_string(tf_vars.get("on_failure_destination"))
+        website_enabled = _as_bool(tf_vars.get("website_enabled"), trigger_type == "http")
+        allowed_origins = _as_string_list(tf_vars.get("allowed_origins")) or ["*"]
+
+        tf_vars["trigger_type"] = trigger_type
+        tf_vars["website_enabled"] = website_enabled
+        tf_vars["route_path"] = route_path
+        tf_vars["allowed_origins"] = allowed_origins
+        tf_vars["action_destination_url"] = action_destination_url
+        tf_vars["on_success_destination_arn"] = on_success_destination
+        tf_vars["on_failure_destination_arn"] = on_failure_destination
+        tf_vars["schedule_expression"] = schedule_expression if trigger_type == "schedule" else ""
+        tf_vars["event_source_arn"] = trigger_source if trigger_type == "queue" else ""
+        tf_vars["event_source_bucket"] = trigger_source if trigger_type == "storage" else ""
+
+        if website_enabled and not _clean_string(tf_vars.get("source_code")):
+            tf_vars["source_code"] = (
+                "from datetime import datetime\n\n"
+                "def lambda_handler(event, context):\n"
+                "    path = event.get('rawPath') or event.get('path') or '/'\n"
+                "    method = (\n"
+                "        event.get('requestContext', {}).get('http', {}).get('method')\n"
+                "        or event.get('httpMethod')\n"
+                "        or 'GET'\n"
+                "    )\n"
+                "    query = event.get('queryStringParameters') or {}\n"
+                "    name = query.get('name', 'Developer')\n"
+                "    html = (\n"
+                "        '<!doctype html><html><head><meta charset=\"utf-8\">'\n"
+                "        '<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">'\n"
+                "        '<title>Cloud Function Website</title></head><body '\n"
+                "        'style=\"font-family:Arial;padding:24px;background:#0f172a;color:#e2e8f0\">'\n"
+                "        '<h1>Dynamic Website on Functions</h1>'\n"
+                "        f'<p>Hello, {name}.</p>'\n"
+                "        f'<p>Route: <code>{path}</code></p>'\n"
+                "        f'<p>Method: <code>{method}</code></p>'\n"
+                "        f'<p>UTC: <code>{datetime.utcnow().isoformat()}Z</code></p>'\n"
+                "        '</body></html>'\n"
+                "    )\n"
+                "    return {\n"
+                "        'statusCode': 200,\n"
+                "        'headers': {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store'},\n"
+                "        'body': html,\n"
+                "    }\n"
+            )
     elif provider == "azure":
         if resource_type == "vm":
             if "region" in tf_vars and "location" not in tf_vars:
@@ -565,6 +907,18 @@ def create_resource(
             tf_vars.setdefault("service_plan_name", f"nebula-fn-plan-{resource.id}")
             tf_vars.setdefault("storage_account_name", _sanitize_azure_storage_account_name(resource.name, resource.id))
             tf_vars.setdefault("runtime_version", "3.11")
+            trigger_type = _normalize_function_trigger("azure", tf_vars.get("trigger_type"))
+            tf_vars["trigger_type"] = trigger_type
+            tf_vars["website_enabled"] = _as_bool(tf_vars.get("website_enabled"), trigger_type == "http")
+            tf_vars["route_path"] = _clean_string(tf_vars.get("route_path"), "/")
+            tf_vars["trigger_source"] = _clean_string(tf_vars.get("trigger_source"))
+            tf_vars["schedule_expression"] = _clean_string(
+                tf_vars.get("trigger_schedule_expression") or tf_vars.get("schedule_expression")
+            )
+            tf_vars["action_destination_url"] = _clean_string(tf_vars.get("action_destination_url"))
+            tf_vars["on_success_destination"] = _clean_string(tf_vars.get("on_success_destination"))
+            tf_vars["on_failure_destination"] = _clean_string(tf_vars.get("on_failure_destination"))
+            tf_vars["allowed_origins"] = _as_string_list(tf_vars.get("allowed_origins")) or ["*"]
     elif provider == "gcp":
         tf_vars.setdefault("region", "us-central1")
         if resource_type == "vm":
@@ -572,11 +926,48 @@ def create_resource(
             if "zone" not in tf_vars:
                 tf_vars["zone"] = f"{tf_vars['region']}-a"
         elif resource_type == "faas":
-            tf_vars.setdefault("function_name", _sanitize_kebab_name(resource.name, "cloud-simplify-fn"))
+            gcp_function_name = _clean_string(tf_vars.get("function_name"), resource.name)
+            tf_vars["function_name"] = _sanitize_kebab_name(gcp_function_name, "cloud-simplify-fn")
             tf_vars.setdefault("runtime", "python311")
             tf_vars.setdefault("entry_point", "handler")
             tf_vars.setdefault("memory_mb", 256)
             tf_vars.setdefault("timeout_seconds", 60)
+            trigger_type = _normalize_function_trigger("gcp", tf_vars.get("trigger_type"))
+            trigger_source = _clean_string(tf_vars.get("trigger_source"))
+            website_enabled = _as_bool(tf_vars.get("website_enabled"), trigger_type == "http")
+
+            tf_vars["trigger_type"] = trigger_type
+            tf_vars["website_enabled"] = website_enabled
+            tf_vars["trigger_resource"] = trigger_source if trigger_type in {"pubsub", "storage", "event"} else ""
+            tf_vars["trigger_event_type"] = _clean_string(tf_vars.get("trigger_event_type"))
+            tf_vars["action_destination_url"] = _clean_string(tf_vars.get("action_destination_url"))
+            tf_vars["on_success_destination"] = _clean_string(tf_vars.get("on_success_destination"))
+            tf_vars["on_failure_destination"] = _clean_string(tf_vars.get("on_failure_destination"))
+            tf_vars["allowed_origins"] = _as_string_list(tf_vars.get("allowed_origins")) or ["*"]
+            tf_vars["event_retry_on_failure"] = _as_bool(tf_vars.get("event_retry_on_failure"), False)
+
+            if not tf_vars["trigger_event_type"] and trigger_type == "pubsub":
+                tf_vars["trigger_event_type"] = "google.pubsub.topic.publish"
+            if not tf_vars["trigger_event_type"] and trigger_type in {"storage", "event"}:
+                tf_vars["trigger_event_type"] = "google.storage.object.finalize"
+
+            if website_enabled and not _clean_string(tf_vars.get("source_code")):
+                tf_vars["source_code"] = (
+                    "from datetime import datetime\n\n"
+                    "def handler(request):\n"
+                    "    name = request.args.get('name', 'Developer') if request.args else 'Developer'\n"
+                    "    html = (\n"
+                    "        '<!doctype html><html><head><meta charset=\"utf-8\">'\n"
+                    "        '<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">'\n"
+                    "        '<title>Cloud Function Website</title></head><body '\n"
+                    "        'style=\"font-family:Arial;padding:24px;background:#111827;color:#f9fafb\">'\n"
+                    "        '<h1>Dynamic Website on Cloud Functions</h1>'\n"
+                    "        f'<p>Hello, {name}.</p>'\n"
+                    "        f'<p>UTC: <code>{datetime.utcnow().isoformat()}Z</code></p>'\n"
+                    "        '</body></html>'\n"
+                    "    )\n"
+                    "    return (html, 200, {'Content-Type': 'text/html; charset=utf-8'})\n"
+                )
 
         gcp_credential_data = _get_provider_credential_data("gcp", current_user, db)
         service_account_info = _extract_gcp_service_account_info(gcp_credential_data)
@@ -1089,4 +1480,327 @@ def enable_storage_website(
         "index_document": index_document,
         "error_document": error_document,
         "public_read": payload.public_read,
+    }
+
+
+def _to_aws_message_attributes(attributes: Optional[Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    if not attributes:
+        return {}
+
+    result: Dict[str, Dict[str, str]] = {}
+    for key, value in attributes.items():
+        attr_name = str(key).strip()
+        if not attr_name:
+            continue
+        result[attr_name] = {"DataType": "String", "StringValue": str(value)}
+    return result
+
+
+@router.get("/{resource_id}/sqs/attributes")
+def get_sqs_queue_attributes(
+    resource_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sqs", current_user, db)
+    sqs_client, queue_url, queue_name, region = _resolve_sqs_queue_url(resource, current_user, db)
+
+    try:
+        response = sqs_client.get_queue_attributes(
+            QueueUrl=queue_url,
+            AttributeNames=["All"],
+        )
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to fetch SQS attributes: {detail}") from exc
+
+    return {
+        "queue_name": queue_name,
+        "queue_url": queue_url,
+        "region": region,
+        "attributes": response.get("Attributes", {}),
+    }
+
+
+@router.post("/{resource_id}/sqs/send")
+def send_sqs_message(
+    resource_id: int,
+    payload: SqsSendMessagePayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sqs", current_user, db)
+    sqs_client, queue_url, queue_name, region = _resolve_sqs_queue_url(resource, current_user, db)
+    configuration = resource.configuration or {}
+    fifo_queue = _as_bool(configuration.get("fifo_queue"), False)
+
+    send_args: Dict[str, object] = {
+        "QueueUrl": queue_url,
+        "MessageBody": payload.body,
+        "DelaySeconds": payload.delay_seconds,
+        "MessageAttributes": _to_aws_message_attributes(payload.message_attributes),
+    }
+
+    if fifo_queue:
+        send_args["MessageGroupId"] = _clean_string(payload.message_group_id, "default")
+        deduplication_id = _clean_string(payload.message_deduplication_id)
+        if deduplication_id:
+            send_args["MessageDeduplicationId"] = deduplication_id
+
+    try:
+        response = sqs_client.send_message(**send_args)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to send SQS message: {detail}") from exc
+
+    return {
+        "message": "SQS message sent",
+        "queue_name": queue_name,
+        "queue_url": queue_url,
+        "region": region,
+        "message_id": response.get("MessageId"),
+        "md5_of_body": response.get("MD5OfMessageBody"),
+    }
+
+
+@router.get("/{resource_id}/sqs/messages")
+def receive_sqs_messages(
+    resource_id: int,
+    max_messages: int = Query(5, ge=1, le=10),
+    wait_time_seconds: int = Query(2, ge=0, le=20),
+    visibility_timeout: Optional[int] = Query(None, ge=0, le=43200),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sqs", current_user, db)
+    sqs_client, queue_url, queue_name, region = _resolve_sqs_queue_url(resource, current_user, db)
+
+    receive_args: Dict[str, object] = {
+        "QueueUrl": queue_url,
+        "MaxNumberOfMessages": max_messages,
+        "WaitTimeSeconds": wait_time_seconds,
+        "MessageAttributeNames": ["All"],
+        "AttributeNames": ["All"],
+    }
+    if visibility_timeout is not None:
+        receive_args["VisibilityTimeout"] = visibility_timeout
+
+    try:
+        response = sqs_client.receive_message(**receive_args)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to receive SQS messages: {detail}") from exc
+
+    messages = []
+    for item in response.get("Messages", []):
+        messages.append(
+            {
+                "message_id": item.get("MessageId"),
+                "receipt_handle": item.get("ReceiptHandle"),
+                "body": item.get("Body"),
+                "attributes": item.get("Attributes", {}),
+                "message_attributes": item.get("MessageAttributes", {}),
+            }
+        )
+
+    return {
+        "queue_name": queue_name,
+        "queue_url": queue_url,
+        "region": region,
+        "count": len(messages),
+        "messages": messages,
+    }
+
+
+@router.post("/{resource_id}/sqs/messages/delete")
+def delete_sqs_message(
+    resource_id: int,
+    payload: SqsDeleteMessagePayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sqs", current_user, db)
+    sqs_client, queue_url, queue_name, region = _resolve_sqs_queue_url(resource, current_user, db)
+
+    try:
+        sqs_client.delete_message(QueueUrl=queue_url, ReceiptHandle=payload.receipt_handle)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to delete SQS message: {detail}") from exc
+
+    return {
+        "message": "SQS message deleted",
+        "queue_name": queue_name,
+        "queue_url": queue_url,
+        "region": region,
+    }
+
+
+@router.post("/{resource_id}/sqs/purge")
+def purge_sqs_queue(
+    resource_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sqs", current_user, db)
+    sqs_client, queue_url, queue_name, region = _resolve_sqs_queue_url(resource, current_user, db)
+
+    try:
+        sqs_client.purge_queue(QueueUrl=queue_url)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to purge SQS queue: {detail}") from exc
+
+    return {
+        "message": "SQS purge requested",
+        "queue_name": queue_name,
+        "queue_url": queue_url,
+        "region": region,
+    }
+
+
+@router.post("/{resource_id}/sns/publish")
+def publish_sns_message(
+    resource_id: int,
+    payload: SnsPublishPayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sns", current_user, db)
+    sns_client, topic_arn, topic_name, region = _resolve_sns_topic_arn(resource, current_user, db)
+
+    publish_args: Dict[str, object] = {
+        "TopicArn": topic_arn,
+        "Message": payload.message,
+        "MessageAttributes": _to_aws_message_attributes(payload.message_attributes),
+    }
+    subject = _clean_string(payload.subject)
+    if subject:
+        publish_args["Subject"] = subject
+
+    try:
+        response = sns_client.publish(**publish_args)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to publish SNS message: {detail}") from exc
+
+    return {
+        "message": "SNS message published",
+        "topic_name": topic_name,
+        "topic_arn": topic_arn,
+        "region": region,
+        "message_id": response.get("MessageId"),
+    }
+
+
+@router.get("/{resource_id}/sns/subscriptions")
+def list_sns_subscriptions(
+    resource_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sns", current_user, db)
+    sns_client, topic_arn, topic_name, region = _resolve_sns_topic_arn(resource, current_user, db)
+
+    try:
+        response = sns_client.list_subscriptions_by_topic(TopicArn=topic_arn)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to list SNS subscriptions: {detail}") from exc
+
+    subscriptions = []
+    for item in response.get("Subscriptions", []):
+        subscriptions.append(
+            {
+                "subscription_arn": item.get("SubscriptionArn"),
+                "protocol": item.get("Protocol"),
+                "endpoint": item.get("Endpoint"),
+                "owner": item.get("Owner"),
+            }
+        )
+
+    return {
+        "topic_name": topic_name,
+        "topic_arn": topic_arn,
+        "region": region,
+        "count": len(subscriptions),
+        "subscriptions": subscriptions,
+    }
+
+
+@router.post("/{resource_id}/sns/subscribe")
+def create_sns_subscription(
+    resource_id: int,
+    payload: SnsSubscribePayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sns", current_user, db)
+    sns_client, topic_arn, topic_name, region = _resolve_sns_topic_arn(resource, current_user, db)
+
+    protocol = _clean_string(payload.protocol).lower()
+    if protocol not in {"http", "https", "email", "email-json", "sms", "sqs", "lambda", "application", "firehose"}:
+        raise HTTPException(status_code=400, detail="Unsupported SNS protocol")
+
+    try:
+        response = sns_client.subscribe(
+            TopicArn=topic_arn,
+            Protocol=protocol,
+            Endpoint=payload.endpoint.strip(),
+            ReturnSubscriptionArn=True,
+        )
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to create SNS subscription: {detail}") from exc
+
+    subscription_arn = response.get("SubscriptionArn", "")
+    if subscription_arn and subscription_arn != "pending confirmation":
+        try:
+            if payload.raw_message_delivery:
+                sns_client.set_subscription_attributes(
+                    SubscriptionArn=subscription_arn,
+                    AttributeName="RawMessageDelivery",
+                    AttributeValue="true",
+                )
+            if payload.filter_policy:
+                sns_client.set_subscription_attributes(
+                    SubscriptionArn=subscription_arn,
+                    AttributeName="FilterPolicy",
+                    AttributeValue=json.dumps(payload.filter_policy),
+                )
+        except ClientError:
+            logger.warning("SNS subscription attributes update failed for %s", subscription_arn)
+
+    return {
+        "message": "SNS subscription created",
+        "topic_name": topic_name,
+        "topic_arn": topic_arn,
+        "region": region,
+        "subscription_arn": subscription_arn,
+        "status": "pending_confirmation" if subscription_arn == "pending confirmation" else "active",
+    }
+
+
+@router.delete("/{resource_id}/sns/subscriptions")
+def delete_sns_subscription(
+    resource_id: int,
+    subscription_arn: str = Query(..., min_length=6),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resource = _get_messaging_resource_for_user(resource_id, "sns", current_user, db)
+    sns_client, topic_arn, topic_name, region = _resolve_sns_topic_arn(resource, current_user, db)
+
+    try:
+        sns_client.unsubscribe(SubscriptionArn=subscription_arn)
+    except ClientError as exc:
+        detail = exc.response.get("Error", {}).get("Message", str(exc))
+        raise HTTPException(status_code=400, detail=f"Failed to delete SNS subscription: {detail}") from exc
+
+    return {
+        "message": "SNS subscription deleted",
+        "topic_name": topic_name,
+        "topic_arn": topic_arn,
+        "region": region,
+        "subscription_arn": subscription_arn,
     }
