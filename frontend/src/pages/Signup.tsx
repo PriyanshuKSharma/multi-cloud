@@ -193,7 +193,7 @@ const Signup: React.FC = () => {
             className="hidden rounded-3xl border border-slate-300/15 bg-slate-950/35 p-8 backdrop-blur-xl lg:flex lg:flex-col lg:justify-between"
           >
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/30 bg-blue-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-200">
                 <Sparkles className="h-3.5 w-3.5" />
                 Build With Nebula
               </div>
@@ -207,11 +207,11 @@ const Signup: React.FC = () => {
 
             <div className="space-y-3 rounded-2xl border border-slate-300/10 bg-slate-900/45 p-4">
               <div className="flex items-start gap-3 text-slate-200">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-blue-300" />
                 <p className="text-sm">Unified dashboard for compute, storage, functions, queues, and messages.</p>
               </div>
               <div className="flex items-start gap-3 text-slate-200">
-                <ShieldCheck className="mt-0.5 h-4 w-4 text-cyan-300" />
+                <ShieldCheck className="mt-0.5 h-4 w-4 text-blue-300" />
                 <p className="text-sm">Secure access model with isolated projects and cloud credentials.</p>
               </div>
               <div className="flex items-start gap-3 text-slate-200">
@@ -245,7 +245,7 @@ const Signup: React.FC = () => {
             className="rounded-3xl border border-slate-300/15 bg-slate-950/55 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8"
           >
             <div className="mb-7 text-center">
-              <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
+              <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
                 <UserPlus className="h-7 w-7 text-white" />
               </div>
               <h2 className="mt-4 text-3xl font-bold text-white">Create Account</h2>
@@ -254,11 +254,11 @@ const Signup: React.FC = () => {
 
             <div className="mb-5 grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-2 rounded-lg border border-slate-300/10 bg-slate-900/60 px-3 py-2 text-slate-200">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+                <ShieldCheck className="h-3.5 w-3.5 text-blue-300" />
                 Guardrails Ready
               </div>
               <div className="flex items-center gap-2 rounded-lg border border-slate-300/10 bg-slate-900/60 px-3 py-2 text-slate-200">
-                <Rocket className="h-3.5 w-3.5 text-cyan-300" />
+                <Rocket className="h-3.5 w-3.5 text-blue-300" />
                 Fast Onboarding
               </div>
             </div>
@@ -269,7 +269,7 @@ const Signup: React.FC = () => {
                   Full Name
                 </label>
                 <div className="group relative">
-                  <UserPlus className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-emerald-300" />
+                  <UserPlus className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-300" />
                   <input
                     {...register('full_name')}
                     className="input-field w-full py-2.5 pl-10"
@@ -284,7 +284,7 @@ const Signup: React.FC = () => {
                   Email Address
                 </label>
                 <div className="group relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-emerald-300" />
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-300" />
                   <input
                     {...register('email')}
                     className="input-field w-full py-2.5 pl-10"
@@ -333,7 +333,7 @@ const Signup: React.FC = () => {
                   Password
                 </label>
                 <div className="group relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-emerald-300" />
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-300" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     {...register('password')}
@@ -343,7 +343,7 @@ const Signup: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
-                    className="absolute right-3 top-3 text-slate-500 transition-colors hover:text-emerald-300"
+                    className="absolute right-3 top-3 text-slate-500 transition-colors hover:text-blue-300"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -379,7 +379,7 @@ const Signup: React.FC = () => {
                   Confirm Password
                 </label>
                 <div className="group relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-emerald-300" />
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-300" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     {...register('confirmPassword')}
@@ -389,7 +389,7 @@ const Signup: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((previous) => !previous)}
-                    className="absolute right-3 top-3 text-slate-500 transition-colors hover:text-emerald-300"
+                    className="absolute right-3 top-3 text-slate-500 transition-colors hover:text-blue-300"
                     aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                     title={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                   >
@@ -406,7 +406,7 @@ const Signup: React.FC = () => {
               )}
 
               {isSSOProcessing && (
-                <div className="rounded-xl border border-emerald-300/35 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
+                <div className="rounded-xl border border-blue-300/35 bg-blue-500/10 px-3 py-2 text-sm text-blue-100">
                   Completing {ssoProviderName || 'SSO'} sign-in...
                 </div>
               )}
@@ -414,7 +414,7 @@ const Signup: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || isSSOProcessing}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition-all hover:from-emerald-400 hover:to-teal-500 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:from-blue-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <span>
                   {isSSOProcessing ? 'Processing SSO...' : isSubmitting ? 'Creating Account...' : 'Create Account'}
@@ -422,7 +422,7 @@ const Signup: React.FC = () => {
                 {!isSubmitting && !isSSOProcessing && <UserPlus className="h-4 w-4" />}
               </button>
 
-              <SSOButtons onProviderClick={handleSSORedirect} disabled={isSubmitting || isSSOProcessing} accent="emerald" />
+              <SSOButtons onProviderClick={handleSSORedirect} disabled={isSubmitting || isSSOProcessing} accent="cyan" />
             </form>
 
             <p className="mt-4 text-center text-xs text-slate-400">
@@ -431,7 +431,7 @@ const Signup: React.FC = () => {
 
             <p className="mt-6 text-center text-sm text-slate-300">
               Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-emerald-300 transition-colors hover:text-emerald-200">
+              <Link to="/login" className="font-semibold text-blue-300 transition-colors hover:text-blue-200">
                 Log in
               </Link>
             </p>
