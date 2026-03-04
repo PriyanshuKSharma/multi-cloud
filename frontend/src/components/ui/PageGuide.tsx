@@ -10,26 +10,30 @@ interface PageGuideProps {
 
 const PageGuide: React.FC<PageGuideProps> = ({ title, purpose, actions }) => {
   const { theme } = useTheme();
-
   const isLight = theme === 'light';
-  const containerClass = isLight
-    ? 'bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-blue-200/80'
-    : 'bg-blue-500/10 border border-blue-500/20';
-  const titleClass = isLight ? 'text-sky-800' : 'text-blue-300';
-  const purposeClass = isLight ? 'text-slate-600' : 'text-gray-300';
-  const metaClass = isLight ? 'text-slate-500' : 'text-gray-400';
-  const strongClass = isLight ? 'text-slate-700' : 'text-gray-300';
-  const iconClass = isLight ? 'text-sky-600' : 'text-blue-400';
 
   return (
-    <div className={`rounded-xl p-4 ${containerClass}`}>
+    <div
+      className={`rounded-2xl border p-4 ${
+        isLight
+          ? 'border-blue-200/90 bg-gradient-to-r from-blue-50 via-white to-blue-50'
+          : 'border-blue-400/25 bg-blue-500/10'
+      }`}
+    >
       <div className="flex items-start gap-3">
-        <Info className={`w-5 h-5 mt-0.5 ${iconClass}`} />
-        <div className="space-y-2">
-          <h3 className={`text-sm font-semibold ${titleClass}`}>{title}</h3>
-          <p className={`text-sm ${purposeClass}`}>{purpose}</p>
-          <p className={`text-xs ${metaClass}`}>
-            <span className={`font-semibold ${strongClass}`}>You can:</span> {actions.join(' • ')}
+        <div
+          className={`mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg ${
+            isLight ? 'bg-blue-100 text-blue-700' : 'bg-blue-500/18 text-blue-200'
+          }`}
+        >
+          <Info className="h-4.5 w-4.5" />
+        </div>
+
+        <div className="space-y-1.5">
+          <h3 className={`text-sm font-semibold ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>{title}</h3>
+          <p className={`text-sm ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>{purpose}</p>
+          <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className="font-semibold">You can:</span> {actions.join(' • ')}
           </p>
         </div>
       </div>
