@@ -1,11 +1,13 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from './context/ThemeContext';
+import AuthCloudBackdrop from './components/auth/AuthCloudBackdrop';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Landing from './pages/Landing';
 import Onboarding from './pages/Onboarding';
 import Settings from './pages/Settings';
 
@@ -51,19 +53,28 @@ const queryClient = new QueryClient({
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070d18]">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-cyan-400/20 border-t-emerald-400 rounded-full animate-spin"></div>
-          <p className="text-slate-300 animate-pulse">Authenticating...</p>
+      <div className="relative min-h-screen overflow-hidden">
+        <AuthCloudBackdrop />
+        <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
+          <div className="rounded-2xl border border-slate-300/15 bg-slate-950/55 px-8 py-7 backdrop-blur-xl shadow-2xl shadow-black/35">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="h-12 w-12 rounded-full border-4 border-cyan-300/20 border-t-emerald-300 animate-spin" />
+              <p className="text-sm font-medium text-slate-200 animate-pulse">Authenticating...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
+    if (location.pathname === '/') {
+      return <Landing />;
+    }
     return <Navigate to="/login" replace />;
   }
 
