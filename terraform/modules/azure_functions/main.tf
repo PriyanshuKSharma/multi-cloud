@@ -38,8 +38,83 @@ variable "runtime_version" {
   default     = "3.11"
 }
 
+variable "website_enabled" {
+  description = "Enable dynamic website mode metadata"
+  type        = bool
+  default     = false
+}
+
+variable "trigger_type" {
+  description = "Trigger type metadata for application code: http, schedule, event"
+  type        = string
+  default     = "http"
+}
+
+variable "trigger_source" {
+  description = "Trigger source metadata (e.g., Event Grid source)"
+  type        = string
+  default     = ""
+}
+
+variable "schedule_expression" {
+  description = "Schedule metadata for timer-triggered functions"
+  type        = string
+  default     = ""
+}
+
+variable "route_path" {
+  description = "Route metadata for HTTP triggers"
+  type        = string
+  default     = "/"
+}
+
+variable "allowed_origins" {
+  description = "Allowed origins metadata for CORS handling in function code"
+  type        = list(string)
+  default     = ["*"]
+}
+
+variable "action_destination_url" {
+  description = "Action destination URL metadata"
+  type        = string
+  default     = ""
+}
+
+variable "on_success_destination" {
+  description = "Success destination metadata"
+  type        = string
+  default     = ""
+}
+
+variable "on_failure_destination" {
+  description = "Failure destination metadata"
+  type        = string
+  default     = ""
+}
+
+variable "app_settings" {
+  description = "Additional function app settings"
+  type        = map(string)
+  default     = {}
+}
+
 provider "azurerm" {
   features {}
+}
+
+locals {
+  trigger_type_normalized = lower(trimspace(var.trigger_type))
+  metadata_app_settings = {
+    WEBSITE_MODE            = tostring(var.website_enabled)
+    FUNCTION_TRIGGER_TYPE   = local.trigger_type_normalized
+    FUNCTION_TRIGGER_SOURCE = var.trigger_source
+    FUNCTION_ROUTE_PATH     = var.route_path
+    FUNCTION_SCHEDULE       = var.schedule_expression
+    ALLOWED_ORIGINS         = join(",", var.allowed_origins)
+    ACTION_DESTINATION_URL  = var.action_destination_url
+    ON_SUCCESS_DESTINATION  = var.on_success_destination
+    ON_FAILURE_DESTINATION  = var.on_failure_destination
+  }
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -83,10 +158,14 @@ resource "azurerm_linux_function_app" "function_app" {
     }
   }
 
-  app_settings = {
-    FUNCTIONS_WORKER_RUNTIME = "python"
-    WEBSITE_RUN_FROM_PACKAGE = "1"
-  }
+  app_settings = merge(
+    {
+      FUNCTIONS_WORKER_RUNTIME = "python"
+      WEBSITE_RUN_FROM_PACKAGE = "1"
+    },
+    local.metadata_app_settings,
+    var.app_settings
+  )
 }
 
 output "function_app_name" {
@@ -99,4 +178,16 @@ output "function_app_hostname" {
 
 output "function_app_id" {
   value = azurerm_linux_function_app.function_app.id
+}
+
+output "function_url" {
+  value = "https://${azurerm_linux_function_app.function_app.default_hostname}/api${var.route_path}"
+}
+
+output "trigger_type" {
+  value = local.trigger_type_normalized
+}
+
+output "website_enabled" {
+  value = var.website_enabled
 }
