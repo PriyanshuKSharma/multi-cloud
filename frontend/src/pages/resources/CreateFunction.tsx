@@ -70,6 +70,38 @@ const RUNTIMES: Record<Provider, Array<{ value: string; label: string }>> = {
   ],
 };
 
+const TRIGGER_OPTIONS: Record<Provider, Array<{ value: string; label: string; needsSource?: boolean; needsSchedule?: boolean }>> = {
+  aws: [
+    { value: 'http', label: 'HTTP (Function URL)' },
+    { value: 'schedule', label: 'Schedule (EventBridge)', needsSchedule: true },
+    { value: 'storage', label: 'Storage Event (S3)', needsSource: true },
+    { value: 'queue', label: 'Queue Event (SQS)', needsSource: true },
+  ],
+  azure: [
+    { value: 'http', label: 'HTTP Trigger' },
+    { value: 'schedule', label: 'Timer Trigger', needsSchedule: true },
+    { value: 'event', label: 'Event Trigger', needsSource: true },
+  ],
+  gcp: [
+    { value: 'http', label: 'HTTP Trigger' },
+    { value: 'pubsub', label: 'Pub/Sub Trigger', needsSource: true },
+    { value: 'storage', label: 'Storage Trigger', needsSource: true },
+    { value: 'event', label: 'Custom Event Trigger', needsSource: true },
+  ],
+};
+
+const TRIGGER_SOURCE_PLACEHOLDERS: Record<Provider, string> = {
+  aws: 'S3 bucket name or SQS queue ARN',
+  azure: 'Event source (Event Grid topic, queue name, etc.)',
+  gcp: 'Pub/Sub topic or storage bucket name',
+};
+
+const normalizeAllowedOrigins = (value: string): string[] =>
+  value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 const normalizeFunctionName = (name: string): string =>
   name
     .trim()
@@ -88,6 +120,16 @@ const CreateFunctionPage: React.FC = () => {
   const [runtime, setRuntime] = React.useState(RUNTIMES.aws[0].value);
   const [timeoutSeconds, setTimeoutSeconds] = React.useState(30);
   const [memoryMb, setMemoryMb] = React.useState(256);
+  const [websiteEnabled, setWebsiteEnabled] = React.useState(true);
+  const [triggerType, setTriggerType] = React.useState('http');
+  const [routePath, setRoutePath] = React.useState('/');
+  const [scheduleExpression, setScheduleExpression] = React.useState('rate(5 minutes)');
+  const [triggerSource, setTriggerSource] = React.useState('');
+  const [actionDestinationUrl, setActionDestinationUrl] = React.useState('');
+  const [onSuccessDestination, setOnSuccessDestination] = React.useState('');
+  const [onFailureDestination, setOnFailureDestination] = React.useState('');
+  const [allowedOriginsInput, setAllowedOriginsInput] = React.useState('*');
+  const [eventRetryOnFailure, setEventRetryOnFailure] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [projectError, setProjectError] = React.useState<string | null>(null);
   const [projectMode, setProjectMode] = React.useState<'current' | 'new'>('current');
@@ -113,6 +155,8 @@ const CreateFunctionPage: React.FC = () => {
   React.useEffect(() => {
     setRegion(REGIONS[provider][0]);
     setRuntime(RUNTIMES[provider][0].value);
+    const providerTriggers = TRIGGER_OPTIONS[provider].map((item) => item.value);
+    setTriggerType((current) => (providerTriggers.includes(current) ? current : 'http'));
   }, [provider]);
 
   React.useEffect(() => {
@@ -221,6 +265,23 @@ const CreateFunctionPage: React.FC = () => {
     const resolvedProjectId = await resolveProjectId();
     if (!resolvedProjectId) return;
 
+    const selectedTriggerOption = TRIGGER_OPTIONS[provider].find((item) => item.value === triggerType);
+    const resolvedTriggerType = websiteEnabled ? 'http' : triggerType;
+    const trimmedSchedule = scheduleExpression.trim();
+    const trimmedSource = triggerSource.trim();
+    const normalizedRoutePath = routePath.trim() ? (routePath.trim().startsWith('/') ? routePath.trim() : `/${routePath.trim()}`) : '/';
+    const allowedOrigins = normalizeAllowedOrigins(allowedOriginsInput);
+
+    if (!websiteEnabled && selectedTriggerOption?.needsSchedule && !trimmedSchedule) {
+      setSubmitError('Schedule expression is required for scheduled triggers.');
+      return;
+    }
+
+    if (!websiteEnabled && selectedTriggerOption?.needsSource && !trimmedSource) {
+      setSubmitError('Trigger source is required for the selected trigger type.');
+      return;
+    }
+
     const payload: CreateFunctionPayload = {
       name: name.trim(),
       provider,
@@ -230,6 +291,16 @@ const CreateFunctionPage: React.FC = () => {
         region,
         timeout_seconds: timeoutSeconds,
         memory_mb: memoryMb,
+        website_enabled: websiteEnabled,
+        trigger_type: resolvedTriggerType,
+        trigger_schedule_expression: trimmedSchedule,
+        trigger_source: trimmedSource,
+        route_path: normalizedRoutePath,
+        action_destination_url: actionDestinationUrl.trim(),
+        on_success_destination: onSuccessDestination.trim(),
+        on_failure_destination: onFailureDestination.trim(),
+        allowed_origins: allowedOrigins.length > 0 ? allowedOrigins : ['*'],
+        event_retry_on_failure: eventRetryOnFailure,
       },
     };
 
@@ -264,6 +335,10 @@ const CreateFunctionPage: React.FC = () => {
     typeof selectedProjectId === 'number' ? selectedProjectId : Number(selectedProjectId);
   const selectedProject = projects.find((project) => project.id === numericSelectedProjectId);
   const functionSlug = normalizeFunctionName(name);
+  const triggerOptionsForProvider = TRIGGER_OPTIONS[provider];
+  const selectedTriggerOption =
+    triggerOptionsForProvider.find((item) => item.value === triggerType) ?? triggerOptionsForProvider[0];
+  const effectiveTriggerType = websiteEnabled ? 'http' : triggerType;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -279,6 +354,7 @@ const CreateFunctionPage: React.FC = () => {
           { label: `provider: ${provider.toUpperCase()}`, tone: 'orange' },
           { label: `region: ${region}`, tone: 'cyan' },
           { label: `runtime: ${runtime}`, tone: 'blue' },
+          { label: `trigger: ${effectiveTriggerType}`, tone: 'purple' },
         ]}
         actions={
           <button
@@ -297,6 +373,7 @@ const CreateFunctionPage: React.FC = () => {
         actions={[
           'select cloud provider and deployment region',
           'choose runtime with timeout and memory limits',
+          'configure trigger, actions, and event destinations',
           'provision a function deployment record and monitor status',
         ]}
       />
@@ -422,6 +499,158 @@ const CreateFunctionPage: React.FC = () => {
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
                 />
               </div>
+
+              <div className="md:col-span-2 mt-2 rounded-xl border border-gray-800/70 bg-gray-900/30 p-4 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Dynamic Website Mode</p>
+                    <p className="text-xs text-gray-400">
+                      Expose this function as a website/API endpoint with route and CORS controls.
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={websiteEnabled}
+                      onChange={(event) => setWebsiteEnabled(event.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <span className="relative h-6 w-11 rounded-full bg-gray-700 transition peer-checked:bg-orange-500">
+                      <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
+                    </span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                      Trigger Type
+                    </label>
+                    <select
+                      value={triggerType}
+                      onChange={(event) => setTriggerType(event.target.value)}
+                      disabled={websiteEnabled}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40 disabled:opacity-60"
+                    >
+                      {triggerOptionsForProvider.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                    {websiteEnabled && (
+                      <p className="mt-1 text-xs text-gray-500">Website mode forces an HTTP trigger.</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">Route Path</label>
+                    <input
+                      type="text"
+                      value={routePath}
+                      onChange={(event) => setRoutePath(event.target.value)}
+                      placeholder="/"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    />
+                  </div>
+
+                  {selectedTriggerOption?.needsSchedule && !websiteEnabled && (
+                    <div className="md:col-span-2">
+                      <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                        Schedule Expression
+                      </label>
+                      <input
+                        type="text"
+                        value={scheduleExpression}
+                        onChange={(event) => setScheduleExpression(event.target.value)}
+                        placeholder="rate(5 minutes) or cron(0/5 * * * ? *)"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                      />
+                    </div>
+                  )}
+
+                  {selectedTriggerOption?.needsSource && !websiteEnabled && (
+                    <div className="md:col-span-2">
+                      <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                        Trigger Source
+                      </label>
+                      <input
+                        type="text"
+                        value={triggerSource}
+                        onChange={(event) => setTriggerSource(event.target.value)}
+                        placeholder={TRIGGER_SOURCE_PLACEHOLDERS[provider]}
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                      Action Destination URL
+                    </label>
+                    <input
+                      type="text"
+                      value={actionDestinationUrl}
+                      onChange={(event) => setActionDestinationUrl(event.target.value)}
+                      placeholder="https://example.com/webhook"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                      Success Destination
+                    </label>
+                    <input
+                      type="text"
+                      value={onSuccessDestination}
+                      onChange={(event) => setOnSuccessDestination(event.target.value)}
+                      placeholder={provider === 'aws' ? 'arn:aws:sns:...' : 'destination/topic/queue'}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                      Failure Destination
+                    </label>
+                    <input
+                      type="text"
+                      value={onFailureDestination}
+                      onChange={(event) => setOnFailureDestination(event.target.value)}
+                      placeholder={provider === 'aws' ? 'arn:aws:sqs:...' : 'destination/topic/queue'}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                      Allowed Origins (comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={allowedOriginsInput}
+                      onChange={(event) => setAllowedOriginsInput(event.target.value)}
+                      placeholder="*"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    />
+                  </div>
+
+                  {provider === 'gcp' && !websiteEnabled && selectedTriggerOption?.needsSource && (
+                    <label className="md:col-span-2 inline-flex items-center gap-2 text-sm text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={eventRetryOnFailure}
+                        onChange={(event) => setEventRetryOnFailure(event.target.checked)}
+                        className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-orange-500/40"
+                      />
+                      Retry event trigger on failure (GCP)
+                    </label>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -463,6 +692,26 @@ const CreateFunctionPage: React.FC = () => {
                 </span>
                 <span className="text-gray-200">{memoryMb} MB</span>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Website Mode</span>
+                <span className={`text-xs font-semibold ${websiteEnabled ? 'text-emerald-300' : 'text-gray-300'}`}>
+                  {websiteEnabled ? 'enabled' : 'disabled'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Trigger</span>
+                <span className="text-gray-200">{effectiveTriggerType}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Route</span>
+                <span className="text-gray-200 truncate max-w-[170px] text-right">{routePath || '/'}</span>
+              </div>
+              {actionDestinationUrl && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Action Dest.</span>
+                  <span className="text-gray-200 truncate max-w-[170px] text-right">{actionDestinationUrl}</span>
+                </div>
+              )}
               <div className="pt-2 mt-2 border-t border-gray-800/70">
                 <p className="text-gray-500 text-xs">
                   normalized id: {functionSlug || 'pending'}
