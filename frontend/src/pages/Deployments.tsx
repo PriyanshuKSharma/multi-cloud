@@ -298,7 +298,7 @@ const DeploymentsPage: React.FC = () => {
         <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-12 text-center">
           <FileCode className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-400 mb-2">No deployments yet</h3>
-          <p className="text-sm text-gray-500">Create VM/Storage/Network resources and Terraform runs will appear here</p>
+          <p className="text-sm text-gray-500">Create VM/Storage/Network/Function resources and Terraform runs will appear here</p>
         </div>
       )}
 

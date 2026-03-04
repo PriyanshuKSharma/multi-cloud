@@ -1,7 +1,7 @@
 The platform is designed with a focus on usability and robust cloud management. The following core features define the platform's utility:
 
 \subsection{Multi-Cloud Resource Vending}
-Users can provision diverse resources, including compute (AWS EC2, Azure VMs, GCP Engine) and storage (S3, Blob, GCS) through a unified API \cite{ijraset2025}. The interface abstracts complex configuration parameters into intuitive forms, as shown in Table \ref{tab:mapping}. This abstraction layer is critical for reducing vendor-specific cognitive load \cite{arxiv_iac_2025}.
+Users can provision diverse resources, including compute (AWS EC2, Azure VMs, GCP Compute Engine), storage (S3, Blob, GCS), and event-driven FaaS runtimes (AWS Lambda, Azure Functions, Google Cloud Functions) through a unified API \cite{ijraset2025, aws_lambda_docs_2026, azure_functions_docs_2026, gcp_cloud_functions_docs_2026}. The interface abstracts complex configuration parameters into intuitive forms, as shown in Table \ref{tab:mapping}. This abstraction layer is critical for reducing vendor-specific cognitive load \cite{arxiv_iac_2025}.
 
 \begin{table}[h]
 \centering
@@ -12,6 +12,7 @@ Users can provision diverse resources, including compute (AWS EC2, Azure VMs, GC
 \textbf{Feature} & \textbf{Cloud Simplify Label} & \textbf{Cloud Provider Resource} \\ \hline
 Compute & standard-vm-v1 & t3.medium (AWS), B2s (Azure) \\ \hline
 Storage & high-speed-bucket & Standard S3 (AWS), LRS (Azure) \\ \hline
+FaaS & event-function-v1 & Lambda (AWS), Azure Functions (Azure), Cloud Functions (GCP) \\ \hline
 Security & zero-trust-cred & IAM Role / Service Principal \\ \hline
 \end{tabular}
 \end{table}

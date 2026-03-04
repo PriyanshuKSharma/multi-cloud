@@ -1,0 +1,6 @@
+<svg width="220" height="96" viewBox="0 0 220 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2" y="2" width="216" height="92" rx="18" fill="#0B1A2D" stroke="#204A7B" stroke-width="2"/>
+  <path d="M49 66L83 24H105L72 66H49Z" fill="#3B82F6"/>
+  <path d="M78 66L104 39L130 66H78Z" fill="#60A5FA"/>
+  <text x="138" y="56" fill="#D9EBFF" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Azure</text>
+</svg>

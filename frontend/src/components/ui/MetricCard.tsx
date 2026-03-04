@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext';
 
 interface MetricCardProps {
   title: string;
@@ -22,55 +23,66 @@ const MetricCard: React.FC<MetricCardProps> = ({
   iconColor = 'text-blue-500',
   loading = false,
 }) => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
   if (loading) {
     return (
-      <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6 animate-pulse">
-        <div className="h-4 bg-gray-800 rounded w-1/2 mb-4"></div>
-        <div className="h-8 bg-gray-800 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-800 rounded w-1/3"></div>
+      <div className={`rounded-2xl p-6 animate-pulse ${isLight ? 'bg-white border border-slate-200/90' : 'nebula-soft-panel'}`}>
+        <div className={`mb-4 h-3.5 w-1/2 rounded ${isLight ? 'bg-slate-200' : 'bg-slate-700/70'}`} />
+        <div className={`mb-3 h-8 w-2/3 rounded ${isLight ? 'bg-slate-200' : 'bg-slate-700/70'}`} />
+        <div className={`h-3 w-1/3 rounded ${isLight ? 'bg-slate-200' : 'bg-slate-700/70'}`} />
       </div>
     );
   }
 
+  const changeClass =
+    change?.type === 'increase'
+      ? isLight
+        ? 'text-emerald-700'
+        : 'text-emerald-300'
+      : change?.type === 'decrease'
+        ? isLight
+          ? 'text-rose-700'
+          : 'text-rose-300'
+        : isLight
+          ? 'text-slate-600'
+          : 'text-slate-300';
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6 hover:border-gray-700/50 transition-all duration-300 group"
+      className={`group rounded-2xl p-6 transition-all duration-250 ${
+        isLight
+          ? 'bg-white border border-slate-200/90 hover:border-blue-300/70 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.4)]'
+          : 'nebula-panel hover:border-blue-400/35'
+      }`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-sm font-medium text-gray-400">{title}</p>
-        </div>
-        <div className={`p-2 rounded-lg bg-gray-800/50 group-hover:bg-gray-800 transition-colors ${iconColor}`}>
-          <Icon className="w-5 h-5" />
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <p className={`text-sm font-semibold tracking-wide ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>{title}</p>
+
+        <div
+          className={`rounded-xl p-2.5 transition-colors ${
+            isLight ? 'bg-slate-100 group-hover:bg-blue-50' : 'bg-slate-900/70 group-hover:bg-blue-500/14'
+          } ${iconColor}`}
+        >
+          <Icon className="h-5 w-5" />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="text-3xl font-bold text-white">{value}</h3>
-        
-        {change && (
-          <div className="flex items-center space-x-2">
-            <span
-              className={`text-xs font-semibold ${
-                change.type === 'increase'
-                  ? 'text-green-400'
-                  : change.type === 'decrease'
-                  ? 'text-red-400'
-                  : 'text-gray-400'
-              }`}
-            >
-              {change.type === 'increase' && '↑'}
-              {change.type === 'decrease' && '↓'}
-              {change.value > 0 && change.type !== 'neutral' && ' '}
-              {change.value}
-              {change.type !== 'neutral' && '%'}
-            </span>
-            <span className="text-xs text-gray-500">{change.label}</span>
-          </div>
-        )}
-      </div>
+      <h3 className={`text-3xl font-bold leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>{value}</h3>
+
+      {change ? (
+        <div className="mt-3 flex items-center gap-2 text-xs">
+          <span className={`font-semibold ${changeClass}`}>
+            {change.type === 'increase' ? '↑' : change.type === 'decrease' ? '↓' : '•'}{' '}
+            {change.value}
+            {change.type !== 'neutral' ? '%' : ''}
+          </span>
+          <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{change.label}</span>
+        </div>
+      ) : null}
     </motion.div>
   );
 };

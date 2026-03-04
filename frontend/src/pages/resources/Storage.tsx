@@ -8,6 +8,7 @@ import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import TextInputDialog from '../../components/ui/TextInputDialog';
+import { useTheme } from '../../context/ThemeContext';
 import {
   Database,
   Plus,
@@ -148,6 +149,8 @@ const normalizeStorageStatus = (status: string): StorageResource['status'] => {
 };
 
 const StoragePage: React.FC = () => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const queryClient = useQueryClient();
   const [filters, setFilters] = React.useState({
     provider: '',
@@ -611,6 +614,143 @@ const StoragePage: React.FC = () => {
     setFilters({ provider: '', region: '', search: '' });
   };
 
+  const statCardClass = isLight
+    ? 'group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-indigo-50/55 p-4 shadow-[0_14px_30px_-22px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80'
+    : 'group relative overflow-hidden rounded-2xl border border-gray-800/70 bg-gradient-to-br from-[#14141a] via-[#101016] to-[#0b0b11] p-4 shadow-[0_18px_30px_-24px_rgba(14,165,233,0.45)] transition-all duration-300 hover:border-indigo-500/40';
+  const statLabelClass = isLight
+    ? 'text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600'
+    : 'text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-500';
+  const statValueClass = isLight
+    ? 'mt-1 text-2xl font-semibold tracking-tight text-slate-900'
+    : 'mt-1 text-2xl font-semibold tracking-tight text-white';
+  const statMetaClass = isLight
+    ? 'mt-1 text-xs text-slate-500'
+    : 'mt-1 text-xs text-gray-500';
+  const statIconShellClass = isLight
+    ? 'inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm'
+    : 'inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-700/70 bg-gray-900/80 text-gray-200';
+  const statAccentLineClass = isLight
+    ? 'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-indigo-300/0 via-indigo-500/60 to-cyan-500/0'
+    : 'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-500/0 via-cyan-400/70 to-indigo-500/0';
+  const heroConsoleButtonClass = isLight
+    ? 'cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 rounded-lg border border-cyan-200 transition-all duration-200'
+    : 'cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all duration-200';
+  const heroRefreshButtonClass = isLight
+    ? 'cursor-pointer flex items-center space-x-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg border border-slate-300 transition-all duration-200'
+    : 'cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-900/70 hover:bg-gray-900 text-gray-200 rounded-lg border border-gray-700/70 transition-all duration-200';
+  const deleteErrorClass = isLight
+    ? 'rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'
+    : 'rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300';
+  const actionMessageSuccessClass = isLight
+    ? 'border-green-200 bg-green-50 text-green-700'
+    : 'border-green-500/30 bg-green-500/10 text-green-300';
+  const actionMessageErrorClass = isLight
+    ? 'border-red-200 bg-red-50 text-red-700'
+    : 'border-red-500/30 bg-red-500/10 text-red-300';
+  const filterPanelClass = isLight
+    ? 'rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/95 p-6 space-y-4 shadow-[0_22px_40px_-28px_rgba(15,23,42,0.35)]'
+    : 'rounded-2xl border border-gray-800/60 bg-gradient-to-br from-[#111117] to-[#0b0b10] p-6 space-y-4';
+  const filterHintClass = isLight
+    ? 'text-sm text-slate-700 flex items-center gap-2'
+    : 'text-sm text-gray-300 flex items-center gap-2';
+  const filterHintIconClass = isLight ? 'h-4 w-4 text-indigo-600' : 'h-4 w-4 text-indigo-300';
+  const clearFilterButtonClass = isLight
+    ? 'cursor-pointer px-3 py-1.5 rounded-lg text-xs border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed'
+    : 'cursor-pointer px-3 py-1.5 rounded-lg text-xs border border-gray-700/70 bg-gray-900/60 text-gray-300 hover:bg-gray-800/60 disabled:opacity-50 disabled:cursor-not-allowed';
+  const filterControlCardClass = isLight
+    ? 'rounded-xl border border-slate-200/90 bg-slate-50/80 p-3 space-y-1.5'
+    : 'rounded-xl border border-gray-800/70 bg-[#0d0d12]/90 p-3 space-y-1.5';
+  const filterLabelClass = isLight
+    ? 'text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600'
+    : 'text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-500';
+  const filterInputClass = isLight
+    ? 'w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40'
+    : 'w-full pl-10 pr-4 py-2 bg-gray-900/70 border border-gray-700/60 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50';
+  const filterSelectClass = isLight
+    ? 'w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/40'
+    : 'w-full px-4 py-2 bg-gray-900/70 border border-gray-700/60 rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50';
+  const activeFilterPillClass = isLight
+    ? 'inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700'
+    : 'inline-flex items-center gap-1 rounded-full border border-gray-700/70 bg-gray-900/80 px-2.5 py-1 text-xs text-gray-300';
+  const loadingCardClass = isLight
+    ? 'h-36 rounded-2xl border border-slate-200 bg-white animate-pulse'
+    : 'h-36 rounded-2xl border border-gray-800/50 bg-[#0f0f11] animate-pulse';
+  const listErrorContainerClass = isLight
+    ? 'bg-red-50 border border-red-200 rounded-xl p-6 text-center'
+    : 'bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center';
+  const listErrorTextClass = isLight ? 'text-red-700' : 'text-red-400';
+  const storageCardClass = isLight
+    ? 'group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-indigo-50/70 p-5 sm:p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:shadow-[0_20px_40px_-24px_rgba(15,23,42,0.45)]'
+    : 'group relative overflow-hidden rounded-2xl border border-gray-800/70 bg-gradient-to-br from-[#151520] via-[#101016] to-[#0b0b11] p-5 sm:p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/35 hover:shadow-[0_16px_32px_-18px_rgba(99,102,241,0.45)]';
+  const resourceTitleClass = isLight
+    ? 'truncate text-lg font-semibold text-slate-900 transition-colors hover:text-indigo-700'
+    : 'truncate text-lg font-semibold text-white transition-colors hover:text-indigo-300';
+  const resourceTitleStaticClass = isLight
+    ? 'text-lg font-semibold text-slate-900 truncate'
+    : 'text-lg font-semibold text-white truncate';
+  const resourceIdTextClass = isLight ? 'mt-1 truncate text-xs text-slate-500' : 'mt-1 truncate text-xs text-gray-500';
+  const resourceMetaTextClass = isLight
+    ? 'mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-700'
+    : 'mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-300';
+  const resourceMetaChipClass = isLight
+    ? 'inline-flex items-center gap-1 rounded-md border border-slate-300/90 bg-white/90 px-2 py-0.5'
+    : 'inline-flex items-center gap-1 rounded-md border border-gray-700/60 bg-gray-800/40 px-2 py-0.5';
+  const resourceMetaIconClass = isLight ? 'h-3 w-3 text-slate-500' : 'h-3 w-3 text-gray-400';
+  const encryptionOnChipClass = isLight
+    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
+  const encryptionOffChipClass = isLight
+    ? 'border-slate-300/90 bg-white/90 text-slate-700'
+    : 'border-gray-700/60 bg-gray-800/40 text-gray-300';
+  const publicChipClass = isLight
+    ? 'border-amber-300 bg-amber-50 text-amber-700'
+    : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300';
+  const privateChipClass = isLight
+    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
+  const resourceMetricCardClass = isLight
+    ? 'rounded-xl border border-slate-200/90 bg-white/90 p-3 shadow-[0_8px_22px_-16px_rgba(15,23,42,0.32)]'
+    : 'rounded-xl border border-gray-800/70 bg-[#0c0c12]/95 p-3';
+  const resourceMetricLabelClass = isLight
+    ? 'text-[11px] uppercase tracking-wide text-slate-500'
+    : 'text-[11px] uppercase tracking-wide text-gray-500';
+  const resourceMetricValueClass = isLight
+    ? 'mt-1 text-[15px] font-semibold text-slate-900'
+    : 'mt-1 text-[15px] font-semibold text-gray-100';
+  const resourceTagsClass = isLight
+    ? 'rounded-md border border-slate-300/90 bg-white px-2 py-1 text-xs text-slate-700'
+    : 'rounded-md border border-gray-700/60 bg-gray-800/60 px-2 py-1 text-xs text-gray-300';
+  const resourceFooterClass = isLight
+    ? 'mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/80 pt-3 text-xs text-slate-500'
+    : 'mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-800/70 pt-3 text-xs text-gray-500';
+  const resourceFooterIconClass = isLight ? 'w-3.5 h-3.5 text-slate-500' : 'w-3.5 h-3.5 text-gray-500';
+  const resourceActionsClass = isLight
+    ? 'mt-4 rounded-xl border border-slate-200/90 bg-white/85 p-3'
+    : 'mt-4 rounded-xl border border-gray-800/70 bg-[#0d0d12]/90 p-3';
+  const actionHintTextClass = isLight ? 'mt-2 text-[11px] text-slate-500' : 'mt-2 text-[11px] text-gray-500';
+  const neutralActionButtonClass = isLight
+    ? 'cursor-pointer inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100'
+    : 'cursor-pointer inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-gray-700/60 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-800';
+  const disabledActionButtonClass = isLight
+    ? 'h-10 rounded-lg border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-500 cursor-not-allowed'
+    : 'h-10 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs font-medium text-gray-500 cursor-not-allowed';
+  const websiteActionButtonClass = isLight
+    ? 'cursor-pointer inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100'
+    : 'cursor-pointer inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-200 transition-colors hover:bg-blue-500/20';
+  const deleteActionButtonClass = isLight
+    ? 'cursor-pointer inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60'
+    : 'cursor-pointer inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60';
+  const emptyStateClass = isLight
+    ? 'bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-[0_24px_44px_-30px_rgba(15,23,42,0.32)]'
+    : 'bg-[#0f0f11] border border-gray-800/50 rounded-2xl p-12 text-center';
+  const emptyIconClass = isLight ? 'w-16 h-16 text-slate-400 mx-auto mb-4' : 'w-16 h-16 text-gray-600 mx-auto mb-4';
+  const emptyTitleClass = isLight
+    ? 'text-lg font-semibold text-slate-700 mb-2'
+    : 'text-lg font-semibold text-gray-400 mb-2';
+  const emptyDescriptionClass = isLight ? 'text-sm text-slate-500 mb-6' : 'text-sm text-gray-500 mb-6';
+  const summaryTextClass = isLight ? 'text-sm text-slate-600' : 'text-sm text-gray-500';
+  const summaryMetaClass = isLight ? 'flex items-center space-x-4 text-sm text-slate-600' : 'flex items-center space-x-4 text-sm text-gray-400';
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       <PageHero
@@ -631,14 +771,14 @@ const StoragePage: React.FC = () => {
           <>
             <Link
               to="/console"
-              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 rounded-lg border border-cyan-500/20 transition-all duration-200"
+              className={heroConsoleButtonClass}
             >
               <Terminal className="w-4 h-4" />
               <span className="text-sm font-medium">Open Console</span>
             </Link>
             <button
               onClick={() => refetch()}
-              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-900/70 hover:bg-gray-900 text-gray-200 rounded-lg border border-gray-700/70 transition-all duration-200"
+              className={heroRefreshButtonClass}
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span className="text-sm font-medium">Refresh</span>
@@ -665,7 +805,7 @@ const StoragePage: React.FC = () => {
       />
 
       {deleteError && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div className={deleteErrorClass}>
           {deleteError}
         </div>
       )}
@@ -674,8 +814,8 @@ const StoragePage: React.FC = () => {
         <div
           className={`rounded-xl px-4 py-3 text-sm border ${
             actionMessage.type === 'success'
-              ? 'border-green-500/30 bg-green-500/10 text-green-300'
-              : 'border-red-500/30 bg-red-500/10 text-red-300'
+              ? actionMessageSuccessClass
+              : actionMessageErrorClass
           }`}
         >
           <div className="flex flex-wrap items-center gap-2">
@@ -695,89 +835,150 @@ const StoragePage: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-        <div className="rounded-xl border border-gray-800/60 bg-[#0f0f11] p-4">
-          <p className="text-xs text-gray-500">Visible Resources</p>
-          <p className="mt-1 text-xl font-semibold text-white">{filteredCount}</p>
-          <p className="mt-1 text-[11px] text-gray-500">of {totalResources} total</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className={statCardClass}>
+          <div className={statAccentLineClass} />
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className={statLabelClass}>Visible Resources</p>
+              <p className={statValueClass}>{filteredCount}</p>
+              <p className={statMetaClass}>of {totalResources} total</p>
+            </div>
+            <span className={statIconShellClass}>
+              <HardDrive className="h-4 w-4" />
+            </span>
+          </div>
         </div>
-        <div className="rounded-xl border border-gray-800/60 bg-[#0f0f11] p-4">
-          <p className="text-xs text-gray-500">Stored Objects</p>
-          <p className="mt-1 text-xl font-semibold text-white">{totalObjects.toLocaleString()}</p>
-          <p className="mt-1 text-[11px] text-gray-500">across filtered resources</p>
+        <div className={statCardClass}>
+          <div className={statAccentLineClass} />
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className={statLabelClass}>Stored Objects</p>
+              <p className={statValueClass}>{totalObjects.toLocaleString()}</p>
+              <p className={statMetaClass}>across filtered resources</p>
+            </div>
+            <span className={statIconShellClass}>
+              <Database className="h-4 w-4" />
+            </span>
+          </div>
         </div>
-        <div className="rounded-xl border border-gray-800/60 bg-[#0f0f11] p-4">
-          <p className="text-xs text-gray-500">Estimated Capacity</p>
-          <p className="mt-1 text-xl font-semibold text-white">{formatSize(totalSizeGb)}</p>
-          <p className="mt-1 text-[11px] text-gray-500">based on synced metadata</p>
+        <div className={statCardClass}>
+          <div className={statAccentLineClass} />
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className={statLabelClass}>Estimated Capacity</p>
+              <p className={statValueClass}>{formatSize(totalSizeGb)}</p>
+              <p className={statMetaClass}>based on synced metadata</p>
+            </div>
+            <span className={statIconShellClass}>
+              <Layers3 className="h-4 w-4" />
+            </span>
+          </div>
         </div>
-        <div className="rounded-xl border border-gray-800/60 bg-[#0f0f11] p-4">
-          <p className="text-xs text-gray-500 flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />Encrypted</p>
-          <p className="mt-1 text-xl font-semibold text-white">{encryptedCount}</p>
-          <p className="mt-1 text-[11px] text-gray-500">{publicCount} public access enabled</p>
+        <div className={statCardClass}>
+          <div className={statAccentLineClass} />
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className={statLabelClass}>Encrypted</p>
+              <p className={statValueClass}>{encryptedCount}</p>
+              <p className={statMetaClass}>{publicCount} public access enabled</p>
+            </div>
+            <span className={`${statIconShellClass} ${isLight ? 'text-emerald-700' : 'text-emerald-300'}`}>
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+          </div>
         </div>
-        <div className="rounded-xl border border-gray-800/60 bg-[#0f0f11] p-4">
-          <p className="text-xs text-gray-500 flex items-center gap-1"><Globe2 className="w-3.5 h-3.5 text-cyan-400" />Source Mix</p>
-          <p className="mt-1 text-xl font-semibold text-white">{provisioningCount}/{inventoryCount}</p>
-          <p className="mt-1 text-[11px] text-gray-500">provisioning / inventory</p>
+        <div className={statCardClass}>
+          <div className={statAccentLineClass} />
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className={statLabelClass}>Source Mix</p>
+              <p className={statValueClass}>{provisioningCount}/{inventoryCount}</p>
+              <p className={statMetaClass}>provisioning / inventory</p>
+            </div>
+            <span className={`${statIconShellClass} ${isLight ? 'text-cyan-700' : 'text-cyan-300'}`}>
+              <Globe2 className="h-4 w-4" />
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6 space-y-4">
+      <div className={filterPanelClass}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-gray-300 flex items-center gap-2">
-            <FilterX className="h-4 w-4 text-purple-300" />
+          <div className={filterHintClass}>
+            <FilterX className={filterHintIconClass} />
             <span>Filter storage resources by name, provider, and region</span>
           </div>
           <button
             onClick={clearFilters}
             disabled={!hasActiveFilters}
-            className="cursor-pointer px-3 py-1.5 rounded-lg text-xs border border-gray-700/70 text-gray-300 hover:bg-gray-800/60 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={clearFilterButtonClass}
           >
             Clear Filters
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search storage..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-            />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className={filterControlCardClass}>
+            <label className={filterLabelClass}>Search</label>
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isLight ? 'text-slate-500' : 'text-gray-500'}`} />
+              <input
+                type="text"
+                placeholder="Search storage..."
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                className={filterInputClass}
+              />
+            </div>
           </div>
 
-          {/* Provider Filter */}
-          <select
-            value={filters.provider}
-            onChange={(e) => setFilters({ ...filters, provider: e.target.value })}
-            className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-          >
-            <option value="">All Providers</option>
-            <option value="aws">AWS</option>
-            <option value="azure">Azure</option>
-            <option value="gcp">GCP</option>
-          </select>
+          <div className={filterControlCardClass}>
+            <label className={filterLabelClass}>Provider</label>
+            <select
+              value={filters.provider}
+              onChange={(e) => setFilters({ ...filters, provider: e.target.value })}
+              className={filterSelectClass}
+            >
+              <option value="">All Providers</option>
+              <option value="aws">AWS</option>
+              <option value="azure">Azure</option>
+              <option value="gcp">GCP</option>
+            </select>
+          </div>
 
-          {/* Region Filter */}
-          <select
-            value={filters.region}
-            onChange={(e) => setFilters({ ...filters, region: e.target.value })}
-              className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          <div className={filterControlCardClass}>
+            <label className={filterLabelClass}>Region</label>
+            <select
+              value={filters.region}
+              onChange={(e) => setFilters({ ...filters, region: e.target.value })}
+              className={filterSelectClass}
             >
               <option value="">All Regions</option>
               <option value="ap-south-1">ap-south-1</option>
               <option value="us-east-1">us-east-1</option>
               <option value="us-west-2">us-west-2</option>
               <option value="eu-west-1">eu-west-1</option>
-            <option value="eastus">eastus</option>
-            <option value="westus">westus</option>
-            <option value="us-central1">us-central1</option>
-          </select>
+              <option value="eastus">eastus</option>
+              <option value="westus">westus</option>
+              <option value="us-central1">us-central1</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className={activeFilterPillClass}>
+            <HardDrive className="h-3 w-3" />
+            {filteredCount} shown
+          </span>
+          {filters.provider && (
+            <span className={activeFilterPillClass}>Provider: {filters.provider.toUpperCase()}</span>
+          )}
+          {filters.region && (
+            <span className={activeFilterPillClass}>Region: {filters.region}</span>
+          )}
+          {filters.search.trim() && (
+            <span className={activeFilterPillClass}>Query: {filters.search.trim()}</span>
+          )}
         </div>
       </div>
 
@@ -785,15 +986,15 @@ const StoragePage: React.FC = () => {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-[#0f0f11] border border-gray-800/50 rounded-xl animate-pulse"></div>
+            <div key={i} className={loadingCardClass}></div>
           ))}
         </div>
       ) : error ? (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
-          <p className="text-red-400">Failed to load storage resources</p>
+        <div className={listErrorContainerClass}>
+          <p className={listErrorTextClass}>Failed to load storage resources</p>
         </div>
       ) : filteredStorage && filteredStorage.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
           {filteredStorage.map((item, index) => {
             const lastSeen = item.last_synced || item.created_at;
             const supportsObjectActions =
@@ -802,21 +1003,42 @@ const StoragePage: React.FC = () => {
             const isProvisioning = item.source === 'provisioning';
             const providerTone =
               item.provider === 'aws'
-                ? {
-                    accent: 'from-orange-500/80 to-amber-500/80',
-                    chip: 'border-orange-500/30 bg-orange-500/10 text-orange-200',
-                    panel: 'border-orange-500/20 bg-orange-500/5',
-                  }
-                : item.provider === 'azure'
+                ? isLight
                   ? {
-                      accent: 'from-sky-500/80 to-blue-500/80',
-                      chip: 'border-sky-500/30 bg-sky-500/10 text-sky-200',
-                      panel: 'border-sky-500/20 bg-sky-500/5',
+                      accent: 'from-orange-400/80 to-amber-400/80',
+                      chip: 'border-orange-300 bg-orange-50 text-orange-700',
+                      panel: 'border-orange-200 bg-orange-50/70',
+                      glow: 'from-orange-300/45 via-amber-300/25 to-transparent',
                     }
                   : {
-                      accent: 'from-emerald-500/80 to-green-500/80',
-                      chip: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200',
-                      panel: 'border-emerald-500/20 bg-emerald-500/5',
+                      accent: 'from-orange-500/80 to-amber-500/80',
+                      chip: 'border-orange-500/30 bg-orange-500/10 text-orange-200',
+                      panel: 'border-orange-500/20 bg-orange-500/5',
+                      glow: 'from-orange-500/30 via-amber-500/20 to-transparent',
+                    }
+                : item.provider === 'azure'
+                  ? isLight
+                    ? {
+                        accent: 'from-sky-400/80 to-blue-400/80',
+                        chip: 'border-sky-300 bg-sky-50 text-sky-700',
+                        panel: 'border-sky-200 bg-sky-50/70',
+                        glow: 'from-sky-300/45 via-blue-300/25 to-transparent',
+                      }
+                    : {
+                        accent: 'from-sky-500/80 to-blue-500/80',
+                        chip: 'border-sky-500/30 bg-sky-500/10 text-sky-200',
+                        panel: 'border-sky-500/20 bg-sky-500/5',
+                        glow: 'from-sky-500/30 via-blue-500/20 to-transparent',
+                      }
+                  : {
+                      accent: isLight ? 'from-emerald-400/80 to-green-400/80' : 'from-emerald-500/80 to-green-500/80',
+                      chip: isLight
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                        : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200',
+                      panel: isLight ? 'border-emerald-200 bg-emerald-50/70' : 'border-emerald-500/20 bg-emerald-500/5',
+                      glow: isLight
+                        ? 'from-emerald-300/45 via-green-300/25 to-transparent'
+                        : 'from-emerald-500/30 via-green-500/20 to-transparent',
                     };
             const encryptionValue = String(item.metadata.encryption ?? '').toLowerCase();
             const encryptionEnabled =
@@ -829,9 +1051,10 @@ const StoragePage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="group relative overflow-hidden rounded-2xl border border-gray-800/70 bg-gradient-to-br from-[#151520] via-[#111118] to-[#0d0d11] p-5 sm:p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-purple-500/30 hover:shadow-[0_12px_28px_-10px_rgba(147,51,234,0.45)]"
+                className={storageCardClass}
               >
                 <div className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r ${providerTone.accent}`} />
+                <div className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${providerTone.glow} blur-3xl`} />
 
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex items-start gap-4">
@@ -843,16 +1066,22 @@ const StoragePage: React.FC = () => {
                         {isProvisioning ? (
                           <Link
                             to={`/deployments/${item.id}`}
-                            className="truncate text-lg font-semibold text-white transition-colors hover:text-purple-300"
+                            className={resourceTitleClass}
                           >
                             {item.resource_name}
                           </Link>
                         ) : (
-                          <span className="text-lg font-semibold text-white truncate">{item.resource_name}</span>
+                          <span className={resourceTitleStaticClass}>{item.resource_name}</span>
                         )}
                         <StatusBadge status={item.status as any} size="sm" />
                         {isProvisioning && (
-                          <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-300">
+                          <span
+                            className={`rounded-md border px-2 py-0.5 text-[10px] ${
+                              isLight
+                                ? 'border-cyan-300 bg-cyan-50 text-cyan-700'
+                                : 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300'
+                            }`}
+                          >
                             Provisioning
                           </span>
                         )}
@@ -860,23 +1089,23 @@ const StoragePage: React.FC = () => {
                           {item.provider}
                         </span>
                       </div>
-                      <div className="mt-1 truncate text-xs text-gray-500">
+                      <div className={resourceIdTextClass}>
                         Resource ID: {item.resource_id || `storage-${item.id}`}
                       </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-300">
-                        <span className="inline-flex items-center gap-1 rounded-md border border-gray-700/60 bg-gray-800/40 px-2 py-0.5">
-                          <MapPin className="h-3 w-3 text-gray-400" />
+                      <div className={resourceMetaTextClass}>
+                        <span className={resourceMetaChipClass}>
+                          <MapPin className={resourceMetaIconClass} />
                           {item.region}
                         </span>
-                        <span className="inline-flex items-center gap-1 rounded-md border border-gray-700/60 bg-gray-800/40 px-2 py-0.5">
-                          <Tag className="h-3 w-3 text-gray-400" />
+                        <span className={resourceMetaChipClass}>
+                          <Tag className={resourceMetaIconClass} />
                           {item.metadata.storage_class || 'Standard'}
                         </span>
                         <span
                           className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 ${
                             encryptionEnabled
-                              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-                              : 'border-gray-700/60 bg-gray-800/40 text-gray-300'
+                              ? encryptionOnChipClass
+                              : encryptionOffChipClass
                           }`}
                         >
                           {encryptionEnabled ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
@@ -885,8 +1114,8 @@ const StoragePage: React.FC = () => {
                         <span
                           className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 ${
                             isPublic
-                              ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300'
-                              : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                              ? publicChipClass
+                              : privateChipClass
                           }`}
                         >
                           <Globe2 className="h-3 w-3" />
@@ -898,7 +1127,11 @@ const StoragePage: React.FC = () => {
                   {isProvisioning && (
                     <Link
                       to={`/deployments/${item.id}`}
-                      className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-2.5 py-1.5 text-xs text-cyan-200 transition-colors hover:bg-cyan-500/20"
+                      className={`cursor-pointer inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition-colors ${
+                        isLight
+                          ? 'border-cyan-300 bg-cyan-50 text-cyan-700 hover:bg-cyan-100'
+                          : 'border-cyan-500/25 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20'
+                      }`}
                       title="Open deployment logs"
                     >
                       Logs
@@ -908,46 +1141,43 @@ const StoragePage: React.FC = () => {
                 </div>
 
                 <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="rounded-xl border border-gray-800/60 bg-[#0d0d10]/90 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-gray-500">Size</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-100">{formatSize(item.metadata.size_gb)}</p>
+                  <div className={resourceMetricCardClass}>
+                    <p className={resourceMetricLabelClass}>Size</p>
+                    <p className={resourceMetricValueClass}>{formatSize(item.metadata.size_gb)}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-800/60 bg-[#0d0d10]/90 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-gray-500">Objects</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-100">{item.metadata.object_count?.toLocaleString() || '0'}</p>
+                  <div className={resourceMetricCardClass}>
+                    <p className={resourceMetricLabelClass}>Objects</p>
+                    <p className={resourceMetricValueClass}>{item.metadata.object_count?.toLocaleString() || '0'}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-800/60 bg-[#0d0d10]/90 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-gray-500">Access</p>
+                  <div className={resourceMetricCardClass}>
+                    <p className={resourceMetricLabelClass}>Access</p>
                     <p className="mt-1 text-sm font-semibold">
                       {isPublic ? (
-                        <span className="text-yellow-300">Public</span>
+                        <span className={isLight ? 'text-amber-700' : 'text-yellow-300'}>Public</span>
                       ) : (
-                        <span className="text-emerald-300">Private</span>
+                        <span className={isLight ? 'text-emerald-700' : 'text-emerald-300'}>Private</span>
                       )}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-800/60 bg-[#0d0d10]/90 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-gray-500">Source</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-100 capitalize">{item.source}</p>
+                  <div className={resourceMetricCardClass}>
+                    <p className={resourceMetricLabelClass}>Source</p>
+                    <p className={`${resourceMetricValueClass} capitalize`}>{item.source}</p>
                   </div>
                 </div>
 
                 {item.metadata.tags && Object.keys(item.metadata.tags).length > 0 && (
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     {Object.entries(item.metadata.tags).slice(0, 4).map(([key, value]) => (
-                      <span
-                        key={key}
-                        className="rounded-md border border-gray-700/60 bg-gray-800/60 px-2 py-1 text-xs text-gray-300"
-                      >
+                      <span key={key} className={resourceTagsClass}>
                         {key}: {value}
                       </span>
                     ))}
                   </div>
                 )}
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
+                <div className={resourceFooterClass}>
                   <div className="flex items-center gap-2">
-                    <Clock3 className="w-3.5 h-3.5 text-gray-500" />
+                    <Clock3 className={resourceFooterIconClass} />
                     <span>
                       Last synced {lastSeen ? new Date(lastSeen).toLocaleString() : 'N/A'}
                     </span>
@@ -955,27 +1185,27 @@ const StoragePage: React.FC = () => {
                   <span>Created {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
                 </div>
 
-                <div className="mt-4 border-t border-gray-800/70 pt-4 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
+                <div className={resourceActionsClass}>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
                   {supportsObjectActions ? (
                     <>
                       <button
                         onClick={() => handleDownload(item)}
-                        className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-gray-700/60 bg-gray-800/60 px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-gray-800"
+                        className={`${neutralActionButtonClass} w-full`}
                       >
                         <Download className="w-3 h-3" />
                         <span>Download</span>
                       </button>
                       <button
                         onClick={() => handleUploadClick(item)}
-                        className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-gray-700/60 bg-gray-800/60 px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-gray-800"
+                        className={`${neutralActionButtonClass} w-full`}
                       >
                         <Upload className="w-3 h-3" />
                         <span>Upload File</span>
                       </button>
                       <button
                         onClick={() => handleFolderUploadClick(item)}
-                        className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-gray-700/60 bg-gray-800/60 px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-gray-800"
+                        className={`${neutralActionButtonClass} w-full`}
                       >
                         <FolderUp className="w-3 h-3" />
                         <span>Upload Folder</span>
@@ -985,7 +1215,7 @@ const StoragePage: React.FC = () => {
                     <>
                       <button
                         disabled
-                        className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                        className={`${disabledActionButtonClass} w-full`}
                         title="Download is available for provisioned resources or AWS inventory"
                       >
                         <Download className="mr-1 inline-block h-3 w-3" />
@@ -993,7 +1223,7 @@ const StoragePage: React.FC = () => {
                       </button>
                       <button
                         disabled
-                        className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                        className={`${disabledActionButtonClass} w-full`}
                         title="Upload is available for provisioned resources or AWS inventory"
                       >
                         <Upload className="mr-1 inline-block h-3 w-3" />
@@ -1001,7 +1231,7 @@ const StoragePage: React.FC = () => {
                       </button>
                       <button
                         disabled
-                        className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                        className={`${disabledActionButtonClass} w-full`}
                         title="Folder upload is available for provisioned resources or AWS inventory"
                       >
                         <FolderUp className="mr-1 inline-block h-3 w-3" />
@@ -1012,7 +1242,7 @@ const StoragePage: React.FC = () => {
                   {supportsWebsiteHosting ? (
                     <button
                       onClick={() => openWebsiteDialog(item)}
-                      className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-xs text-blue-200 transition-colors hover:bg-blue-500/20"
+                      className={`${websiteActionButtonClass} w-full`}
                     >
                       <Globe2 className="w-3 h-3" />
                       <span>Host Website</span>
@@ -1020,7 +1250,7 @@ const StoragePage: React.FC = () => {
                   ) : (
                     <button
                       disabled
-                      className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                      className={`${disabledActionButtonClass} w-full`}
                       title="Static website hosting is currently available for AWS buckets"
                     >
                       <Globe2 className="mr-1 inline-block h-3 w-3" />
@@ -1031,7 +1261,7 @@ const StoragePage: React.FC = () => {
                     <button
                       onClick={() => setStorageToDelete(item)}
                       disabled={deletingId === item.id}
-                      className="cursor-pointer inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      className={`${deleteActionButtonClass} w-full`}
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>{deletingId === item.id ? 'Deleting...' : 'Delete'}</span>
@@ -1039,7 +1269,7 @@ const StoragePage: React.FC = () => {
                   ) : (
                     <button
                       disabled
-                      className="h-9 rounded-lg border border-gray-700/40 bg-gray-800/50 px-3 py-1.5 text-xs text-gray-500 cursor-not-allowed"
+                      className={`${disabledActionButtonClass} w-full`}
                       title="Managed inventory resources are deleted from provider consoles"
                     >
                       <Trash2 className="mr-1 inline-block h-3 w-3" />
@@ -1047,16 +1277,21 @@ const StoragePage: React.FC = () => {
                     </button>
                   )}
                   </div>
+                  {!supportsObjectActions && (
+                    <p className={actionHintTextClass}>
+                      Object actions are available for provisioning records and AWS inventory buckets.
+                    </p>
+                  )}
                 </div>
               </motion.div>
             );
           })}
         </div>
       ) : (
-        <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-12 text-center">
-          <HardDrive className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-400 mb-2">No storage resources found</h3>
-          <p className="text-sm text-gray-500 mb-6">Get started by creating your first storage bucket</p>
+        <div className={emptyStateClass}>
+          <HardDrive className={emptyIconClass} />
+          <h3 className={emptyTitleClass}>No storage resources found</h3>
+          <p className={emptyDescriptionClass}>Get started by creating your first storage bucket</p>
           <Link
             to="/resources/storage/create"
             className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all duration-200"
@@ -1070,10 +1305,10 @@ const StoragePage: React.FC = () => {
       {/* Summary */}
       {filteredStorage && filteredStorage.length > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className={summaryTextClass}>
             Showing {filteredStorage.length} of {storage?.length || 0} storage resources
           </p>
-          <div className="flex items-center space-x-4 text-sm text-gray-400">
+          <div className={summaryMetaClass}>
             <div className="flex items-center space-x-2">
               <HardDrive className="w-4 h-4" />
               <span>

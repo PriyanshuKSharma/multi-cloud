@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Shield } from 'lucide-react';
+import AuthCloudBackdrop from '../components/auth/AuthCloudBackdrop';
 
 const REGIONS = {
     aws: [
@@ -74,71 +75,73 @@ const Onboarding: React.FC = () => {
         setLoading(false);
     }
   };
-  
+
   const skipStep = () => {
       if (step < 3) setStep(step + 1);
       else navigate('/');
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full glass-card rounded-2xl p-8">
-        <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 mb-4">
-                <Shield className="w-8 h-8 text-blue-400" />
+    <div className="relative min-h-screen overflow-hidden">
+      <AuthCloudBackdrop />
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full rounded-3xl border border-slate-300/15 bg-slate-950/55 p-8 shadow-2xl shadow-black/35 backdrop-blur-xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 mb-4 shadow-lg shadow-cyan-500/30">
+                <Shield className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-white">Connect Your Clouds</h1>
-            <p className="text-gray-400 mt-2">Nebula needs access to your cloud accounts to provision resources.</p>
-        </div>
+            <p className="text-slate-300 mt-2">Nebula needs access to your cloud accounts to provision resources.</p>
+          </div>
 
-        {/* Steps Indicator */}
-        <div className="flex justify-between mb-8 relative">
-            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-800 -z-10 rounded-full" />
+          {/* Steps Indicator */}
+          <div className="flex justify-between mb-8 relative">
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-800/80 -z-10 rounded-full" />
             {[1, 2, 3].map((s) => (
-                <div key={s} className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
-                    step >= s ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'
-                }`}>
-                    {step > s ? <CheckCircle className="w-6 h-6" /> : s}
-                </div>
+              <div key={s} className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
+                step >= s ? 'bg-gradient-to-br from-cyan-500 to-emerald-500 text-slate-950' : 'bg-slate-800/80 text-slate-400'
+              }`}>
+                {step > s ? <CheckCircle className="w-6 h-6" /> : s}
+              </div>
             ))}
-        </div>
+          </div>
 
-        {/* Step 1: AWS */}
-        {step === 1 && (
+          {/* Step 1: AWS */}
+          {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center">
                     <span className="mr-2">🔶</span> Amazon Web Services (AWS)
                 </h2>
                 <form onSubmit={handleSubmit(onSubmitAws)} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Access Key ID</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Access Key ID</label>
                         <input {...register('access_key')} className="input-field w-full p-3" placeholder="AKIA..." />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Secret Access Key</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Secret Access Key</label>
                         <input {...register('secret_key')} type="password" className="input-field w-full p-3" placeholder="wJalr..." />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Default Region</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Default Region</label>
                         <select {...register('region')} className="input-field w-full p-3 cursor-pointer appearance-none">
                             {REGIONS.aws.map(r => (
-                                <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                                <option key={r.id} value={r.id} className="bg-slate-900">{r.name} ({r.id})</option>
                             ))}
                         </select>
                     </div>
                     
                     <div className="pt-4 flex space-x-4">
-                        <button type="button" onClick={skipStep} className="px-6 py-2 rounded text-gray-400 hover:text-white">Skip</button>
+                        <button type="button" onClick={skipStep} className="px-6 py-2 rounded text-slate-300 hover:text-white">Skip</button>
                         <button type="submit" disabled={loading} className="btn-primary flex-1">
                             {loading ? 'Verifying...' : 'Save & Continue'}
                         </button>
                     </div>
                 </form>
             </motion.div>
-        )}
+          )}
 
-        {/* Step 2: Azure */}
-        {step === 2 && (
+          {/* Step 2: Azure */}
+          {step === 2 && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center">
                     <span className="mr-2">🔷</span> Microsoft Azure
@@ -146,54 +149,55 @@ const Onboarding: React.FC = () => {
                 <form onSubmit={handleSubmit(onSubmitAzure)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">Tenant ID</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-1">Tenant ID</label>
                             <input {...register('tenant_id')} className="input-field w-full p-3" placeholder="00000000-0000..." />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">Client ID</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-1">Client ID</label>
                             <input {...register('client_id')} className="input-field w-full p-3" placeholder="00000000-0000..." />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Client Secret</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Client Secret</label>
                         <input {...register('client_secret')} type="password" className="input-field w-full p-3" placeholder="••••••••" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Subscription ID</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Subscription ID</label>
                         <input {...register('subscription_id')} className="input-field w-full p-3" placeholder="00000000-0000..." />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Default Region</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Default Region</label>
                         <select {...register('region')} className="input-field w-full p-3 cursor-pointer appearance-none">
                             {REGIONS.azure.map(r => (
-                                <option key={r.id} value={r.id} className="bg-[#1a1b1e]">{r.name} ({r.id})</option>
+                                <option key={r.id} value={r.id} className="bg-slate-900">{r.name} ({r.id})</option>
                             ))}
                         </select>
                     </div>
                     
                     <div className="pt-4 flex space-x-4">
-                        <button type="button" onClick={skipStep} className="px-6 py-2 rounded text-gray-400 hover:text-white">Skip</button>
+                        <button type="button" onClick={skipStep} className="px-6 py-2 rounded text-slate-300 hover:text-white">Skip</button>
                         <button type="submit" disabled={loading} className="btn-primary flex-1">
                             {loading ? 'Verifying...' : 'Save & Continue'}
                         </button>
                     </div>
                 </form>
              </motion.div>
-        )}
+          )}
 
-        {/* Step 3: GCP */}
-        {step === 3 && (
+          {/* Step 3: GCP */}
+          {step === 3 && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center">
                     <span className="mr-2">🌈</span> Google Cloud Platform
                 </h2>
-                 <div className="p-6 bg-gray-800/50 rounded-xl text-center border border-dashed border-gray-700">
-                    <p className="text-gray-400 mb-4">GCP configuration Coming Soon.</p>
+                 <div className="p-6 bg-slate-900/55 rounded-xl text-center border border-dashed border-slate-700/70">
+                    <p className="text-slate-300 mb-4">GCP configuration Coming Soon.</p>
                     <button onClick={() => navigate('/')} className="btn-primary">Finish Setup</button>
                 </div>
              </motion.div>
-        )}
+          )}
 
+        </div>
       </div>
     </div>
   );

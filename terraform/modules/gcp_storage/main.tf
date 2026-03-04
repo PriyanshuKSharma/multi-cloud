@@ -2,6 +2,13 @@ variable "project_id" {
   description = "GCP Project ID"
 }
 
+variable "credentials_json" {
+  description = "GCP service account JSON"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "region" {
   description = "GCP Region"
   default     = "us-central1"
@@ -12,8 +19,9 @@ variable "bucket_name" {
 }
 
 provider "google" {
-  project = var.project_id
-  region  = var.region
+  project     = var.project_id
+  region      = var.region
+  credentials = var.credentials_json != "" ? var.credentials_json : null
 }
 
 resource "google_storage_bucket" "bucket" {
