@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import PageGuide from '../../components/ui/PageGuide';
@@ -13,6 +13,8 @@ import {
 import { ArrowLeft, BellRing, Check, Loader, MessageSquare, PlusSquare } from 'lucide-react';
 
 type MessagingType = 'sqs' | 'sns';
+type CloudProvider = 'aws' | 'azure' | 'gcp';
+type ServiceMode = 'queue' | 'message';
 
 interface ProjectOption {
   id: number;
@@ -30,6 +32,19 @@ interface CreateResourceResponse {
 }
 
 const AWS_REGIONS = ['us-east-1', 'us-west-2', 'ap-south-1', 'eu-west-1'];
+const AZURE_REGIONS = ['eastus', 'westus2', 'centralindia', 'westeurope'];
+const GCP_REGIONS = ['us-central1', 'us-east1', 'asia-south1', 'europe-west1'];
+
+const getServiceModeFromPath = (pathname: string): ServiceMode =>
+  pathname.includes('/resources/messages') ? 'message' : 'queue';
+
+const normalizeProvider = (value: string | null): CloudProvider | null => {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized === 'aws' || normalized === 'azure' || normalized === 'gcp') {
+    return normalized;
+  }
+  return null;
+};
 
 const normalizeResourceName = (name: string): string =>
   name
@@ -41,9 +56,19 @@ const normalizeResourceName = (name: string): string =>
 
 const CreateMessagingPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
+  const serviceMode = React.useMemo(
+    () => getServiceModeFromPath(location.pathname),
+    [location.pathname]
+  );
+  const resourceType: MessagingType = serviceMode === 'message' ? 'sns' : 'sqs';
+  const providerFromQuery = normalizeProvider(searchParams.get('provider')) ?? 'aws';
+  const [provider, setProvider] = React.useState<CloudProvider>(providerFromQuery);
+  const serviceBasePath = serviceMode === 'queue' ? '/resources/queues' : '/resources/messages';
+  const messagingListPath = `${serviceBasePath}?provider=${provider}`;
 
-  const [resourceType, setResourceType] = React.useState<MessagingType>('sqs');
   const [name, setName] = React.useState('');
   const [region, setRegion] = React.useState(AWS_REGIONS[0]);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
@@ -68,6 +93,53 @@ const CreateMessagingPage: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = React.useState<number | ''>('');
   const [newProjectName, setNewProjectName] = React.useState('');
   const [newProjectDescription, setNewProjectDescription] = React.useState('');
+
+  React.useEffect(() => {
+    if (provider !== providerFromQuery) {
+      setProvider(providerFromQuery);
+    }
+  }, [provider, providerFromQuery]);
+
+  const providerOptions = React.useMemo(
+    () => [
+      {
+        id: 'aws' as const,
+        label: 'AWS',
+        subtitle: serviceMode === 'queue' ? 'SQS' : 'SNS',
+      },
+      {
+        id: 'azure' as const,
+        label: 'Azure',
+        subtitle: serviceMode === 'queue' ? 'Service Bus Queue' : 'Service Bus Topic',
+      },
+      {
+        id: 'gcp' as const,
+        label: 'GCP',
+        subtitle: serviceMode === 'queue' ? 'Pub/Sub Queue' : 'Pub/Sub Topic',
+      },
+    ],
+    [serviceMode]
+  );
+
+  const regionOptions = React.useMemo(() => {
+    if (provider === 'azure') return AZURE_REGIONS;
+    if (provider === 'gcp') return GCP_REGIONS;
+    return AWS_REGIONS;
+  }, [provider]);
+
+  React.useEffect(() => {
+    if (!regionOptions.includes(region)) {
+      setRegion(regionOptions[0]);
+    }
+  }, [region, regionOptions]);
+
+  const handleProviderChange = (nextProvider: CloudProvider) => {
+    setProvider(nextProvider);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('provider', nextProvider);
+    setSearchParams(nextParams, { replace: true });
+    setSubmitError(null);
+  };
 
   const { data: projects = [], isLoading: isProjectsLoading } = useQuery<ProjectOption[]>({
     queryKey: ['projects', 'create-messaging'],
@@ -136,15 +208,20 @@ const CreateMessagingPage: React.FC = () => {
       setSubmitError(null);
       queryClient.invalidateQueries({ queryKey: ['resources'] });
       queryClient.invalidateQueries({ queryKey: ['deployments'] });
-      navigate('/resources/messaging');
+      navigate(messagingListPath);
     },
     onError: (error: any) => {
       const detail = error?.response?.data?.detail;
       if (detail !== undefined) {
-        setSubmitError(extractProvisioningErrorMessage(detail, 'Failed to create messaging resource.'));
+        setSubmitError(
+          extractProvisioningErrorMessage(
+            detail,
+            `Failed to create ${serviceMode === 'queue' ? 'queue' : 'message'} service.`
+          )
+        );
         return;
       }
-      setSubmitError('Failed to create messaging resource.');
+      setSubmitError(`Failed to create ${serviceMode === 'queue' ? 'queue' : 'message'} service.`);
     },
   });
 
@@ -194,6 +271,13 @@ const CreateMessagingPage: React.FC = () => {
     setSubmitError(null);
     setProjectError(null);
 
+    if (provider !== 'aws') {
+      setSubmitError(
+        `${provider.toUpperCase()} ${serviceMode === 'queue' ? 'queue' : 'messaging'} provisioning is coming soon. Select AWS to continue for now.`
+      );
+      return;
+    }
+
     const normalizedName = normalizeResourceName(name);
     if (!normalizedName) {
       setSubmitError('Resource name is required.');
@@ -232,12 +316,22 @@ const CreateMessagingPage: React.FC = () => {
 
     createMutation.mutate({
       name: normalizedName,
-      provider: 'aws',
+      provider,
       type: resourceType,
       project_id: projectId,
       configuration,
     });
   };
+
+  const pageTitle =
+    serviceMode === 'queue' ? 'Create Queue Service' : 'Create Message Service';
+  const pageDescription =
+    serviceMode === 'queue'
+      ? 'Create provider-specific queue infrastructure for asynchronous workloads and resilient processing.'
+      : 'Create provider-specific notification/topic infrastructure for pub-sub and message fan-out workflows.';
+  const createButtonLabel =
+    serviceMode === 'queue' ? 'Create Queue Service' : 'Create Message Service';
+  const serviceName = serviceMode === 'queue' ? 'Queues' : 'Messages';
 
   const numericSelectedProjectId =
     typeof selectedProjectId === 'number' ? selectedProjectId : Number(selectedProjectId);
@@ -248,34 +342,42 @@ const CreateMessagingPage: React.FC = () => {
       <PageHero
         id="create-messaging"
         tone="orange"
-        eyebrow="Provision messaging resource"
+        eyebrow="Provision cloud messaging resource"
         eyebrowIcon={<MessageSquare className="h-3.5 w-3.5" />}
-        title="Create SQS / SNS Resource"
+        title={pageTitle}
         titleIcon={<BellRing className="w-8 h-8 text-amber-300" />}
-        description="Create detailed queue and topic resources with delivery controls and redrive behavior."
+        description={pageDescription}
         chips={[
-          { label: `resource: ${resourceType.toUpperCase()}`, tone: 'orange' },
+          { label: `service: ${serviceName}`, tone: 'orange' },
+          { label: `provider: ${provider.toUpperCase()}`, tone: 'purple' },
           { label: `region: ${region}`, tone: 'cyan' },
-          { label: 'provider: AWS', tone: 'orange' },
         ]}
         actions={
           <button
-            onClick={() => navigate('/resources/messaging')}
+            onClick={() => navigate(messagingListPath)}
             className="cursor-pointer flex items-center rounded-lg border border-gray-700/60 bg-gray-800/60 px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-gray-800"
           >
             <ArrowLeft className="mr-2 w-4 h-4" />
-            Back to Messaging
+            Back to {serviceName}
           </button>
         }
       />
 
       <PageGuide
-        title="About Messaging"
-        purpose="Messaging resources power async workflows, fan-out notifications, and decoupled service communication."
+        title={`About ${serviceName}`}
+        purpose={
+          serviceMode === 'queue'
+            ? 'Queue services provide asynchronous buffering, retries, ordering controls, and workload decoupling.'
+            : 'Message services provide publish-subscribe fan-out, event notification routing, and cross-system integration.'
+        }
         actions={[
-          'create SQS queues with visibility, retention, delay, and DLQ controls',
-          'create SNS topics with standard/fifo behavior and publish-subscribe integrations',
-          'operate send/receive/publish/subscribe workflows from the messaging console',
+          serviceMode === 'queue'
+            ? 'select cloud provider and configure queue behavior for your workload patterns'
+            : 'select cloud provider and configure notification/topic behavior for your event patterns',
+          serviceMode === 'queue'
+            ? 'manage queue send/receive/deletion workflows from the service console'
+            : 'manage publish and subscription workflows from the service console',
+          'deploy into your selected provider, region, and project',
         ]}
       />
 
@@ -291,25 +393,23 @@ const CreateMessagingPage: React.FC = () => {
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">Resource Type</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {(['sqs', 'sns'] as MessagingType[]).map((value) => {
-                    const active = resourceType === value;
+                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">Cloud Provider</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {providerOptions.map((option) => {
+                    const active = provider === option.id;
                     return (
                       <button
-                        key={value}
+                        key={option.id}
                         type="button"
-                        onClick={() => setResourceType(value)}
+                        onClick={() => handleProviderChange(option.id)}
                         className={`cursor-pointer rounded-xl border p-3 text-left transition-colors ${
                           active
                             ? 'border-amber-500/60 bg-amber-500/10'
                             : 'border-gray-800/70 bg-gray-900/40 hover:border-gray-700'
                         }`}
                       >
-                        <p className="text-sm font-semibold text-white uppercase">{value}</p>
-                        <p className="mt-1 text-xs text-gray-400">
-                          {value === 'sqs' ? 'Queue messaging' : 'Publish-subscribe topic'}
-                        </p>
+                        <p className="text-sm font-semibold text-white uppercase">{option.label}</p>
+                        <p className="mt-1 text-xs text-gray-400">{option.subtitle}</p>
                         {active && <Check className="w-4 h-4 text-amber-300 mt-2" />}
                       </button>
                     );
@@ -324,7 +424,7 @@ const CreateMessagingPage: React.FC = () => {
                   onChange={(event) => setRegion(event.target.value)}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                 >
-                  {AWS_REGIONS.map((value) => (
+                  {regionOptions.map((value) => (
                     <option key={value} value={value}>
                       {value}
                     </option>
@@ -334,20 +434,26 @@ const CreateMessagingPage: React.FC = () => {
 
               <div className="md:col-span-2">
                 <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-                  {resourceType === 'sqs' ? 'Queue Name' : 'Topic Name'}
+                  {serviceMode === 'queue' ? 'Queue Name' : 'Topic Name'}
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder={resourceType === 'sqs' ? 'orders-events' : 'system-alerts'}
+                  placeholder={serviceMode === 'queue' ? 'orders-events' : 'system-alerts'}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                 />
               </div>
+
+              {provider !== 'aws' && (
+                <div className="md:col-span-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  {provider.toUpperCase()} {serviceMode === 'queue' ? 'queue' : 'message'} provisioning UI is ready. Full deployment automation is currently enabled for AWS; Azure and GCP provisioning support is next.
+                </div>
+              )}
             </div>
           </div>
 
-          {resourceType === 'sqs' ? (
+          {provider === 'aws' && resourceType === 'sqs' ? (
             <div className="bg-[#0f0f11] border border-gray-800/60 rounded-2xl overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-800/60">
                 <h2 className="text-lg font-semibold text-white">SQS Detail Settings</h2>
@@ -468,7 +574,7 @@ const CreateMessagingPage: React.FC = () => {
                 )}
               </div>
             </div>
-          ) : (
+          ) : provider === 'aws' ? (
             <div className="bg-[#0f0f11] border border-gray-800/60 rounded-2xl overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-800/60">
                 <h2 className="text-lg font-semibold text-white">SNS Detail Settings</h2>
@@ -505,6 +611,17 @@ const CreateMessagingPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="bg-[#0f0f11] border border-gray-800/60 rounded-2xl overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-800/60">
+                <h2 className="text-lg font-semibold text-white">
+                  {provider.toUpperCase()} {serviceMode === 'queue' ? 'Queue' : 'Message'} Settings
+                </h2>
+              </div>
+              <div className="p-6 text-sm text-gray-300">
+                Detailed {provider.toUpperCase()} configuration will appear here once provisioning modules are enabled.
+              </div>
+            </div>
           )}
         </div>
 
@@ -513,8 +630,12 @@ const CreateMessagingPage: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-200 mb-3">Live Summary</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Type</span>
-                <span className="text-gray-200 uppercase">{resourceType}</span>
+                <span className="text-gray-500">Service</span>
+                <span className="text-gray-200">{serviceName}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Provider</span>
+                <span className="text-gray-200 uppercase">{provider}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Name</span>
@@ -524,7 +645,7 @@ const CreateMessagingPage: React.FC = () => {
                 <span className="text-gray-500">Region</span>
                 <span className="text-gray-200">{region}</span>
               </div>
-              {resourceType === 'sqs' ? (
+              {provider === 'aws' && resourceType === 'sqs' ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">FIFO</span>
@@ -535,10 +656,15 @@ const CreateMessagingPage: React.FC = () => {
                     <span className="text-gray-200">{sqsEnableDlq ? 'enabled' : 'disabled'}</span>
                   </div>
                 </>
-              ) : (
+              ) : provider === 'aws' ? (
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">FIFO</span>
                   <span className="text-gray-200">{snsFifo ? 'yes' : 'no'}</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Status</span>
+                  <span className="text-gray-200">template ready</span>
                 </div>
               )}
             </div>
@@ -631,9 +757,11 @@ const CreateMessagingPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || provider !== 'aws'}
               className={`cursor-pointer w-full flex items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors ${
-                createMutation.isPending ? 'bg-gray-700 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600'
+                createMutation.isPending || provider !== 'aws'
+                  ? 'bg-gray-700 cursor-not-allowed'
+                  : 'bg-amber-500 hover:bg-amber-600'
               }`}
             >
               {createMutation.isPending ? (
@@ -641,13 +769,15 @@ const CreateMessagingPage: React.FC = () => {
                   <Loader className="w-4 h-4 animate-spin mr-2" />
                   Provisioning...
                 </>
+              ) : provider !== 'aws' ? (
+                `Coming soon for ${provider.toUpperCase()}`
               ) : (
-                `Create ${resourceType.toUpperCase()}`
+                createButtonLabel
               )}
             </button>
             <button
               type="button"
-              onClick={() => navigate('/resources/messaging')}
+              onClick={() => navigate(messagingListPath)}
               className="cursor-pointer w-full rounded-lg border border-gray-700/70 bg-gray-800/60 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
             >
               Cancel
