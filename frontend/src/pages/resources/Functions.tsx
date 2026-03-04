@@ -36,16 +36,38 @@ interface NormalizedFunction {
   provider: string;
   status: string;
   runtime: string;
+  triggerType: string;
+  websiteEnabled: boolean;
+  routePath: string;
+  actionDestinationUrl?: string;
+  onSuccessDestination?: string;
+  onFailureDestination?: string;
   timeoutSeconds?: number;
   memoryMb?: number;
   createdAt: string;
 }
+
+const toBoolean = (value: unknown): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return ['1', 'true', 'yes', 'on', 'enabled'].includes(normalized);
+  }
+  return false;
+};
 
 const normalizeFunction = (resource: FunctionResource): NormalizedFunction => {
   const configuration = resource.configuration ?? {};
   const runtimeValue = configuration.runtime ?? configuration.runtime_version ?? 'unknown';
   const timeoutValue = configuration.timeout ?? configuration.timeout_seconds;
   const memoryValue = configuration.memory_size ?? configuration.memory_mb;
+  const triggerValue = configuration.trigger_type ?? 'http';
+  const websiteValue = configuration.website_enabled;
+  const routeValue = configuration.route_path ?? '/';
+  const actionDestinationValue = configuration.action_destination_url;
+  const successDestinationValue = configuration.on_success_destination ?? configuration.on_success_destination_arn;
+  const failureDestinationValue = configuration.on_failure_destination ?? configuration.on_failure_destination_arn;
 
   return {
     id: resource.id,
@@ -53,6 +75,21 @@ const normalizeFunction = (resource: FunctionResource): NormalizedFunction => {
     provider: String(resource.provider ?? '').toLowerCase(),
     status: String(resource.status ?? 'unknown').toLowerCase(),
     runtime: String(runtimeValue),
+    triggerType: String(triggerValue).toLowerCase(),
+    websiteEnabled: toBoolean(websiteValue),
+    routePath: String(routeValue || '/'),
+    actionDestinationUrl:
+      typeof actionDestinationValue === 'string' && actionDestinationValue.trim()
+        ? actionDestinationValue.trim()
+        : undefined,
+    onSuccessDestination:
+      typeof successDestinationValue === 'string' && successDestinationValue.trim()
+        ? successDestinationValue.trim()
+        : undefined,
+    onFailureDestination:
+      typeof failureDestinationValue === 'string' && failureDestinationValue.trim()
+        ? failureDestinationValue.trim()
+        : undefined,
     timeoutSeconds: typeof timeoutValue === 'number' ? timeoutValue : undefined,
     memoryMb: typeof memoryValue === 'number' ? memoryValue : undefined,
     createdAt: resource.created_at ?? '',
@@ -155,6 +192,7 @@ const FunctionsPage: React.FC = () => {
         purpose="Functions are lightweight event-driven workloads where runtime, timeout, and memory are managed as infrastructure."
         actions={[
           'create new provider-native function runtimes',
+          'configure trigger type, actions, and destinations',
           'monitor deployment state and runtime profile',
           'open deployment traces for execution logs',
         ]}
@@ -241,7 +279,7 @@ const FunctionsPage: React.FC = () => {
                 <StatusBadge status={fn.status as any} size="sm" />
               </div>
 
-              <div className="grid grid-cols-3 gap-3 mb-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 <div className="rounded-lg border border-gray-800/70 bg-gray-900/30 px-3 py-2">
                   <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                     <Code2 className="w-3 h-3" />
@@ -263,6 +301,37 @@ const FunctionsPage: React.FC = () => {
                   </p>
                   <p className="text-sm text-gray-200">{fn.memoryMb ?? '-'} MB</p>
                 </div>
+                <div className="rounded-lg border border-gray-800/70 bg-gray-900/30 px-3 py-2">
+                  <p className="text-xs text-gray-500 mb-1">Trigger</p>
+                  <p className="text-sm text-gray-200 uppercase">{fn.websiteEnabled ? 'http (website)' : fn.triggerType}</p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 mb-5 text-xs">
+                <p className="text-gray-400">
+                  Route: <span className="text-gray-200">{fn.routePath || '/'}</span>
+                </p>
+                <p className="text-gray-400">
+                  Website mode:{' '}
+                  <span className={fn.websiteEnabled ? 'text-emerald-300' : 'text-gray-200'}>
+                    {fn.websiteEnabled ? 'enabled' : 'disabled'}
+                  </span>
+                </p>
+                {fn.actionDestinationUrl && (
+                  <p className="text-gray-400 truncate">
+                    Action destination: <span className="text-gray-200">{fn.actionDestinationUrl}</span>
+                  </p>
+                )}
+                {fn.onSuccessDestination && (
+                  <p className="text-gray-400 truncate">
+                    Success destination: <span className="text-gray-200">{fn.onSuccessDestination}</span>
+                  </p>
+                )}
+                {fn.onFailureDestination && (
+                  <p className="text-gray-400 truncate">
+                    Failure destination: <span className="text-gray-200">{fn.onFailureDestination}</span>
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-between">
