@@ -198,7 +198,7 @@ const Login: React.FC = () => {
                 <p className="text-sm">Centralized authentication with JWT-secured API access.</p>
               </div>
               <div className="flex items-start gap-3 text-slate-200">
-                <Sparkles className="mt-0.5 h-4 w-4 text-cyan-300" />
+                <Sparkles className="mt-0.5 h-4 w-4 text-blue-300" />
                 <p className="text-sm">Live deployment tracking, inventory sync, and guided operations.</p>
               </div>
             </div>
@@ -206,7 +206,7 @@ const Login: React.FC = () => {
             <div className="rounded-2xl border border-slate-300/10 bg-slate-900/45 p-4">
               <div className="mb-3 flex items-center justify-between text-slate-200">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300/80">Platform Pulse</p>
-                <TrendingUp className="h-4 w-4 text-cyan-300" />
+                <TrendingUp className="h-4 w-4 text-blue-300" />
               </div>
               <div className="space-y-2">
                 {pulseItems.map((item, index) => (
@@ -217,7 +217,7 @@ const Login: React.FC = () => {
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-800">
                       <motion.div
-                        className="h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400"
+                        className="h-1.5 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400"
                         initial={{ width: '24%' }}
                         animate={{ width: ['24%', '72%', '38%', '84%', '24%'] }}
                         transition={{ duration: 8 + index, repeat: Infinity, ease: 'easeInOut' }}
@@ -236,7 +236,7 @@ const Login: React.FC = () => {
             className="rounded-3xl border border-slate-300/15 bg-slate-950/55 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8"
           >
             <div className="mb-7 text-center">
-              <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30">
+              <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
                 <CloudLightning className="h-7 w-7 text-white" />
               </div>
               <h2 className="mt-4 text-3xl font-bold text-white">Welcome Back</h2>
@@ -249,7 +249,7 @@ const Login: React.FC = () => {
                 Zero-Trust Auth
               </div>
               <div className="flex items-center gap-2 rounded-lg border border-slate-300/10 bg-slate-900/60 px-3 py-2 text-slate-200">
-                <Cpu className="h-3.5 w-3.5 text-cyan-300" />
+                <Cpu className="h-3.5 w-3.5 text-blue-300" />
                 Cloud Runtime
               </div>
             </div>
@@ -260,7 +260,7 @@ const Login: React.FC = () => {
                   Email Address
                 </label>
                 <div className="group relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-cyan-300" />
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-300" />
                   <input
                     {...register('email')}
                     className="input-field w-full py-2.5 pl-10"
@@ -275,7 +275,7 @@ const Login: React.FC = () => {
                   Password
                 </label>
                 <div className="group relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-cyan-300" />
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-300" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     {...register('password')}
@@ -285,7 +285,7 @@ const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
-                    className="absolute right-3 top-3 text-slate-500 transition-colors hover:text-cyan-300"
+                    className="absolute right-3 top-3 text-slate-500 transition-colors hover:text-blue-300"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -302,7 +302,7 @@ const Login: React.FC = () => {
               )}
 
               {isSSOProcessing && (
-                <div className="rounded-xl border border-cyan-300/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100">
+                <div className="rounded-xl border border-blue-300/35 bg-blue-500/10 px-3 py-2 text-sm text-blue-100">
                   Completing {ssoProviderName || 'SSO'} sign-in...
                 </div>
               )}
@@ -310,7 +310,7 @@ const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || isSSOProcessing}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-600/20 transition-all hover:from-cyan-400 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:from-blue-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <span>{isSSOProcessing ? 'Processing SSO...' : isSubmitting ? 'Signing In...' : 'Sign In'}</span>
                 {!isSubmitting && !isSSOProcessing && <ArrowRight className="h-4 w-4" />}
@@ -325,7 +325,7 @@ const Login: React.FC = () => {
 
             <p className="mt-6 text-center text-sm text-slate-300">
               Don&apos;t have an account?{' '}
-              <Link to="/signup" className="font-semibold text-cyan-300 transition-colors hover:text-cyan-200">
+              <Link to="/signup" className="font-semibold text-blue-300 transition-colors hover:text-cyan-200">
                 Create Free Account
               </Link>
             </p>
