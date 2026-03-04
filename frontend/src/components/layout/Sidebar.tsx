@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   LayoutDashboard,
-  BellRing,
+  Inbox,
+  MessageSquare,
   FolderKanban,
   Server,
   Database,
@@ -92,9 +93,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
           icon: <Zap className="w-4 h-4" />,
         },
         {
-          name: 'Messaging',
-          path: '/resources/messaging',
-          icon: <BellRing className="w-4 h-4" />,
+          name: 'Queues',
+          path: '/resources/queues',
+          icon: <Inbox className="w-4 h-4" />,
+        },
+        {
+          name: 'Messages',
+          path: '/resources/messages',
+          icon: <MessageSquare className="w-4 h-4" />,
         },
       ],
     },
