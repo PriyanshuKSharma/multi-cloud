@@ -54,10 +54,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c]">
+      <div className="min-h-screen flex items-center justify-center bg-[#070d18]">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-          <p className="text-gray-400 animate-pulse">Authenticating...</p>
+          <div className="w-12 h-12 border-4 border-cyan-400/20 border-t-emerald-400 rounded-full animate-spin"></div>
+          <p className="text-slate-300 animate-pulse">Authenticating...</p>
         </div>
       </div>
     );
