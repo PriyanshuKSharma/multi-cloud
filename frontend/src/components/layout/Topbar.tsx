@@ -310,13 +310,18 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         )
         .map((item: any) => {
           const type = String(item.type ?? '').toLowerCase() === 'sns' ? 'sns' : 'sqs';
+          const provider = String(item.provider ?? '').toLowerCase();
+          const providerParam = ['aws', 'azure', 'gcp'].includes(provider) ? provider : 'aws';
           return {
             id: `messaging-${type}-${item.id ?? item.name ?? 'unknown'}`,
             title: String(item.name ?? `Unnamed ${type.toUpperCase()}`),
             subtitle: `${type.toUpperCase()} • ${String(item.provider ?? '').toUpperCase()} • ${String(
               item.configuration?.region ?? 'unknown'
             )}`,
-            path: '/resources/messaging',
+            path:
+              type === 'sqs'
+                ? `/resources/queues?provider=${providerParam}`
+                : `/resources/messages?provider=${providerParam}`,
             kind: type as 'sqs' | 'sns',
           };
         });
