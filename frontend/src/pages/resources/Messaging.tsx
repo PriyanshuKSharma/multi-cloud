@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -61,6 +61,21 @@ interface SnsSubscriptionRecord {
   endpoint?: string;
   owner?: string;
 }
+
+type MessagingType = 'sqs' | 'sns';
+type ServiceMode = 'queue' | 'message';
+type CloudProvider = 'aws' | 'azure' | 'gcp';
+
+const getServiceModeFromPath = (pathname: string): ServiceMode =>
+  pathname.includes('/resources/messages') ? 'message' : 'queue';
+
+const normalizeProvider = (value: string | null): CloudProvider | null => {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized === 'aws' || normalized === 'azure' || normalized === 'gcp') {
+    return normalized;
+  }
+  return null;
+};
 
 const toBoolean = (value: unknown): boolean => {
   if (typeof value === 'boolean') return value;
@@ -591,9 +606,58 @@ const SnsOperations: React.FC<{ resource: NormalizedMessagingResource }> = ({ re
 };
 
 const MessagingPage: React.FC = () => {
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const serviceMode = React.useMemo(() => getServiceModeFromPath(location.pathname), [location.pathname]);
+  const serviceType: MessagingType = serviceMode === 'queue' ? 'sqs' : 'sns';
+  const selectedProvider = normalizeProvider(searchParams.get('provider')) ?? 'aws';
+  const providerOptions = React.useMemo(
+    () => [
+      { id: 'aws' as const, label: 'AWS', subtitle: serviceMode === 'queue' ? 'SQS' : 'SNS' },
+      { id: 'azure' as const, label: 'Azure', subtitle: serviceMode === 'queue' ? 'Service Bus Queue' : 'Service Bus Topic' },
+      { id: 'gcp' as const, label: 'GCP', subtitle: serviceMode === 'queue' ? 'Pub/Sub Queue' : 'Pub/Sub Topic' },
+    ],
+    [serviceMode]
+  );
+  const serviceLabel = serviceMode === 'queue' ? 'Queues' : 'Messages';
+  const createBasePath = serviceMode === 'queue' ? '/resources/queues/create' : '/resources/messages/create';
+  const createPath = `${createBasePath}?provider=${selectedProvider}`;
+  const pageTitle = `${serviceLabel} Service`;
+  const pageDescription =
+    serviceMode === 'queue'
+      ? 'Manage queue infrastructure and operations across cloud providers from one console.'
+      : 'Manage message topic infrastructure and pub-sub operations across cloud providers from one console.';
+  const pageGuidePurpose =
+    serviceMode === 'queue'
+      ? 'Queue services support asynchronous processing, retries, ordering, and backpressure handling.'
+      : 'Message services support publish-subscribe fan-out, event notifications, and cross-service integration.';
+  const pageGuideActions =
+    serviceMode === 'queue'
+      ? [
+          'select AWS, Azure, or GCP queue provider from the same service page',
+          'create queue resources with provider-specific settings',
+          'run detailed send/receive operations where runtime integrations are enabled',
+        ]
+      : [
+          'select AWS, Azure, or GCP message provider from the same service page',
+          'create topic/notification resources with provider-specific settings',
+          'run detailed publish and subscription operations where runtime integrations are enabled',
+        ];
+  const createButtonLabel = `Create ${serviceMode === 'queue' ? 'Queue' : 'Message'} Service`;
+  const emptyStateTitle = `No ${selectedProvider.toUpperCase()} ${serviceMode === 'queue' ? 'queues' : 'message topics'} found`;
+  const emptyStateDescription =
+    serviceMode === 'queue'
+      ? `Create your first ${selectedProvider.toUpperCase()} queue resource to start asynchronous workflows.`
+      : `Create your first ${selectedProvider.toUpperCase()} message topic to start pub-sub workflows.`;
+
+  const handleProviderChange = (provider: CloudProvider) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('provider', provider);
+    setSearchParams(nextParams, { replace: true });
+  };
+
   const queryClient = useQueryClient();
   const [filters, setFilters] = React.useState({
-    type: '',
     status: '',
     search: '',
   });
@@ -605,7 +669,7 @@ const MessagingPage: React.FC = () => {
       await axios.delete(`/resources/${id}`);
     },
     onSuccess: () => {
-      setActionMessage({ type: 'success', text: 'Messaging resource deleted successfully.' });
+      setActionMessage({ type: 'success', text: `${serviceLabel} resource deleted successfully.` });
       queryClient.invalidateQueries({ queryKey: ['resources'] });
       queryClient.invalidateQueries({ queryKey: ['deployments'] });
     },
@@ -613,13 +677,13 @@ const MessagingPage: React.FC = () => {
       const detail = error?.response?.data?.detail;
       setActionMessage({
         type: 'error',
-        text: typeof detail === 'string' ? detail : 'Failed to delete messaging resource.',
+        text: typeof detail === 'string' ? detail : `Failed to delete ${serviceLabel.toLowerCase()} resource.`,
       });
     },
   });
 
   const { data: resources, isLoading, error, refetch } = useQuery<NormalizedMessagingResource[]>({
-    queryKey: ['resources', 'messaging', filters],
+    queryKey: ['resources', serviceMode, selectedProvider, filters],
     queryFn: async () => {
       const response = await axios.get('/resources/?limit=500');
       const payload = response.data;
@@ -632,7 +696,8 @@ const MessagingPage: React.FC = () => {
       return (items as MessagingResource[])
         .filter((item) => ['sqs', 'sns'].includes(String(item.type ?? '').toLowerCase()))
         .map(normalizeMessagingResource)
-        .filter((item) => (filters.type ? item.type === filters.type : true))
+        .filter((item) => item.type === serviceType)
+        .filter((item) => item.provider === selectedProvider)
         .filter((item) => (filters.status ? item.status === filters.status : true))
         .filter((item) => item.name.toLowerCase().includes(filters.search.toLowerCase()))
         .sort((a, b) => {
@@ -649,15 +714,21 @@ const MessagingPage: React.FC = () => {
       <PageHero
         id="messaging"
         tone="orange"
-        eyebrow="Queue and pub-sub operations"
+        eyebrow="Multi-cloud service operations"
         eyebrowIcon={<MessageSquare className="h-3.5 w-3.5" />}
-        title="SQS & SNS Messaging"
-        titleIcon={<BellRing className="w-8 h-8 text-amber-300" />}
-        description="Provision, operate, and monitor queue/topic resources with detailed send, receive, publish, and subscription controls."
+        title={pageTitle}
+        titleIcon={
+          serviceMode === 'queue' ? (
+            <Inbox className="w-8 h-8 text-cyan-300" />
+          ) : (
+            <BellRing className="w-8 h-8 text-amber-300" />
+          )
+        }
+        description={pageDescription}
         chips={[
-          { label: `${resources?.length ?? 0} messaging resources`, tone: 'orange' },
-          { label: `${(resources ?? []).filter((item) => item.type === 'sqs').length} queues`, tone: 'cyan' },
-          { label: `${(resources ?? []).filter((item) => item.type === 'sns').length} topics`, tone: 'purple' },
+          { label: `provider: ${selectedProvider.toUpperCase()}`, tone: 'purple' },
+          { label: `type: ${serviceType.toUpperCase()}`, tone: 'cyan' },
+          { label: `${resources?.length ?? 0} resources`, tone: 'orange' },
         ]}
         actions={
           <>
@@ -669,24 +740,20 @@ const MessagingPage: React.FC = () => {
               <span className="text-sm font-medium">Refresh</span>
             </button>
             <Link
-              to="/resources/messaging/create"
+              to={createPath}
               className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all duration-200"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Create Messaging Resource</span>
+              <span className="text-sm font-medium">{createButtonLabel}</span>
             </Link>
           </>
         }
       />
 
       <PageGuide
-        title="About Messaging"
-        purpose="SQS and SNS support event-driven integration patterns for function triggers, asynchronous processing, and service notifications."
-        actions={[
-          'create queues/topics with FIFO and retention settings',
-          'send/receive/delete/purge queue messages from the console',
-          'publish topic messages and manage subscriptions by protocol',
-        ]}
+        title={`About ${serviceLabel}`}
+        purpose={pageGuidePurpose}
+        actions={pageGuideActions}
       />
 
       {actionMessage && (
@@ -703,26 +770,37 @@ const MessagingPage: React.FC = () => {
 
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
+          <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {providerOptions.map((option) => {
+              const active = selectedProvider === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => handleProviderChange(option.id)}
+                  className={`cursor-pointer rounded-lg border px-3 py-2 text-left transition-colors ${
+                    active
+                      ? 'border-amber-500/60 bg-amber-500/10 text-amber-200'
+                      : 'border-gray-700/70 bg-gray-800/60 text-gray-300 hover:bg-gray-800'
+                  }`}
+                >
+                  <p className="text-sm font-semibold uppercase">{option.label}</p>
+                  <p className="text-xs text-gray-500">{option.subtitle}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative md:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type="text"
-              placeholder="Search queues/topics..."
+              placeholder={`Search ${serviceLabel.toLowerCase()}...`}
               value={filters.search}
               onChange={(event) => setFilters({ ...filters, search: event.target.value })}
               className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
             />
           </div>
-
-          <select
-            value={filters.type}
-            onChange={(event) => setFilters({ ...filters, type: event.target.value })}
-            className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-          >
-            <option value="">All Types</option>
-            <option value="sqs">SQS</option>
-            <option value="sns">SNS</option>
-          </select>
 
           <select
             value={filters.status}
@@ -737,6 +815,12 @@ const MessagingPage: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {selectedProvider !== 'aws' && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          Runtime operations from this console are currently enabled for AWS. Provider selection for Azure and GCP is available now, and deep runtime integrations are coming next.
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -806,10 +890,16 @@ const MessagingPage: React.FC = () => {
                 </div>
               </div>
 
-              {resource.type === 'sqs' ? (
-                <SqsOperations resource={resource} />
+              {selectedProvider === 'aws' ? (
+                resource.type === 'sqs' ? (
+                  <SqsOperations resource={resource} />
+                ) : (
+                  <SnsOperations resource={resource} />
+                )
               ) : (
-                <SnsOperations resource={resource} />
+                <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  Detailed runtime operations for {selectedProvider.toUpperCase()} are coming soon.
+                </div>
               )}
             </motion.div>
           ))}
@@ -817,14 +907,14 @@ const MessagingPage: React.FC = () => {
       ) : (
         <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-12 text-center">
           <BellRing className="w-14 h-14 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-300 mb-2">No messaging resources found</h3>
-          <p className="text-sm text-gray-500 mb-6">Create your first queue or topic to start event-driven workflows.</p>
+          <h3 className="text-lg font-semibold text-gray-300 mb-2">{emptyStateTitle}</h3>
+          <p className="text-sm text-gray-500 mb-6">{emptyStateDescription}</p>
           <Link
-            to="/resources/messaging/create"
+            to={createPath}
             className="inline-flex items-center space-x-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all duration-200"
           >
             <Plus className="w-4 h-4" />
-            <span className="font-medium">Create Messaging Resource</span>
+            <span className="font-medium">{createButtonLabel}</span>
           </Link>
         </div>
       )}
