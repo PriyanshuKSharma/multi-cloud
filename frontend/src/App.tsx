@@ -108,8 +108,16 @@ function App() {
                     <Route path="networks/create" element={<CreateNetwork />} />
                     <Route path="functions" element={<Functions />} />
                     <Route path="functions/create" element={<CreateFunction />} />
-                    <Route path="messaging" element={<Messaging />} />
-                    <Route path="messaging/create" element={<CreateMessaging />} />
+                    <Route path="queues" element={<Messaging />} />
+                    <Route path="queues/create" element={<CreateMessaging />} />
+                    <Route path="messages" element={<Messaging />} />
+                    <Route path="messages/create" element={<CreateMessaging />} />
+                    <Route path="aws/sqs" element={<Navigate to="/resources/queues?provider=aws" replace />} />
+                    <Route path="aws/sqs/create" element={<Navigate to="/resources/queues/create?provider=aws" replace />} />
+                    <Route path="aws/sns" element={<Navigate to="/resources/messages?provider=aws" replace />} />
+                    <Route path="aws/sns/create" element={<Navigate to="/resources/messages/create?provider=aws" replace />} />
+                    <Route path="messaging" element={<Navigate to="/resources/queues?provider=aws" replace />} />
+                    <Route path="messaging/create" element={<Navigate to="/resources/queues/create?provider=aws" replace />} />
                   </Route>
                   
                   {/* Other Routes */}
