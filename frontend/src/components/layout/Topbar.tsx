@@ -365,7 +365,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
       case 'vm':
         return <Server className="w-4 h-4 text-cyan-400" />;
       case 'storage':
-        return <Database className="w-4 h-4 text-purple-400" />;
+        return <Database className="w-4 h-4 text-cyan-300" />;
       case 'network':
         return <Network className="w-4 h-4 text-teal-400" />;
       case 'function':
@@ -498,9 +498,9 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                         <button
                           key={project.id}
                           onClick={() => selectProject(project)}
-                          className={`cursor-pointer w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+                            className={`cursor-pointer w-full rounded-lg border px-3 py-2 text-left transition-colors ${
                             isSelected
-                              ? 'border-blue-500/40 bg-blue-500/10 text-blue-200'
+                              ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-100'
                               : 'border-gray-800/50 bg-transparent text-gray-300 hover:bg-gray-800/50'
                           }`}
                         >
@@ -522,7 +522,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                       setShowProjectMenu(false);
                       navigate('/projects');
                     }}
-                    className="cursor-pointer w-full rounded-lg px-3 py-2 text-left text-sm text-blue-300 hover:bg-gray-800/50"
+                    className="cursor-pointer w-full rounded-lg px-3 py-2 text-left text-sm text-cyan-300 hover:bg-gray-800/50"
                   >
                     Manage Projects
                   </button>
@@ -699,7 +699,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                       setShowNotifications(false);
                       navigate('/activity');
                     }}
-                    className="cursor-pointer text-xs font-medium text-blue-400 hover:text-blue-300"
+                    className="cursor-pointer text-xs font-medium text-cyan-300 hover:text-cyan-200"
                   >
                     View all notifications
                   </button>
@@ -715,7 +715,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-md shadow-cyan-500/30">
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="text-left hidden md:block">
