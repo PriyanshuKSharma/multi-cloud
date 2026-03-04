@@ -160,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-800/50">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
             <Cloud className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -181,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
                   onClick={() => toggleGroup(item.name)}
                   className={`cursor-pointer w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(item.path)
-                      ? 'bg-blue-500/10 text-blue-400'
+                      ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/25'
                       : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-300'
                   }`}
                 >
@@ -213,7 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
                             onClick={onNavigate}
                             className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                               isActive(child.path)
-                                ? 'bg-blue-500/10 text-blue-400'
+                                ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/25'
                                 : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-300'
                             }`}
                           >
@@ -233,7 +233,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
                 onClick={onNavigate}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive(item.path)
-                    ? 'bg-blue-500/10 text-blue-400'
+                    ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/25'
                     : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-300'
                 }`}
               >
@@ -242,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
                   <span>{item.name}</span>
                 </div>
                 {item.badge && (
-                  <span className="px-2 py-0.5 text-xs font-semibold bg-blue-500/20 text-blue-400 rounded-full">
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-cyan-500/20 text-cyan-300 rounded-full">
                     {item.badge}
                   </span>
                 )}
@@ -254,12 +254,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
 
       {/* Footer */}
       <div className="p-4 border-t border-gray-800/50">
-        <div className="px-3 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
+        <div className="px-3 py-2 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 rounded-lg border border-cyan-500/20">
           <p className="text-xs font-medium text-gray-400">Need help?</p>
           <Link
             to="/docs"
             onClick={onNavigate}
-            className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-sm font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
           >
             View Documentation →
           </Link>
