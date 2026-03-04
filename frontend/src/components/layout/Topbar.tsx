@@ -363,19 +363,19 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
       case 'project':
         return <FolderKanban className="w-4 h-4 text-blue-400" />;
       case 'vm':
-        return <Server className="w-4 h-4 text-cyan-400" />;
+        return <Server className="w-4 h-4 text-blue-300" />;
       case 'storage':
-        return <Database className="w-4 h-4 text-cyan-300" />;
+        return <Database className="w-4 h-4 text-blue-300" />;
       case 'network':
-        return <Network className="w-4 h-4 text-teal-400" />;
+        return <Network className="w-4 h-4 text-indigo-300" />;
       case 'function':
-        return <Zap className="w-4 h-4 text-orange-400" />;
+        return <Zap className="w-4 h-4 text-blue-400" />;
       case 'sqs':
-        return <Inbox className="w-4 h-4 text-cyan-400" />;
+        return <Inbox className="w-4 h-4 text-blue-300" />;
       case 'sns':
-        return <BellRing className="w-4 h-4 text-amber-400" />;
+        return <BellRing className="w-4 h-4 text-indigo-300" />;
       case 'deployment':
-        return <Rocket className="w-4 h-4 text-orange-400" />;
+        return <Rocket className="w-4 h-4 text-blue-400" />;
       default:
         return <Search className="w-4 h-4 text-gray-400" />;
     }
@@ -428,47 +428,47 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
   }, [markAllRead, showNotifications]);
 
   return (
-    <header className="app-topbar h-16 border-b border-gray-800/50 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40">
+    <header className="app-topbar h-[68px] border-b border-gray-800/50 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-40">
       {/* Left: Project Selector */}
       <div className="flex items-center space-x-2 sm:space-x-4">
         <button
           onClick={onOpenSidebar}
-          className="cursor-pointer lg:hidden p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
+          className="topbar-icon-btn cursor-pointer lg:hidden p-2 rounded-lg transition-colors"
           aria-label="Open sidebar"
           title="Menu"
         >
-          <Menu className="w-5 h-5 text-gray-300" />
+              <Menu className="w-5 h-5" />
         </button>
         <div className="flex items-center space-x-2">
           <button
             onClick={goBack}
             disabled={!canGoBack}
-            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="topbar-icon-btn cursor-pointer p-2 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Go back"
             title="Back"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-400" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
           <button
             onClick={goForward}
             disabled={!canGoForward}
-            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="topbar-icon-btn cursor-pointer p-2 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Go forward"
             title="Forward"
           >
-            <ArrowRight className="w-5 h-5 text-gray-400" />
+            <ArrowRight className="w-5 h-5" />
           </button>
         </div>
         <div className="relative hidden sm:block" ref={projectMenuRef}>
           <button
             onClick={() => setShowProjectMenu((previous) => !previous)}
-            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg border border-gray-700/50 transition-all duration-200"
+            className="topbar-pill-btn cursor-pointer flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200"
           >
-            <div className={`w-2 h-2 rounded-full ${currentProject ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-            <span className="text-sm font-medium text-gray-300 max-w-[180px] truncate">
+            <div className={`h-2 w-2 rounded-full ${currentProject ? 'bg-green-500' : 'bg-amber-500'}`} />
+            <span className="topbar-heading max-w-[180px] truncate text-sm font-medium">
               {isProjectsLoading ? 'Loading projects...' : currentProject?.name || currentProjectName || 'No project selected'}
             </span>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4" />
           </button>
 
           <AnimatePresence>
@@ -477,36 +477,36 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="app-topbar-popover absolute left-0 mt-2 w-72 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden z-50"
+                className="app-topbar-popover absolute left-0 mt-2 w-72 border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden z-50"
               >
                 <div className="px-4 py-3 border-b border-gray-800/50">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Current Project</p>
-                  <p className="text-sm font-medium text-gray-200 mt-1 truncate">
+                  <p className="topbar-meta text-xs uppercase tracking-wide">Current Project</p>
+                  <p className="topbar-heading mt-1 truncate text-sm font-medium">
                     {currentProject?.name || currentProjectName || 'None selected'}
                   </p>
                 </div>
 
                 <div className="max-h-64 overflow-y-auto p-2 space-y-1">
                   {isProjectsLoading ? (
-                    <div className="px-3 py-2 text-sm text-gray-400">Loading projects...</div>
+                    <div className="topbar-empty px-3 py-2 text-sm">Loading projects...</div>
                   ) : projects.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-gray-400">No projects found. Create one first.</div>
+                    <div className="topbar-empty px-3 py-2 text-sm">No projects found. Create one first.</div>
                   ) : (
                     projects.map((project) => {
                       const isSelected = project.id === currentProjectId;
                       return (
-                        <button
-                          key={project.id}
-                          onClick={() => selectProject(project)}
-                            className={`cursor-pointer w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                            isSelected
-                              ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-100'
-                              : 'border-gray-800/50 bg-transparent text-gray-300 hover:bg-gray-800/50'
-                          }`}
-                        >
+                          <button
+                            key={project.id}
+                            onClick={() => selectProject(project)}
+                            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'border-blue-500/45 bg-blue-500/12 text-blue-100'
+                                : 'border-gray-800/50 bg-transparent text-gray-300 hover:bg-gray-800/50'
+                            }`}
+                          >
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-sm font-medium truncate">{project.name}</span>
-                            <span className="text-xs text-gray-500">
+                            <span className="topbar-meta text-xs">
                               {project.resource_count ?? 0}
                             </span>
                           </div>
@@ -522,7 +522,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                       setShowProjectMenu(false);
                       navigate('/projects');
                     }}
-                    className="cursor-pointer w-full rounded-lg px-3 py-2 text-left text-sm text-cyan-300 hover:bg-gray-800/50"
+                    className="topbar-menu-item w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer"
                   >
                     Manage Projects
                   </button>
@@ -539,9 +539,9 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         <div className="relative" ref={searchContainerRef}>
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200 relative"
+            className="topbar-icon-btn cursor-pointer p-2 rounded-lg transition-all duration-200 relative"
           >
-            <Search className="w-5 h-5 text-gray-400" />
+            <Search className="w-5 h-5" />
           </button>
 
           <AnimatePresence>
@@ -550,11 +550,11 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="app-topbar-popover absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="app-topbar-popover absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-4">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 topbar-meta" />
                     <input
                       type="text"
                       placeholder="Search resources, deployments..."
@@ -570,22 +570,22 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                           openSearchResult(searchResults[0]);
                         }
                       }}
-                      className="app-topbar-input w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="app-topbar-input w-full rounded-lg py-2 pl-10 pr-4 text-sm"
                       autoFocus
                     />
                   </div>
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Search Results</p>
+                    <p className="topbar-meta text-xs font-semibold uppercase">Search Results</p>
 
                     {searchTerm.trim().length < 2 ? (
-                      <div className="text-sm text-gray-400">Type at least 2 characters to search.</div>
+                      <div className="topbar-empty text-sm">Type at least 2 characters to search.</div>
                     ) : isSearching ? (
-                      <div className="flex items-center space-x-2 text-sm text-gray-400">
+                      <div className="topbar-empty flex items-center space-x-2 text-sm">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Searching...</span>
                       </div>
                     ) : searchResults.length === 0 ? (
-                      <div className="text-sm text-gray-400">No matching resources found.</div>
+                      <div className="topbar-empty text-sm">No matching resources found.</div>
                     ) : (
                       <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
                         {searchResults.map((result) => (
@@ -593,12 +593,12 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                             key={result.id}
                             type="button"
                             onClick={() => openSearchResult(result)}
-                            className="cursor-pointer w-full flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left"
+                            className="topbar-menu-item cursor-pointer w-full flex items-start space-x-3 p-3 rounded-lg transition-colors text-left"
                           >
                             <div className="mt-0.5">{getSearchIcon(result.kind)}</div>
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-gray-200 truncate">{result.title}</p>
-                              <p className="text-xs text-gray-500 truncate">{result.subtitle}</p>
+                              <p className="topbar-heading truncate text-sm font-medium">{result.title}</p>
+                              <p className="topbar-meta truncate text-xs">{result.subtitle}</p>
                             </div>
                           </button>
                         ))}
@@ -615,9 +615,9 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="cursor-pointer p-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200 relative"
+            className="topbar-icon-btn cursor-pointer p-2 rounded-lg transition-all duration-200 relative"
           >
-            <Bell className="w-5 h-5 text-gray-400" />
+            <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
             )}
@@ -629,22 +629,22 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="app-topbar-popover absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="app-topbar-popover absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-96 border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-4 border-b border-gray-800/50 flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-semibold text-gray-300">Notifications</h3>
+                  <h3 className="topbar-heading text-sm font-semibold">Notifications</h3>
                   <div className="flex items-center gap-2">
                     {notifications.length > 0 && (
                       <button
                         onClick={() => clearNotifications()}
-                        className="cursor-pointer text-xs font-medium text-gray-400 hover:text-gray-200 transition-colors"
+                        className="topbar-menu-item cursor-pointer rounded-md px-1.5 py-1 text-xs font-medium transition-colors"
                       >
                         Clear all
                       </button>
                     )}
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className="cursor-pointer p-1 rounded-md text-gray-500 hover:text-gray-200 hover:bg-gray-700/50 transition-colors"
+                      className="topbar-menu-item topbar-meta cursor-pointer rounded-md p-1 transition-colors"
                       aria-label="Close notifications"
                       title="Close"
                     >
@@ -657,7 +657,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                     notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className="p-4 border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                        className="p-4 border-b border-gray-800/50 topbar-menu-item transition-colors"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start space-x-3 flex-1 min-w-0">
@@ -673,14 +673,14 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                               }`}
                             ></div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-300">{notification.title}</p>
-                              <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
-                              <p className="text-xs text-gray-600 mt-1">{formatTime(notification.createdAt)}</p>
+                              <p className="topbar-heading text-sm font-medium">{notification.title}</p>
+                              <p className="topbar-meta mt-1 text-xs">{notification.message}</p>
+                              <p className="mt-1 text-xs text-gray-500">{formatTime(notification.createdAt)}</p>
                             </div>
                           </div>
                           <button
                             onClick={() => removeNotification(notification.id)}
-                            className="cursor-pointer p-1 rounded-md text-gray-500 hover:text-gray-200 hover:bg-gray-700/50 transition-colors"
+                            className="topbar-menu-item topbar-meta cursor-pointer rounded-md p-1 transition-colors"
                             aria-label="Dismiss notification"
                             title="Dismiss"
                           >
@@ -690,7 +690,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 text-sm text-gray-400">No notifications yet.</div>
+                    <div className="topbar-empty p-4 text-sm">No notifications yet.</div>
                   )}
                 </div>
                 <div className="p-3 bg-gray-800/30 text-center">
@@ -699,7 +699,7 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                       setShowNotifications(false);
                       navigate('/activity');
                     }}
-                    className="cursor-pointer text-xs font-medium text-cyan-300 hover:text-cyan-200"
+                    className="cursor-pointer text-xs font-medium text-blue-300 hover:text-blue-200"
                   >
                     View all notifications
                   </button>
@@ -713,16 +713,16 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+            className="topbar-icon-btn flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-md shadow-cyan-500/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 shadow-md shadow-blue-500/30">
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-medium text-gray-300">{currentUser.full_name}</p>
-              <p className="text-xs text-gray-500">{currentUser.email}</p>
+              <p className="topbar-heading text-sm font-medium">{currentUser.full_name}</p>
+              <p className="topbar-meta text-xs">{currentUser.email}</p>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4" />
           </button>
 
           <AnimatePresence>
@@ -731,26 +731,26 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="app-topbar-popover absolute right-0 mt-2 w-56 bg-[#1a1a1d] border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
+                className="app-topbar-popover absolute right-0 mt-2 w-56 border border-gray-800/50 rounded-xl shadow-2xl overflow-hidden"
               >
                 <div className="p-3 border-b border-gray-800/50">
-                  <p className="text-sm font-medium text-gray-300">{currentUser.full_name}</p>
-                  <p className="text-xs text-gray-500">{currentUser.email}</p>
+                  <p className="topbar-heading text-sm font-medium">{currentUser.full_name}</p>
+                  <p className="topbar-meta text-xs">{currentUser.email}</p>
                 </div>
                 <div className="p-2">
                   <button 
                     onClick={() => handleNavigation('/profile')}
-                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                    className="topbar-menu-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left"
                   >
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-300">Profile</span>
+                    <User className="w-4 h-4 topbar-meta" />
+                    <span className="topbar-heading text-sm">Profile</span>
                   </button>
                   <button
                     onClick={() => {
                       toggleTheme();
                       setShowUserMenu(false);
                     }}
-                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                    className="topbar-menu-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left"
                     title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
                     aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
                   >
@@ -759,29 +759,29 @@ const Topbar: React.FC<TopbarProps> = ({ onOpenSidebar }) => {
                     ) : (
                       <Moon className="w-4 h-4 text-indigo-400" />
                     )}
-                    <span className="text-sm text-gray-300">
+                    <span className="topbar-heading text-sm">
                       {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                     </span>
                   </button>
                   <button 
                     onClick={() => handleNavigation('/settings')}
-                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                    className="topbar-menu-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left"
                   >
-                    <Settings className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-300">Settings</span>
+                    <Settings className="w-4 h-4 topbar-meta" />
+                    <span className="topbar-heading text-sm">Settings</span>
                   </button>
                   <button 
                     onClick={() => handleNavigation('/help')}
-                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-800/50 rounded-lg transition-colors text-left"
+                    className="topbar-menu-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left"
                   >
-                    <HelpCircle className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-300">Help & Support</span>
+                    <HelpCircle className="w-4 h-4 topbar-meta" />
+                    <span className="topbar-heading text-sm">Help & Support</span>
                   </button>
                 </div>
                 <div className="p-2 border-t border-gray-800/50">
                   <button
                     onClick={logout}
-                    className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-red-500/10 rounded-lg transition-colors text-left"
+                    className="topbar-danger-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left"
                   >
                     <LogOut className="w-4 h-4 text-red-400" />
                     <span className="text-sm text-red-400">Logout</span>
