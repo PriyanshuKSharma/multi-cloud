@@ -165,18 +165,18 @@ const Login: React.FC = () => {
 
   const isLight = theme === 'light';
   const shellClass = isLight
-    ? 'border border-slate-200 bg-white shadow-xl shadow-slate-200/50'
-    : 'border border-slate-800 bg-slate-950 shadow-2xl shadow-black/50';
+    ? 'border border-slate-200/90 bg-white/90 shadow-[0_28px_72px_-42px_rgba(15,23,42,0.34)]'
+    : 'border border-slate-300/14 bg-slate-950/68 shadow-[0_34px_80px_-42px_rgba(2,6,23,0.92)]';
   const softClass = isLight
-    ? 'border border-slate-200 bg-slate-50'
-    : 'border border-slate-800 bg-slate-900';
+    ? 'border border-slate-200/85 bg-slate-50/92'
+    : 'border border-slate-300/12 bg-slate-900/60';
   const chipClass = isLight
-    ? 'border border-blue-200 bg-blue-50 text-blue-700'
-    : 'border border-blue-900 bg-blue-900/30 text-blue-300';
+    ? 'border border-blue-200/90 bg-blue-50 text-blue-700'
+    : 'border border-blue-400/30 bg-blue-500/12 text-blue-300';
   const logoTileClass = isLight
-    ? 'border border-slate-200 bg-white shadow-sm'
-    : 'border border-slate-800 bg-slate-900 shadow-md';
-  const dividerClass = isLight ? 'border-slate-200' : 'border-slate-800';
+    ? 'border border-slate-200/90 bg-white shadow-[0_10px_24px_-18px_rgba(15,23,42,0.3)]'
+    : 'border border-slate-300/12 bg-slate-900/70 shadow-[0_12px_24px_-16px_rgba(2,6,23,0.8)]';
+  const dividerClass = isLight ? 'border-slate-200/85' : 'border-slate-300/14';
   const textStrongClass = isLight ? 'text-slate-900' : 'text-slate-50';
   const textMutedClass = isLight ? 'text-slate-600' : 'text-slate-300';
 
@@ -185,53 +185,55 @@ const Login: React.FC = () => {
       <AuthCloudBackdrop />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-8 sm:px-6 lg:px-10">
-        <div className="w-full space-y-8">
-          <header className="flex items-center justify-between px-2">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${chipClass}`}>
-                <CloudLightning className="h-4.5 w-4.5" />
-              </span>
-              <span>
-                <span className={`block text-sm font-semibold ${textStrongClass}`}>Nebula Cloud</span>
-                <span className="block text-[11px] uppercase tracking-[0.14em] text-blue-500">Platform Access</span>
-              </span>
-            </Link>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors ${
-                  isLight
-                    ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                    : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:bg-slate-900'
-                }`}
-                aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
-                title={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
-              >
-                {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                {isLight ? 'Dark' : 'Light'}
-              </button>
-
-              <Link
-                to="/signup"
-                className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                  isLight
-                    ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
-                    : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:border-blue-300/40'
-                }`}
-              >
-                Create Account
+        <div className="w-full space-y-6">
+          <header className={`rounded-2xl px-4 py-3 backdrop-blur-md sm:px-5 ${shellClass}`}>
+            <div className="flex items-center justify-between gap-3">
+              <Link to="/" className="inline-flex items-center gap-2">
+                <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${chipClass}`}>
+                  <CloudLightning className="h-4.5 w-4.5" />
+                </span>
+                <span>
+                  <span className={`block text-sm font-semibold ${textStrongClass}`}>Nebula Cloud</span>
+                  <span className="block text-[11px] uppercase tracking-[0.14em] text-blue-500">Platform Access</span>
+                </span>
               </Link>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors ${
+                    isLight
+                      ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:bg-slate-900'
+                  }`}
+                  aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
+                  title={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
+                >
+                  {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  {isLight ? 'Dark' : 'Light'}
+                </button>
+
+                <Link
+                  to="/signup"
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+                    isLight
+                      ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
+                      : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:border-blue-300/40'
+                  }`}
+                >
+                  Create Account
+                </Link>
+              </div>
             </div>
           </header>
 
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl lg:flex-row lg:items-stretch lg:bg-transparent lg:shadow-none lg:gap-8">
+          <div className="grid w-full gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <motion.section
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
-              className={`hidden flex-1 flex-col justify-center rounded-2xl p-10 lg:flex ${shellClass}`}
+              className={`hidden rounded-[30px] p-8 backdrop-blur-md lg:flex lg:min-h-[640px] lg:flex-col ${shellClass}`}
             >
               <div className="space-y-7">
                 <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${chipClass}`}>
@@ -284,7 +286,7 @@ const Login: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className={`flex w-full max-w-md flex-col justify-center rounded-2xl sm:mx-auto lg:mx-0 ${shellClass}`}
+              className={`overflow-hidden rounded-[30px] backdrop-blur-md ${shellClass}`}
             >
               <div className={`border-b px-6 py-6 sm:px-8 ${dividerClass}`}>
                 <div className="flex items-start gap-4">
