@@ -165,8 +165,9 @@ const Login: React.FC = () => {
 
   const isLight = theme === 'light';
   const shellClass = isLight
-    ? 'border border-slate-200/90 bg-white/90 shadow-[0_28px_72px_-42px_rgba(15,23,42,0.34)]'
-    : 'border border-slate-300/14 bg-slate-950/68 shadow-[0_34px_80px_-42px_rgba(2,6,23,0.92)]';
+    ? 'border border-slate-200 bg-white/95 shadow-[0_32px_80px_-24px_rgba(15,23,42,0.12)] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-slate-50/50 to-white'
+    : 'border border-slate-700/50 bg-slate-900/90 shadow-[0_40px_100px_-24px_rgba(2,6,23,1)] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800/40 via-slate-900/80 to-slate-950';
+
   const softClass = isLight
     ? 'border border-slate-200/85 bg-slate-50/92'
     : 'border border-slate-300/12 bg-slate-900/60';
