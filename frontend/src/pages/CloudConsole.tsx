@@ -630,7 +630,7 @@ const CloudConsole: React.FC = () => {
       {!isCopilotPanelOpen && (
         <button
           onClick={() => setIsCopilotPanelOpen(true)}
-          className="cursor-pointer fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-xl border border-cyan-500/35 bg-[#0f131a] px-4 py-3 text-sm font-medium text-cyan-200 shadow-[0_12px_30px_-16px_rgba(34,211,238,0.55)] hover:bg-cyan-500/15"
+          className="copilot-fab cursor-pointer fixed bottom-6 right-6 z-[70] inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium"
         >
           <Bot className="h-4 w-4" />
           <span>Open Copilot</span>
@@ -638,7 +638,7 @@ const CloudConsole: React.FC = () => {
       )}
 
       {isCopilotPanelOpen && (
-        <div className="fixed inset-0 z-40 pointer-events-none">
+        <div className="fixed inset-0 z-[70] pointer-events-none">
           <button
             type="button"
             aria-label="Close Copilot"
@@ -647,50 +647,50 @@ const CloudConsole: React.FC = () => {
           />
 
           <aside
-            className="pointer-events-auto absolute right-0 top-0 flex h-full w-full max-w-[430px] flex-col border-l border-gray-800/70 bg-[#0d1016] shadow-[-22px_0_46px_-28px_rgba(0,0,0,0.85)]"
+            className="copilot-shell pointer-events-auto absolute right-0 top-0 flex h-full w-full max-w-[430px] flex-col"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="px-4 py-3 border-b border-gray-800/60 bg-[#10141d] flex items-center justify-between gap-3">
+            <div className="copilot-header px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-cyan-300" />
-                <span className="text-sm font-semibold text-white">Cloud Copilot</span>
+                <Bot className="w-4 h-4 text-blue-300" />
+                <span className="text-sm font-semibold topbar-heading">Cloud Copilot</span>
               </div>
               <button
                 onClick={() => setIsCopilotPanelOpen(false)}
-                className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-700/70 bg-gray-900/70 text-gray-300 hover:bg-gray-800"
+                className="copilot-close-btn cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md"
                 title="Close copilot"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="px-4 py-2 border-b border-gray-800/60 bg-[#0f131a]">
+            <div className="copilot-context-bar px-4 py-2">
               {selectedDeploymentId ? (
-                <p className="text-xs text-gray-400 font-mono">context: deployment #{selectedDeploymentId}</p>
+                <p className="copilot-context-text text-xs">Context: deployment #{selectedDeploymentId}</p>
               ) : (
-                <p className="text-xs text-gray-500">No deployment selected. Copilot will use general context.</p>
+                <p className="copilot-context-empty text-xs">No deployment selected. Copilot will use general context.</p>
               )}
             </div>
 
-            <div ref={copilotFeedRef} className="flex-1 overflow-auto p-4 space-y-3 bg-[#0b0d12]">
+            <div ref={copilotFeedRef} className="copilot-feed flex-1 overflow-auto p-4 space-y-3">
               {copilotMessages.map((message) => (
                 <div key={message.id} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
                   <div
-                    className={`max-w-[95%] rounded-xl border px-3 py-2 ${
+                    className={`copilot-msg max-w-[95%] px-3 py-2 ${
                       message.role === 'user'
-                        ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-100'
+                        ? 'copilot-msg-user'
                         : message.role === 'assistant'
-                          ? 'border-gray-700/70 bg-gray-900/80 text-gray-100'
-                          : 'border-amber-500/30 bg-amber-500/10 text-amber-200'
+                          ? 'copilot-msg-assistant'
+                          : 'copilot-msg-system'
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.text}</p>
 
                     {message.response?.findings && message.response.findings.length > 0 && (
                       <div className="mt-3 space-y-2">
-                        <p className="text-[11px] uppercase tracking-wide text-gray-400">Findings</p>
+                        <p className="copilot-section-label text-[11px] uppercase tracking-wide">Findings</p>
                         {message.response.findings.map((finding, index) => (
-                          <div key={`${message.id}-finding-${index}`} className="rounded-lg border border-gray-700/70 bg-[#0f1118] p-2">
+                          <div key={`${message.id}-finding-${index}`} className="copilot-finding rounded-lg p-2">
                             <p
                               className={`text-xs font-semibold ${
                                 finding.severity === 'error'
@@ -702,9 +702,9 @@ const CloudConsole: React.FC = () => {
                             >
                               {finding.title}
                             </p>
-                            <p className="mt-1 text-xs text-gray-300">{finding.recommendation}</p>
+                            <p className="copilot-finding-text mt-1 text-xs">{finding.recommendation}</p>
                             {finding.evidence && (
-                              <p className="mt-1 text-[11px] text-gray-500 font-mono">{finding.evidence}</p>
+                              <p className="copilot-evidence mt-1 text-[11px] font-mono">{finding.evidence}</p>
                             )}
                           </div>
                         ))}
@@ -713,7 +713,7 @@ const CloudConsole: React.FC = () => {
 
                     {message.response?.actions && message.response.actions.length > 0 && (
                       <div className="mt-3 space-y-2">
-                        <p className="text-[11px] uppercase tracking-wide text-gray-400">Suggested Actions</p>
+                        <p className="copilot-section-label text-[11px] uppercase tracking-wide">Suggested Actions</p>
                         <div className="flex flex-wrap gap-2">
                           {message.response.actions.map((action, index) => (
                             <button
@@ -721,7 +721,7 @@ const CloudConsole: React.FC = () => {
                               onClick={() => {
                                 void runCopilotAction(action);
                               }}
-                              className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/20"
+                              className="copilot-action-btn cursor-pointer inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs"
                               title={action.description}
                             >
                               <Wand2 className="h-3 w-3" />
@@ -737,25 +737,25 @@ const CloudConsole: React.FC = () => {
 
               {isCopilotLoading && (
                 <div className="flex justify-start">
-                  <div className="rounded-xl border border-gray-700/70 bg-gray-900/80 px-3 py-2 text-sm text-gray-300 inline-flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+                  <div className="copilot-loader rounded-xl px-3 py-2 text-sm inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-300" />
                     <span>Analyzing logs and context...</span>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="border-t border-gray-800/60 bg-[#0f131a] px-4 py-3 space-y-3">
-              <div className="rounded-lg border border-gray-800/70 bg-[#0e1219] p-2.5 space-y-2">
+            <div className="copilot-footer px-4 py-3 space-y-3">
+              <div className="copilot-provider-card rounded-lg p-2.5 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <label htmlFor="console-copilot-provider" className="text-[11px] uppercase tracking-wide text-gray-400">
+                  <label htmlFor="console-copilot-provider" className="copilot-field-label text-[11px] uppercase tracking-wide">
                     AI Provider
                   </label>
                   <select
                     id="console-copilot-provider"
                     value={providerPreference}
                     onChange={(event) => setProviderPreference(event.target.value as CopilotProvider)}
-                    className="rounded-md border border-gray-700/70 bg-gray-900/80 px-2 py-1 text-xs text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                    className="copilot-select rounded-md px-2 py-1 text-xs"
                   >
                     <option value="auto">Auto</option>
                     {providerOptions.map((provider) => (
@@ -767,17 +767,17 @@ const CloudConsole: React.FC = () => {
                   </select>
                 </div>
 
-                <label className="inline-flex items-center gap-2 text-xs text-gray-300">
+                <label className="inline-flex items-center gap-2 text-xs topbar-meta">
                   <input
                     type="checkbox"
                     checked={allowFallback}
                     onChange={(event) => setAllowFallback(event.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-gray-600 bg-gray-900 text-cyan-400 focus:ring-cyan-500/40"
+                    className="h-3.5 w-3.5 rounded border-gray-600 bg-gray-900 text-blue-400 focus:ring-blue-500/40"
                   />
                   <span>Allow fallback if selected provider fails</span>
                 </label>
 
-                <p className="text-[11px] text-gray-500">
+                <p className="copilot-meta text-[11px]">
                   Configured providers: {configuredProviders.length > 0 ? configuredProviders.map(formatProviderLabel).join(', ') : 'none'}
                 </p>
               </div>
@@ -789,7 +789,7 @@ const CloudConsole: React.FC = () => {
                     onClick={() => {
                       void askCopilot(prompt);
                     }}
-                    className="cursor-pointer rounded-lg border border-gray-700/70 bg-gray-900/70 px-2.5 py-1.5 text-xs text-gray-200 hover:border-cyan-500/35 hover:bg-cyan-500/10"
+                    className="copilot-quick-btn cursor-pointer rounded-lg px-2.5 py-1.5 text-xs"
                   >
                     {prompt}
                   </button>
@@ -807,12 +807,12 @@ const CloudConsole: React.FC = () => {
                   value={copilotInput}
                   onChange={(event) => setCopilotInput(event.target.value)}
                   placeholder="Ask Copilot to debug issues..."
-                  className="flex-1 rounded-lg border border-gray-700/70 bg-gray-900/80 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                  className="copilot-input flex-1 rounded-lg px-3 py-2 text-sm"
                 />
                 <button
                   type="submit"
                   disabled={isCopilotLoading || !copilotInput.trim()}
-                  className="cursor-pointer inline-flex h-10 items-center gap-1 rounded-lg border border-cyan-500/35 bg-cyan-500/15 px-3 text-sm font-medium text-cyan-200 hover:bg-cyan-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="copilot-send-btn cursor-pointer inline-flex h-10 items-center gap-1 rounded-lg px-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <SendHorizontal className="h-4 w-4" />
                   <span>Send</span>
