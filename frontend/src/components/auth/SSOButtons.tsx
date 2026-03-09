@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/axios';
+import { useTheme } from '../../context/ThemeContext';
 
 type SSOProviderId = 'google' | 'microsoft' | 'github';
 
@@ -28,7 +29,9 @@ const FALLBACK_PROVIDERS: ProviderStatus[] = [
   { id: 'github', label: 'GitHub', configured: true },
 ];
 
-const SSOButtons: React.FC<SSOButtonsProps> = ({ onProviderClick, disabled = false, accent = 'cyan' }) => {
+const SSOButtons: React.FC<SSOButtonsProps> = ({ onProviderClick, disabled = false }) => {
+  const { theme } = useTheme();
+
   const { data, isLoading } = useQuery<ProviderStatus[]>({
     queryKey: ['auth', 'sso-providers'],
     queryFn: async () => {
@@ -48,14 +51,15 @@ const SSOButtons: React.FC<SSOButtonsProps> = ({ onProviderClick, disabled = fal
 
   const providerMap = new Map((data && data.length > 0 ? data : FALLBACK_PROVIDERS).map((item) => [item.id, item]));
 
-  const ringClass =
-    accent === 'emerald'
-      ? 'hover:border-emerald-300/50 hover:bg-emerald-500/10 focus-visible:ring-emerald-300/40'
-      : 'hover:border-cyan-300/50 hover:bg-cyan-500/10 focus-visible:ring-cyan-300/40';
+  const headingClass = theme === 'light' ? 'text-slate-500' : 'text-slate-300/80';
+  const buttonClass =
+    theme === 'light'
+      ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/40 focus-visible:ring-blue-400/30'
+      : 'border border-slate-300/15 bg-slate-900/60 text-slate-200 hover:border-blue-300/50 hover:bg-blue-500/10 focus-visible:ring-blue-300/40';
 
   return (
     <div className="space-y-3">
-      <p className="text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-300/80">
+      <p className={`text-center text-xs font-semibold uppercase tracking-[0.16em] ${headingClass}`}>
         or continue with SSO
       </p>
 
@@ -72,7 +76,7 @@ const SSOButtons: React.FC<SSOButtonsProps> = ({ onProviderClick, disabled = fal
               type="button"
               onClick={() => onProviderClick(providerId)}
               disabled={isButtonDisabled}
-              className={`flex items-center justify-center gap-2 rounded-xl border border-slate-300/15 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 transition-all focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-55 ${ringClass}`}
+              className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm transition-all focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-55 ${buttonClass}`}
               title={
                 isConfigured
                   ? `Continue with ${display.label}`
@@ -86,9 +90,13 @@ const SSOButtons: React.FC<SSOButtonsProps> = ({ onProviderClick, disabled = fal
         })}
       </div>
 
-      {isLoading && <p className="text-center text-[11px] text-slate-400">Loading SSO providers...</p>}
+      {isLoading && (
+        <p className={`text-center text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+          Loading SSO providers...
+        </p>
+      )}
       {data && data.some((item) => !item.configured) && (
-        <p className="text-center text-[11px] text-amber-200/90">
+        <p className="text-center text-[11px] text-amber-500">
           Some providers are not configured yet. Add client IDs/secrets in backend env to enable them.
         </p>
       )}
