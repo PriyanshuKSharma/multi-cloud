@@ -1,12 +1,14 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
-const configuredApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const configuredApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+const normalizedConfiguredApiUrl = configuredApiUrl.replace(/\/api$/, '');
 const isBrowser = typeof window !== 'undefined';
 const isLocalBrowser =
   isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Local dev -> localhost backend. Hosted frontend -> default to same-origin /api (use platform rewrite/proxy).
-export const API_BASE_URL = configuredApiUrl || (isLocalBrowser ? 'http://localhost:8000' : '/api');
+// Local dev -> localhost backend. Hosted frontend -> same-origin /api when no explicit backend URL.
+// Normalizing '/api' suffix on configured URLs prevents accidental '/api/api/*' style mismatches.
+export const API_BASE_URL = normalizedConfiguredApiUrl || (isLocalBrowser ? 'http://localhost:8000' : '/api');
 export const AUTH_INVALID_EVENT = 'nebula:auth-invalid';
 
 const api = axios.create({

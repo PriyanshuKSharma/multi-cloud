@@ -149,6 +149,9 @@ AWS_SECRET_ACCESS_KEY=optional-for-terraform
 VITE_API_URL=https://your-backend-url.com
 ```
 
+For Vercel deployments, set `VITE_API_URL` in Project Settings -> Environment Variables.
+Use your backend origin only (for example, `https://api.example.com`) and do not append `/api`.
+
 ---
 
 ## Security Checklist
