@@ -13,7 +13,7 @@
 <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" width="110"/>
 &nbsp;&nbsp;&nbsp;
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Google_Sheets_2020_Logo.svg" width="90"/>
+<img src="https://cdn.simpleicons.org/googlesheets" width="110"/>
 
 </p>
 
