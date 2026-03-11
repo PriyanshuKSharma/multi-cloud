@@ -10,10 +10,10 @@
 <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="110"/>
 &nbsp;&nbsp;&nbsp;
 
-<img src="https://cdn.simpleicons.org/groq" width="110"/>
+<img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" width="110"/>
 &nbsp;&nbsp;&nbsp;
 
-<img src="https://cdn.simpleicons.org/googlesheets" width="110"/>
+<img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Google_Sheets_2020_Logo.svg" width="90"/>
 
 </p>
 
