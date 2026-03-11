@@ -4,13 +4,16 @@
 
 <p align="center">
 
-<img src="https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png" width="90"/>
+<img src="https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png" width="110"/>
 &nbsp;&nbsp;&nbsp;
-<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="90"/>
+
+<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="110"/>
 &nbsp;&nbsp;&nbsp;
-<img src="https://groq.com/wp-content/uploads/2024/03/groq-logo.svg" width="120"/>
+
+<img src="https://cdn.simpleicons.org/groq" width="110"/>
 &nbsp;&nbsp;&nbsp;
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Sheets_2020_Logo.svg/768px-Google_Sheets_2020_Logo.svg.png" width="90"/>
+
+<img src="https://cdn.simpleicons.org/googlesheets" width="110"/>
 
 </p>
 
