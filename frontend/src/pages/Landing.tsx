@@ -311,7 +311,7 @@ const Landing: React.FC = () => {
         </main>
 
         <footer className={`pb-2 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-          Nebula Multi-Cloud Platform | AWS | Azure | GCP
+          © 2026 Nebula Cloud Platform. All infrastructure managed across AWS, Azure, and GCP.
         </footer>
       </div>
     </div>
