@@ -66,16 +66,19 @@ const joinReasons = [
 const teamMembers = [
   {
     name: 'Priyanshu K. Sharma',
+    college: 'Ajeenkya D Y Patil University',
     role: 'Product, Platform & Infrastructure Lead',
     focus: 'Platform architecture, cloud systems, provisioning automation, deployment reliability, policy integration and long-range product direction.',
   },
   {
     name: 'Vaishnavi Jadhav',
+    college: 'Ajeenkya D Y Patil University',
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
   },
   {
     name: 'Vaibhav Gulage',
+    college: 'Ajeenkya D Y Patil University',
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
   },
@@ -284,6 +287,9 @@ const Landing: React.FC = () => {
                   className={`border-l-2 border-blue-500/60 pl-4`}
                 >
                   <p className={`text-lg font-semibold ${textStrongClass}`}>{member.name}</p>
+                  <p className={`text-[11px] font-medium tracking-wide uppercase mb-1.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {member.college}
+                  </p>
                   <p className="mt-1 text-sm font-medium text-blue-500">{member.role}</p>
                   <p className={`mt-2 text-sm ${textMutedClass}`}>{member.focus}</p>
                 </motion.article>
@@ -312,6 +318,8 @@ const Landing: React.FC = () => {
 
         <footer className={`pb-2 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
           © 2026 Nebula Cloud Platform. All infrastructure managed across AWS, Azure, and GCP.
+          <br />
+          Built for Enterprise Reliability.
         </footer>
       </div>
     </div>
