@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -12,7 +11,10 @@ import {
   Star
 } from 'lucide-react';
 import PageHero from '../components/ui/PageHero';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import { subscriptionPlans } from '../data/subscriptionPlans';
+import { getSubscriptionPlanLabel, normalizeSubscriptionPlan } from '../data/subscriptionLimits';
 
 const planIcons = {
   basic: <Rocket className="w-6 h-6" />,
@@ -22,11 +24,34 @@ const planIcons = {
 
 const Subscriptions: React.FC = () => {
   const [currency, setCurrency] = useState<'usd' | 'inr'>('usd');
+  const { user, refreshUser } = useAuth();
+  const currentPlanId = normalizeSubscriptionPlan(user?.subscription_plan);
+  const currentPlanLabel = getSubscriptionPlanLabel(user?.subscription_plan);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [switchingPlanId, setSwitchingPlanId] = useState<string | null>(null);
+
+  const switchPlan = async (planId: string) => {
+    setStatusMessage(null);
+    setErrorMessage(null);
+    setSwitchingPlanId(planId);
+
+    try {
+      await api.post('/auth/subscription-plan', { subscription_plan: planId });
+      await refreshUser();
+      setStatusMessage(`Active subscription updated to ${getSubscriptionPlanLabel(planId)}.`);
+    } catch (err: any) {
+      setStatusMessage(null);
+      setErrorMessage(err?.response?.data?.detail || 'Failed to update subscription plan.');
+    } finally {
+      setSwitchingPlanId(null);
+    }
+  };
 
   return (
 
 
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="w-full space-y-8 p-6 pb-12 lg:p-8 xl:p-10">
       <PageHero
         id="subscriptions"
         tone="indigo"
@@ -35,6 +60,9 @@ const Subscriptions: React.FC = () => {
         title="Choose Your Plan"
         titleIcon={<Globe className="w-8 h-8 text-indigo-400" />}
         description="Select the perfect subscription for your cloud infrastructure needs. Scale as you grow."
+        chips={[
+          { label: `Current plan: ${currentPlanLabel}`, tone: 'indigo' },
+        ]}
         actions={
           <div className="flex items-center bg-gray-900/40 p-1 rounded-xl border border-gray-800/50 backdrop-blur-sm">
             <button
@@ -65,29 +93,52 @@ const Subscriptions: React.FC = () => {
           actions: [
             'toggle between USD and INR pricing',
             'compare feature sets across plans',
-            'upgrade or downgrade anytime from billing settings',
+            'upgrade or downgrade anytime from this page',
           ],
         }}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-        {subscriptionPlans.map((plan, index) => (
-          <motion.div
-            key={plan.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.4 }}
-            className={`relative flex flex-col rounded-3xl border p-8 transition-all hover:translate-y-[-4px] ${
-              plan.popular 
-                ? 'border-indigo-500/50 bg-[#0f0f13] shadow-2xl shadow-indigo-500/10' 
-                : 'border-gray-800/50 bg-[#0c0c0e]'
-            }`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg">
-                Most Popular
-              </div>
-            )}
+      {statusMessage ? (
+        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          {statusMessage}
+        </div>
+      ) : null}
+      {errorMessage ? (
+        <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {errorMessage}
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {subscriptionPlans.map((plan, index) => {
+          const isCurrent = plan.id === currentPlanId;
+          const isSwitching = switchingPlanId === plan.id;
+          const isBusy = switchingPlanId !== null;
+          const ctaLabel = isCurrent ? 'Current Plan' : `Switch to ${plan.name}`;
+
+          return (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              className={`relative flex flex-col rounded-3xl border p-8 transition-all ${
+                isCurrent
+                  ? 'border-emerald-500/55 bg-[#0f0f13] shadow-2xl shadow-emerald-500/10'
+                  : plan.popular
+                    ? 'border-indigo-500/50 bg-[#0f0f13] shadow-2xl shadow-indigo-500/10'
+                    : 'border-gray-800/50 bg-[#0c0c0e] hover:translate-y-[-4px]'
+              }`}
+            >
+              {isCurrent ? (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg">
+                  Current
+                </div>
+              ) : plan.popular ? (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg">
+                  Most Popular
+                </div>
+              ) : null}
 
             <div className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-6 ${
               plan.tone === 'blue' ? 'bg-blue-500/10 text-blue-400 border border-blue-400/20' :
@@ -108,13 +159,20 @@ const Subscriptions: React.FC = () => {
               <span className="text-gray-500 ml-1">/month</span>
             </div>
 
-            <button className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 mb-8 ${
-              plan.popular 
-                ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20' 
-                : 'bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20'
-            }`}>
+            <button
+              type="button"
+              onClick={() => switchPlan(plan.id)}
+              disabled={isCurrent || isBusy}
+              className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 mb-8 disabled:cursor-not-allowed disabled:opacity-70 ${
+                isCurrent
+                  ? 'bg-emerald-600/30 text-emerald-100 border border-emerald-500/25'
+                  : plan.popular
+                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20'
+                    : 'bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20'
+              }`}
+            >
               <CreditCard className="w-4 h-4" />
-              {plan.price.usd === 0 ? 'Get Started' : 'Subscribe Now'}
+              {isSwitching ? 'Updating…' : ctaLabel}
             </button>
 
             <div className="space-y-4 flex-1">
@@ -131,7 +189,8 @@ const Subscriptions: React.FC = () => {
               ))}
             </div>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="mt-16 bg-[#0c0c0e] border border-gray-800/50 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8">
