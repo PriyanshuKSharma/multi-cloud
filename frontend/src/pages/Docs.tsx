@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Book,
@@ -23,16 +24,53 @@ import PageHero from '../components/ui/PageHero';
 
 const Docs: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
+  const navigate = useNavigate();
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
   const swaggerUrl = `${apiBaseUrl}/docs`;
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: <Book className="w-4 h-4" /> },
-    { id: 'quickstart', name: 'User Guide', icon: <Zap className="w-4 h-4" /> },
-    { id: 'architecture', name: 'Architecture', icon: <Layers className="w-4 h-4" /> },
-    { id: 'backend', name: 'Backend', icon: <Server className="w-4 h-4" /> },
-    { id: 'frontend', name: 'Frontend', icon: <Globe className="w-4 h-4" /> },
-    { id: 'api', name: 'API Reference', icon: <Code className="w-4 h-4" /> },
+    {
+      id: 'overview',
+      name: 'Overview',
+      description: 'What Nebula is and how it works.',
+      icon: <Book className="w-4 h-4" />,
+    },
+    {
+      id: 'quickstart',
+      name: 'User Guide',
+      description: 'Step-by-step operator workflows.',
+      icon: <Zap className="w-4 h-4" />,
+    },
+    {
+      id: 'architecture',
+      name: 'Architecture',
+      description: 'System design, core flows, and stack.',
+      icon: <Layers className="w-4 h-4" />,
+    },
+    {
+      id: 'backend',
+      name: 'Backend',
+      description: 'FastAPI, Celery, storage, and Terraform.',
+      icon: <Server className="w-4 h-4" />,
+    },
+    {
+      id: 'frontend',
+      name: 'Frontend',
+      description: 'React UI stack and client-side patterns.',
+      icon: <Globe className="w-4 h-4" />,
+    },
+    {
+      id: 'api',
+      name: 'API Reference',
+      description: 'Endpoints, auth model, and Swagger.',
+      icon: <Code className="w-4 h-4" />,
+    },
+    {
+      id: 'legal',
+      name: 'License',
+      description: 'Proprietary terms and usage boundaries.',
+      icon: <Lock className="w-4 h-4" />,
+    },
   ];
 
   const variants = {
@@ -42,7 +80,7 @@ const Docs: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="w-full space-y-8 p-6 pb-12 lg:p-8 xl:p-10">
       <PageHero
         id="documentation"
         tone="blue"
@@ -54,42 +92,157 @@ const Docs: React.FC = () => {
         chips={[
           { label: `${tabs.length} sections`, tone: 'blue' },
           { label: 'Frontend + Backend + API', tone: 'cyan' },
+          { label: 'Proprietary', tone: 'default' },
         ]}
+        guide={{
+          title: 'About Documentation',
+          purpose: 'Documentation centralizes product guidance, architecture notes, and the API reference needed to operate the platform safely.',
+          actions: [
+            'navigate sections from the left rail',
+            'open Swagger for endpoint details',
+            'review licensing and usage boundaries',
+          ],
+        }}
         actions={
-          <>
-            <a href="https://github.com/PriyanshuKSharma/multi-cloud" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700">
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="https://github.com/PriyanshuKSharma/multi-cloud"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-700/70 bg-slate-900/75 px-4 py-2.5 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-800/85"
+            >
               <Github className="w-4 h-4" />
-              <span>GitHub Repo</span>
+              <span>GitHub</span>
             </a>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20">
+            <button
+              type="button"
+              onClick={() => navigate('/help')}
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:from-blue-400 hover:to-indigo-400"
+            >
               <LifeBuoy className="w-4 h-4" />
               <span>Support</span>
             </button>
-          </>
+          </div>
         }
       />
 
-      {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-5 py-2.5 rounded-lg transition-all font-medium whitespace-nowrap border ${
-              activeTab === tab.id
-                ? 'bg-blue-500/10 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
-                : 'bg-gray-900/50 text-gray-400 border-gray-800 hover:text-white hover:bg-gray-800 hover:border-gray-700'
-            }`}
-          >
-            {tab.icon}
-            <span>{tab.name}</span>
-          </button>
-        ))}
-      </div>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,2.05fr)]">
+        <aside className="space-y-6">
+          <div className="sticky top-6 space-y-6">
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Sections</p>
+              <div className="mt-4 space-y-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+                      activeTab === tab.id
+                        ? 'border-blue-500/45 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.12)]'
+                        : 'border-gray-800/80 bg-gray-900/40 hover:border-gray-700 hover:bg-gray-800/55'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`mt-0.5 rounded-xl border p-2 ${
+                          activeTab === tab.id
+                            ? 'border-blue-500/30 bg-blue-500/10 text-blue-200'
+                            : 'border-gray-800 bg-black/15 text-gray-400'
+                        }`}
+                      >
+                        {tab.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">{tab.name}</p>
+                        <p className="mt-1 text-xs text-gray-400">{tab.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      {/* Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3">
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <h3 className="font-semibold text-white mb-4 flex items-center">
+                <Book className="w-4 h-4 mr-2 text-blue-400" />
+                Quick Links
+              </h3>
+              <div className="space-y-2 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('quickstart')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>Installation Guide</span>
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('api')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>API Reference</span>
+                  <ExternalLink className="h-4 w-4 text-blue-300" />
+                </button>
+                <a
+                  href={swaggerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>Open Swagger UI</span>
+                  <ExternalLink className="h-4 w-4 text-green-300" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('legal')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>License & Notice</span>
+                  <Lock className="h-4 w-4 text-purple-300" />
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <Lock className="w-4 h-4 mr-2 text-purple-400" />
+                License
+              </h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                This software is proprietary. Usage is restricted to authorized access only.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('legal')}
+                className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-gray-700/60 bg-gray-900/40 px-4 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-gray-800/70"
+              >
+                View terms
+                <ExternalLink className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-[28px] p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-20">
+                <MessageSquare className="w-16 h-16 text-blue-400" />
+              </div>
+              <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
+              <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed">
+                Open the Help page for FAQs, API references, and support options.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/help')}
+                className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors relative z-10"
+              >
+                Open Help
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -98,7 +251,7 @@ const Docs: React.FC = () => {
               exit="exit"
               variants={variants}
               transition={{ duration: 0.2 }}
-              className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-8 min-h-[600px]"
+              className="bg-[#0f0f11] border border-gray-800/50 rounded-[28px] p-7 xl:p-8 min-h-[650px]"
             >
               {/* OVERVIEW */}
               {activeTab === 'overview' && (
@@ -441,48 +594,54 @@ const Docs: React.FC = () => {
                    </div>
                 </div>
               )}
+
+              {/* LEGAL */}
+              {activeTab === 'legal' && (
+                <div className="space-y-8">
+                  <header>
+                    <h2 className="text-2xl font-bold text-white mb-2">License & Intellectual Property</h2>
+                    <p className="text-gray-400">
+                      Proprietary terms for using and distributing this project.
+                    </p>
+                  </header>
+
+                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
+                    <p className="text-sm text-amber-100 leading-relaxed">
+                      <strong className="text-white">Summary:</strong> This software is proprietary and all rights are reserved. Do not copy, redistribute, or reuse code or materials without prior written permission.
+                    </p>
+                  </div>
+
+                  <section className="space-y-3">
+                    <h3 className="text-lg font-semibold text-white">LICENSE</h3>
+                    <pre className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4 text-xs leading-relaxed text-gray-200 whitespace-pre-wrap">
+{`Copyright (c) 2026 PriyanshuKSharma. All Rights Reserved.
+
+NOTICE: All information contained herein is, and remains
+the property of PriyanshuKSharma. The intellectual and technical concepts contained
+herein are proprietary to PriyanshuKSharma and may be covered by patents,
+patents in process, and are protected by trade secret or copyright law.
+Dissemination of this information or reproduction of this material
+is strictly forbidden unless prior written permission is obtained
+from PriyanshuKSharma.`}
+                    </pre>
+                  </section>
+
+                  <section className="space-y-3">
+                    <h3 className="text-lg font-semibold text-white">NOTICE</h3>
+                    <pre className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4 text-xs leading-relaxed text-gray-200 whitespace-pre-wrap">
+{`Copyright (c) 2026 PriyanshuKSharma. All Rights Reserved.
+
+NOTICE: All information contained herein is, and remains the property of PriyanshuKSharma.
+The intellectual and technical concepts contained herein are proprietary to PriyanshuKSharma
+and may be covered by patents, patents in process, and are protected by trade secret or
+copyright law. Dissemination of this information or reproduction of this material is strictly
+forbidden unless prior written permission is obtained from PriyanshuKSharma.`}
+                    </pre>
+                  </section>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Sidebar Widgets */}
-        <div className="space-y-6">
-          <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
-            <h3 className="font-semibold text-white mb-4 flex items-center">
-              <Book className="w-4 h-4 mr-2 text-blue-400" />
-              Quick Resources
-            </h3>
-            <ul className="space-y-3 text-sm">
-                <li>
-                  <a href="#" className="flex items-center text-gray-400 hover:text-white transition-colors">
-                    <CheckCircle className="w-3 h-3 mr-2 text-green-500" /> Installation Guide
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="flex items-center text-gray-400 hover:text-white transition-colors">
-                    <CheckCircle className="w-3 h-3 mr-2 text-purple-500" /> Contributing
-                  </a>
-                </li>
-                <li>
-                   <a href="#" className="flex items-center text-gray-400 hover:text-white transition-colors">
-                    <CheckCircle className="w-3 h-3 mr-2 text-orange-500" /> Changelog
-                  </a>
-                </li>
-            </ul>
-          </div>
-
-           <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20">
-               <MessageSquare className="w-16 h-16 text-blue-400" />
-            </div>
-            <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
-            <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed">
-              Our engineering team is available 24/7 to assist with integration issues.
-            </p>
-            <button className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors relative z-10">
-              Contact Support
-            </button>
-          </div>
         </div>
       </div>
     </div>
