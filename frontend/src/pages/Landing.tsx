@@ -72,6 +72,27 @@ const joinReasons = [
   },
 ];
 
+const footerSections = [
+  {
+    title: 'Platform',
+    links: [
+      { label: 'Features', type: 'section', target: 'features' },
+      { label: 'Pricing', type: 'section', target: 'pricing' },
+      { label: 'Testimonials', type: 'section', target: 'team' },
+      { label: 'FAQ', type: 'route', target: '/help' },
+    ],
+  },
+  {
+    title: 'Legal & Support',
+    links: [
+      { label: 'Privacy Policy', type: 'route', target: '/docs' },
+      { label: 'Terms of Service', type: 'route', target: '/docs' },
+      { label: 'Help Center', type: 'route', target: '/help' },
+      { label: 'Contact Us', type: 'route', target: '/help' },
+    ],
+  },
+] as const;
+
 const teamMembers = [
   {
     name: 'Priyanshu K. Sharma',
@@ -270,7 +291,7 @@ const Landing: React.FC = () => {
             </motion.div>
           </section>
 
-          <section className={`border-b py-14 ${dividerClass}`}>
+          <section id="features" className={`border-b py-14 ${dividerClass}`}>
             <div className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Core Capabilities</p>
               <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Designed for serious cloud operations</h2>
@@ -321,7 +342,7 @@ const Landing: React.FC = () => {
             </div>
           </section>
 
-          <section className={`border-b py-14 ${dividerClass}`}>
+          <section id="team" className={`border-b py-14 ${dividerClass}`}>
             <div className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Team</p>
               <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Built by a 3-member engineering group</h2>
@@ -436,7 +457,7 @@ const Landing: React.FC = () => {
                 </div>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
-                    <span className={`text-4xl font-bold ${textStrongClass}`}>$49</span>
+                    <span className={`text-4xl font-bold ${textStrongClass}`}>$4</span>
                     <span className={`text-sm ${textMutedClass}`}>/month</span>
                   </div>
                   <p className={`mt-2 text-xs ${textMutedClass}`}>Everything you need for scaling ops.</p>
@@ -467,7 +488,7 @@ const Landing: React.FC = () => {
                 </div>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
-                    <span className={`text-4xl font-bold ${textStrongClass}`}>$199</span>
+                    <span className={`text-4xl font-bold ${textStrongClass}`}>$19</span>
                     <span className={`text-sm ${textMutedClass}`}>/month</span>
                   </div>
                   <p className={`mt-2 text-xs ${textMutedClass}`}>Security and control for global orgs.</p>
@@ -507,10 +528,52 @@ const Landing: React.FC = () => {
           </section>
         </main>
 
-        <footer className={`pb-2 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-          © 2026 Nebula Cloud Platform. All infrastructure managed across AWS, Azure, and GCP.
-          <br />
-          Built for Enterprise Reliability.
+        <footer className={`border-t pt-8 ${dividerClass}`}>
+          <div className="grid gap-8 pb-6 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
+            <div className="space-y-2">
+              <p className={`text-sm font-semibold ${textStrongClass}`}>Nebula Cloud Platform</p>
+              <p className={`max-w-md text-sm leading-relaxed ${textMutedClass}`}>
+                Enterprise multi-cloud operations across AWS, Azure, and GCP, built for reliable delivery and governed scale.
+              </p>
+              <div className={`pt-2 text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                © 2026 Nebula Cloud Platform. All rights are reserved.
+              </div>
+            </div>
+
+            {footerSections.map((group) => (
+              <div key={group.title}>
+                <p className={`text-sm font-semibold ${textStrongClass}`}>{group.title}</p>
+                <div className="mt-3 space-y-2.5">
+                  {group.links.map((item) =>
+                    item.type === 'section' ? (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => scrollToSection(item.target)}
+                        className={`block text-sm transition-colors ${isLight ? 'text-slate-600 hover:text-blue-600' : 'text-slate-400 hover:text-blue-400'}`}
+                      >
+                        {item.label}
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.label}
+                        to={item.target}
+                        className={`block text-sm transition-colors ${isLight ? 'text-slate-600 hover:text-blue-600' : 'text-slate-400 hover:text-blue-400'}`}
+                      >
+                        {item.label}
+                      </Link>
+                    )
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className={`pb-2 text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            All infrastructure managed across AWS, Azure, and GCP.
+            <br />
+            Built for Enterprise Reliability.
+          </div>
         </footer>
       </div>
     </div>
