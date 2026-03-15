@@ -27,7 +27,7 @@ const sections = [
 const PrivacyPolicy: React.FC = () => {
   const { theme } = useTheme();
   const isLight = theme === 'light';
-  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'support@cloudorch.com';
+  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'priyanshu17ks@gmail.com';
 
   return (
     <PublicInfoLayout
