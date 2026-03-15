@@ -11,7 +11,9 @@ import {
   Network,
   Rocket,
   DollarSign,
+  CreditCard,
   Cloud,
+
   Activity,
   FileCode,
   Terminal,
@@ -115,6 +117,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
       path: '/billing',
       icon: <DollarSign className="h-4.5 w-4.5" />,
     },
+    {
+      name: 'Subscriptions',
+      path: '/subscriptions',
+      icon: <CreditCard className="h-4.5 w-4.5" />,
+    },
+
     {
       name: 'Cloud Accounts',
       path: '/accounts',
