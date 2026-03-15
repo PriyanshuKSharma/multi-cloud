@@ -55,7 +55,7 @@ def parse_subscription_plan(value: object) -> str:
     normalized = str(value or "").strip().lower()
     if normalized in _PLAN_ALIASES:
         return _PLAN_ALIASES[normalized]
-    allowed = ", ".join(sorted(_PLAN_LIMITS.keys()))
+    allowed = ", ".join(_PLAN_LIMITS.keys())
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=f"subscription_plan must be one of: {allowed}",
