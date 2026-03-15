@@ -40,6 +40,7 @@ def ensure_user_columns():
         "two_factor_secret": "VARCHAR",
         "sso_provider": "VARCHAR",
         "sso_id": "VARCHAR",
+        "subscription_plan": "VARCHAR DEFAULT 'basic'",
         "last_password_change": "TIMESTAMP",
     }
 
@@ -47,6 +48,13 @@ def ensure_user_columns():
         for column, ddl in column_defs.items():
             if column not in existing:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {column} {ddl}"))
+
+        conn.execute(
+            text(
+                "UPDATE users SET subscription_plan = 'basic' "
+                "WHERE subscription_plan IS NULL OR TRIM(subscription_plan) = '' OR LOWER(subscription_plan) = 'starter'"
+            )
+        )
         
         # Make hashed_password nullable for SSO users
         if dialect == "postgresql":
