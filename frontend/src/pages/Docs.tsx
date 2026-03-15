@@ -445,7 +445,8 @@ VITE_API_URL=http://localhost:8000
 VITE_SUPPORT_EMAIL=your-support@example.com
 
 # Backend (example)
-DATABASE_URL=postgresql://user:password@db:5432/multicloud
+DATABASE_URL=postgresql://user:
+  password@db:5432/multicloud
 REDIS_URL=redis://redis:6379/0
 SECRET_KEY=change-me-to-a-long-random-secret`}
                       </pre>
