@@ -284,8 +284,8 @@ const PageHero: React.FC<PageHeroProps> = ({
   guide,
   actions,
   children,
-  collapsible = false,
-  defaultCollapsed = false,
+  collapsible = true,
+  defaultCollapsed = true,
 }) => {
   const { theme } = useTheme();
   const isLight = theme === 'light';
@@ -375,17 +375,15 @@ const PageHero: React.FC<PageHeroProps> = ({
               ) : null}
               {guide ? (
                 <div
-                  className={`rounded-2xl border p-4 sm:p-5 ${
+                  className={`pt-4 border-t ${
                     isLight
-                      ? 'border-slate-200/85 bg-white/75'
-                      : 'border-white/10 bg-slate-950/35'
+                      ? 'border-slate-200/70'
+                      : 'border-white/10'
                   }`}
                 >
-                  <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${toneStyle.title}`}>
-                    {guide.title}
-                  </p>
+                  <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${toneStyle.description}`}>{guide.title}</p>
                   <p className={`mt-2 text-sm leading-relaxed ${toneStyle.description}`}>{guide.purpose}</p>
-                  <p className={`mt-3 text-sm leading-relaxed ${toneStyle.description}`}>
+                  <p className={`mt-2 text-sm leading-relaxed ${toneStyle.description}`}>
                     <span className={`font-semibold ${toneStyle.title}`}>You can:</span> {guide.actions.join(' • ')}
                   </p>
                 </div>
