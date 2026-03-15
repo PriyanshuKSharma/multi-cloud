@@ -22,6 +22,7 @@ import {
   Github
 } from 'lucide-react';
 import PageHero from '../components/ui/PageHero';
+import ServiceGuidePicker from '../components/docs/ServiceGuidePicker';
 import {
   defaultDocsServiceGuideId,
   docsServiceGuides,
@@ -31,9 +32,15 @@ import {
 const Docs: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
   const navigate = useNavigate();
-  const [selectedServiceGuideId, setSelectedServiceGuideId] = React.useState<string>(
-    defaultDocsServiceGuideId
-  );
+  const [selectedServiceGuideId, setSelectedServiceGuideId] = React.useState<string>(() => {
+    if (typeof window === 'undefined') return defaultDocsServiceGuideId;
+    try {
+      const persisted = window.localStorage.getItem('docs:user-guide:selected');
+      return persisted ? persisted : defaultDocsServiceGuideId;
+    } catch {
+      return defaultDocsServiceGuideId;
+    }
+  });
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
   const swaggerUrl = `${apiBaseUrl}/docs`;
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'priyanshu17ks@gmail.com';
@@ -42,6 +49,19 @@ const Docs: React.FC = () => {
     [selectedServiceGuideId]
   );
   const SelectedServiceIcon = selectedServiceGuide.icon;
+
+  React.useEffect(() => {
+    if (selectedServiceGuide.id !== selectedServiceGuideId) {
+      setSelectedServiceGuideId(selectedServiceGuide.id);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('docs:user-guide:selected', selectedServiceGuideId);
+    } catch {
+      // ignore persistence issues
+    }
+  }, [selectedServiceGuide.id, selectedServiceGuideId]);
 
   const goToTab = (tabId: string) => {
     setActiveTab(tabId);
@@ -496,30 +516,25 @@ SECRET_KEY=change-me-to-a-long-random-secret`}
                      </p>
                   </header>
 
-                  <div className="space-y-7">
-                    <div className="flex flex-col gap-4 rounded-2xl border border-gray-800/70 bg-gray-950/30 p-6 lg:flex-row lg:items-end lg:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Select Service</p>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Choose what you want to run. The guide updates instantly with detailed steps.
-                        </p>
-                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                          <select
-                            value={selectedServiceGuide.id}
-                            onChange={(event) => setSelectedServiceGuideId(event.target.value)}
-                            className="w-full rounded-2xl border border-gray-800/80 bg-gray-900/60 px-4 py-3 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 sm:max-w-[420px]"
-                          >
-                            {docsServiceGuides.map((guide) => (
-                              <option key={guide.id} value={guide.id}>
-                                {guide.name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <div className="flex flex-wrap gap-3">
-                            {selectedServiceGuide.route ? (
-                              <button
-                                type="button"
+	                  <div className="space-y-7">
+	                    <div className="flex flex-col gap-4 rounded-2xl border border-gray-800/70 bg-gray-950/30 p-6 lg:flex-row lg:items-end lg:justify-between">
+	                      <div className="min-w-0">
+	                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Select Service</p>
+	                        <p className="mt-2 text-sm text-gray-400">
+	                          Choose what you want to run. Use the launcher to search fast and switch services instantly.
+	                        </p>
+	                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+	                          <ServiceGuidePicker
+	                            value={selectedServiceGuide.id}
+	                            guides={docsServiceGuides}
+	                            onChange={(nextId) => setSelectedServiceGuideId(nextId)}
+	                            hotkeyEnabled
+	                          />
+	
+	                          <div className="flex flex-wrap gap-3">
+	                            {selectedServiceGuide.route ? (
+	                              <button
+	                                type="button"
                                 onClick={() => navigate(selectedServiceGuide.route!)}
                                 className="inline-flex items-center gap-2 rounded-2xl border border-gray-700/70 bg-gray-900/50 px-4 py-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-800/70"
                               >
