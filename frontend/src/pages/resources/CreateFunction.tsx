@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import { extractProvisioningErrorMessage } from '../../utils/terraformOutput';
 import {
@@ -356,6 +355,16 @@ const CreateFunctionPage: React.FC = () => {
           { label: `runtime: ${runtime}`, tone: 'blue' },
           { label: `trigger: ${effectiveTriggerType}`, tone: 'purple' },
         ]}
+        guide={{
+          title: 'About Create Function',
+          purpose: 'This flow creates provider-native serverless runtimes with unified configuration controls.',
+          actions: [
+            'select cloud provider and deployment region',
+            'choose runtime with timeout and memory limits',
+            'configure trigger, actions, and event destinations',
+            'provision a function deployment record and monitor status',
+          ],
+        }}
         actions={
           <button
             onClick={() => navigate('/resources/functions')}
@@ -365,17 +374,6 @@ const CreateFunctionPage: React.FC = () => {
             Back to Functions
           </button>
         }
-      />
-
-      <PageGuide
-        title="About Create Function"
-        purpose="This flow creates provider-native serverless runtimes with unified configuration controls."
-        actions={[
-          'select cloud provider and deployment region',
-          'choose runtime with timeout and memory limits',
-          'configure trigger, actions, and event destinations',
-          'provision a function deployment record and monitor status',
-        ]}
       />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">

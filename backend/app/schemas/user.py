@@ -42,6 +42,10 @@ class UserProfileUpdate(BaseModel):
     phone_number: Optional[str] = None
 
 
+class SubscriptionPlanUpdate(BaseModel):
+    subscription_plan: str
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str

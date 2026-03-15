@@ -1,7 +1,6 @@
 import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import {
   FileCode,
@@ -398,17 +397,16 @@ const BlueprintsPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Blueprints"
-        purpose="Blueprints are reusable templates for common infrastructure setups."
-        actions={[
-          'create standardized templates for VM, storage, and network stacks',
-          'clone existing templates for quick variations',
-          'track usage counts when teams deploy from a blueprint',
-          'delete outdated templates to keep the catalog clean',
-        ]}
+        guide={{
+          title: 'About Blueprints',
+          purpose: 'Blueprints are reusable templates for common infrastructure setups.',
+          actions: [
+            'create standardized templates for VM, storage, and network stacks',
+            'clone existing templates for quick variations',
+            'track usage counts when teams deploy from a blueprint',
+            'delete outdated templates to keep the catalog clean',
+          ],
+        }}
       />
 
       {showCreate && (

@@ -3,7 +3,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useNotifications } from '../context/NotificationContext';
@@ -186,6 +185,15 @@ const CloudAccountsPage: React.FC = () => {
           { label: `${accounts?.length ?? 0} connected`, tone: 'indigo' },
           { label: `${(accounts ?? []).filter((item) => item.status.toLowerCase() === 'active').length} active`, tone: 'emerald' },
         ]}
+        guide={{
+          title: 'About Cloud Accounts',
+          purpose: 'Cloud accounts store and validate provider credentials used for inventory sync and provisioning.',
+          actions: [
+            'review connected AWS, Azure, and GCP accounts',
+            'check account status and last sync recency',
+            'add or remove provider credentials',
+          ],
+        }}
         actions={
           <>
             <button
@@ -207,16 +215,6 @@ const CloudAccountsPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Cloud Accounts"
-        purpose="Cloud accounts store and validate provider credentials used for inventory sync and provisioning."
-        actions={[
-          'review connected AWS, Azure, and GCP accounts',
-          'check account status and last sync recency',
-          'add or remove provider credentials',
-        ]}
       />
 
       {actionError && (

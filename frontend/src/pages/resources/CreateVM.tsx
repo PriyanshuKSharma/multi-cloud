@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import ProviderIcon from '../../components/ui/ProviderIcon';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import { extractProvisioningErrorMessage } from '../../utils/terraformOutput';
 import {
@@ -313,6 +312,15 @@ const CreateVMPage: React.FC = () => {
           { label: `provider: ${formData.provider.toUpperCase()}`, tone: 'blue' },
           { label: `region: ${formData.configuration.region}`, tone: 'cyan' },
         ]}
+        guide={{
+          title: 'About Create VM',
+          purpose: 'Use this form to define provider-specific VM configuration and launch compute through the provisioning engine.',
+          actions: [
+            'select provider, region, and instance type',
+            'configure networking and machine access settings',
+            'submit to create a managed VM resource',
+          ],
+        }}
         actions={
           <Link
             to="/resources/vms"
@@ -322,16 +330,6 @@ const CreateVMPage: React.FC = () => {
             <span>Back to VMs</span>
           </Link>
         }
-      />
-
-      <PageGuide
-        title="About Create VM"
-        purpose="Use this form to define provider-specific VM configuration and launch compute through the provisioning engine."
-        actions={[
-          'select provider, region, and instance type',
-          'configure networking and machine access settings',
-          'submit to create a managed VM resource',
-        ]}
       />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">

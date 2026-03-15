@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 import StatusBadge from '../components/ui/StatusBadge';
 import ProviderIcon from '../components/ui/ProviderIcon';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import ResourceLogs from '../components/ResourceLogs';
@@ -190,6 +189,15 @@ const DeploymentsPage: React.FC = () => {
           { label: `${deployments?.length ?? 0} jobs`, tone: 'orange' },
           { label: `${(deployments ?? []).filter((item) => isFailedDeployment(item.status)).length} failed`, tone: 'pink' },
         ]}
+        guide={{
+          title: 'About Deployments',
+          purpose: 'Deployments track infrastructure changes executed by Terraform and orchestration workers.',
+          actions: [
+            'monitor running and completed deployment jobs',
+            'inspect status by resource and provider',
+            'open logs, drill into each resource, and delete failed provisioning records',
+          ],
+        }}
         actions={
           <button
             onClick={() => refetch()}
@@ -199,16 +207,6 @@ const DeploymentsPage: React.FC = () => {
             <span className="text-sm font-medium">Refresh</span>
           </button>
         }
-      />
-
-      <PageGuide
-        title="About Deployments"
-        purpose="Deployments track infrastructure changes executed by Terraform and orchestration workers."
-        actions={[
-          'monitor running and completed deployment jobs',
-          'inspect status by resource and provider',
-          'open logs, drill into each resource, and delete failed provisioning records',
-        ]}
       />
 
       {deleteError && (

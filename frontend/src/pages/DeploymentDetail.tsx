@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { formatTerraformOutput, normalizeLogText } from '../utils/terraformOutput';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import TextInputDialog from '../components/ui/TextInputDialog';
 import {
@@ -480,6 +479,15 @@ const DeploymentDetailPage: React.FC = () => {
           { label: deployment.status, tone: deployment.status.toLowerCase() === 'failed' ? 'pink' : 'emerald' },
           { label: `${deployment.log_line_count} log lines`, tone: 'cyan' },
         ]}
+        guide={{
+          title: 'About This Deployment',
+          purpose: 'Deployment details show metadata, configuration payload, Terraform output, and logs for troubleshooting.',
+          actions: [
+            'inspect deployment metadata and status',
+            'download metadata for audit or documentation',
+            'use S3 operations when this deployment represents an AWS storage bucket',
+          ],
+        }}
         actions={
           <>
             <Link
@@ -506,16 +514,6 @@ const DeploymentDetailPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About This Deployment"
-        purpose="Deployment details show metadata, configuration payload, Terraform output, and logs for troubleshooting."
-        actions={[
-          'inspect deployment metadata and status',
-          'download metadata for audit or documentation',
-          'use S3 operations when this deployment represents an AWS storage bucket',
-        ]}
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

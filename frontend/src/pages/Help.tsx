@@ -1,7 +1,6 @@
 import React from 'react';
 import { Book, LifeBuoy, FileCode, Search, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 
 type FAQItem = {
@@ -81,16 +80,15 @@ const HelpPage: React.FC = () => {
                     { label: `${FAQ_ITEMS.length} FAQ entries`, tone: 'indigo' },
                     { label: 'Docs + API + Support', tone: 'blue' },
                 ]}
-            />
-
-            <PageGuide
-                title="About Help & Support"
-                purpose="Help & Support is your entry point for docs, API references, and operational guidance."
-                actions={[
-                    'search knowledge base content',
-                    'open documentation and API resources',
-                    'reach support channels for unresolved issues',
-                ]}
+                guide={{
+                    title: 'About Help & Support',
+                    purpose: 'Help & Support is your entry point for docs, API references, and operational guidance.',
+                    actions: [
+                        'search knowledge base content',
+                        'open documentation and API resources',
+                        'reach support channels for unresolved issues',
+                    ],
+                }}
             />
 
             {/* Search */}

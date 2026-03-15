@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import { useNotifications } from '../context/NotificationContext';
 import {
@@ -229,6 +228,15 @@ const ActivityPage: React.FC = () => {
           { label: `${filteredEvents.length} visible events`, tone: 'emerald' },
           { label: `${events.length} total live events`, tone: 'cyan' },
         ]}
+        guide={{
+          title: 'About Activity',
+          purpose: 'Activity timeline merges deployment starts, live status transitions, and inventory sync events.',
+          actions: [
+            'monitor resource status changes in near real-time',
+            'filter by provider and event source',
+            'open deployment details directly from timeline rows',
+          ],
+        }}
         actions={
           <>
             <button className="cursor-default flex items-center space-x-2 px-4 py-2 bg-gray-800/50 text-gray-300 rounded-lg border border-gray-700/50">
@@ -244,16 +252,6 @@ const ActivityPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Activity"
-        purpose="Activity timeline merges deployment starts, live status transitions, and inventory sync events."
-        actions={[
-          'monitor resource status changes in near real-time',
-          'filter by provider and event source',
-          'open deployment details directly from timeline rows',
-        ]}
       />
 
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3">

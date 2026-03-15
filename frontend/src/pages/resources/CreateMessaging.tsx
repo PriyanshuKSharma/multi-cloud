@@ -2,7 +2,6 @@ import React from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import { extractProvisioningErrorMessage } from '../../utils/terraformOutput';
 import {
@@ -352,6 +351,22 @@ const CreateMessagingPage: React.FC = () => {
           { label: `provider: ${provider.toUpperCase()}`, tone: 'purple' },
           { label: `region: ${region}`, tone: 'cyan' },
         ]}
+        guide={{
+          title: `About ${serviceName}`,
+          purpose:
+            serviceMode === 'queue'
+              ? 'Queue services provide asynchronous buffering, retries, ordering controls, and workload decoupling.'
+              : 'Message services provide publish-subscribe fan-out, event notification routing, and cross-system integration.',
+          actions: [
+            serviceMode === 'queue'
+              ? 'select cloud provider and configure queue behavior for your workload patterns'
+              : 'select cloud provider and configure notification/topic behavior for your event patterns',
+            serviceMode === 'queue'
+              ? 'manage queue send/receive/deletion workflows from the service console'
+              : 'manage publish and subscription workflows from the service console',
+            'deploy into your selected provider, region, and project',
+          ],
+        }}
         actions={
           <button
             onClick={() => navigate(messagingListPath)}
@@ -361,24 +376,6 @@ const CreateMessagingPage: React.FC = () => {
             Back to {serviceName}
           </button>
         }
-      />
-
-      <PageGuide
-        title={`About ${serviceName}`}
-        purpose={
-          serviceMode === 'queue'
-            ? 'Queue services provide asynchronous buffering, retries, ordering controls, and workload decoupling.'
-            : 'Message services provide publish-subscribe fan-out, event notification routing, and cross-system integration.'
-        }
-        actions={[
-          serviceMode === 'queue'
-            ? 'select cloud provider and configure queue behavior for your workload patterns'
-            : 'select cloud provider and configure notification/topic behavior for your event patterns',
-          serviceMode === 'queue'
-            ? 'manage queue send/receive/deletion workflows from the service console'
-            : 'manage publish and subscription workflows from the service console',
-          'deploy into your selected provider, region, and project',
-        ]}
       />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">

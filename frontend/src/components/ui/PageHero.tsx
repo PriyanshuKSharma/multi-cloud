@@ -10,6 +10,12 @@ interface PageHeroChip {
   tone?: PageHeroChipTone;
 }
 
+interface PageHeroGuide {
+  title: string;
+  purpose: string;
+  actions: string[];
+}
+
 interface PageHeroProps {
   id?: string;
   tone?: PageHeroTone;
@@ -19,6 +25,7 @@ interface PageHeroProps {
   titleIcon?: React.ReactNode;
   description?: string;
   chips?: PageHeroChip[];
+  guide?: PageHeroGuide;
   actions?: React.ReactNode;
   children?: React.ReactNode;
   collapsible?: boolean;
@@ -274,10 +281,11 @@ const PageHero: React.FC<PageHeroProps> = ({
   titleIcon,
   description,
   chips = [],
+  guide,
   actions,
   children,
-  collapsible = false,
-  defaultCollapsed = false,
+  collapsible = true,
+  defaultCollapsed = true,
 }) => {
   const { theme } = useTheme();
   const isLight = theme === 'light';
@@ -351,7 +359,7 @@ const PageHero: React.FC<PageHeroProps> = ({
 
           {description ? <p className={`mt-2 ${toneStyle.description}`}>{description}</p> : null}
 
-          {(chips.length > 0 || children) && (
+          {(chips.length > 0 || guide || children) && (
             <div className="mt-4 space-y-3">
               {chips.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -363,6 +371,21 @@ const PageHero: React.FC<PageHeroProps> = ({
                       {chip.label}
                     </span>
                   ))}
+                </div>
+              ) : null}
+              {guide ? (
+                <div
+                  className={`pt-4 border-t ${
+                    isLight
+                      ? 'border-slate-200/70'
+                      : 'border-white/10'
+                  }`}
+                >
+                  <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${toneStyle.description}`}>{guide.title}</p>
+                  <p className={`mt-2 text-sm leading-relaxed ${toneStyle.description}`}>{guide.purpose}</p>
+                  <p className={`mt-2 text-sm leading-relaxed ${toneStyle.description}`}>
+                    <span className={`font-semibold ${toneStyle.title}`}>You can:</span> {guide.actions.join(' • ')}
+                  </p>
                 </div>
               ) : null}
               {children}

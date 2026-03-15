@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import {
   Network,
@@ -113,6 +112,15 @@ const CreateNetwork: React.FC = () => {
           { label: `provider: ${selectedProvider.toUpperCase()}`, tone: 'cyan' },
           { label: `region: ${watch('region')}`, tone: 'blue' },
         ]}
+        guide={{
+          title: 'About Create Network',
+          purpose: 'Create network foundations for your workloads, including CIDR design and core networking controls.',
+          actions: [
+            'select provider and deployment region',
+            'define CIDR and gateway behavior',
+            'provision network resources for compute and storage',
+          ],
+        }}
         actions={
           <button
             onClick={() => navigate('/resources/networks')}
@@ -122,16 +130,6 @@ const CreateNetwork: React.FC = () => {
             Back to Networks
           </button>
         }
-      />
-
-      <PageGuide
-        title="About Create Network"
-        purpose="Create network foundations for your workloads, including CIDR design and core networking controls."
-        actions={[
-          'select provider and deployment region',
-          'define CIDR and gateway behavior',
-          'provision network resources for compute and storage',
-        ]}
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
