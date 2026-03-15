@@ -21,3 +21,4 @@ venv
 # Local CLI/workspace files
 .vercel
 *.log
+docs

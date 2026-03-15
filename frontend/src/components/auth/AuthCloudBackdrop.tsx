@@ -19,7 +19,7 @@ const AuthCloudBackdrop: React.FC = () => {
   const isLight = theme === 'light';
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 overflow-hidden">
       <div
         className={`absolute inset-0 ${
           isLight

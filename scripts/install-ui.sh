@@ -3,7 +3,9 @@
 echo "🚀 Installing Enhanced Multi-Cloud SaaS UI Dependencies..."
 echo ""
 
-cd "$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}/frontend"
 
 echo "📦 Installing @tanstack/react-query..."
 npm install @tanstack/react-query

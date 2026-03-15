@@ -141,7 +141,7 @@ docker compose up -d --build
 Validate your installation instantly:
 
 ```bash
-./test_apis.sh
+./scripts/test_apis.sh
 ```
 
 ---
@@ -172,6 +172,7 @@ multi-cloud/
 |   `-- package.json
 |-- terraform/modules/
 |-- docs/
+|-- scripts/
 |-- docker-compose.yml
 `-- docker-compose.prod.yml
 ```

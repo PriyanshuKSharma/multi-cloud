@@ -1,5 +1,9 @@
 # Multi-Cloud Orchestrator - Local Dev Launcher
 
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = (Resolve-Path (Join-Path $ScriptDir '..')).Path
+Set-Location $RepoRoot
+
 Write-Host "🚀 Starting Nebula Multi-Cloud Environment..." -ForegroundColor Cyan
 
 # 1. Start Infrastructure (DB + Redis)
