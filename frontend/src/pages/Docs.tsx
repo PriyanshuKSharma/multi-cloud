@@ -440,7 +440,7 @@ cp .env.example .env`}
                       <li>
                         <span className="font-semibold text-white">4. Smoke test (optional)</span>
                         <pre className="mt-2 rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
-{`./test_apis.sh`}
+{`./scripts/test_apis.sh`}
                         </pre>
                       </li>
                       <li>
@@ -481,7 +481,7 @@ SECRET_KEY=change-me-to-a-long-random-secret`}
 {`docker compose -f docker-compose.prod.yml up -d --build`}
                       </pre>
                       <p className="text-xs text-gray-400 leading-relaxed">
-                        Tip: Review <code className="text-gray-200">DEPLOYMENT_CHECKLIST.md</code> before shipping to production.
+                        Tip: Review <code className="text-gray-200">docs/DEPLOYMENT_CHECKLIST.md</code> before shipping to production.
                       </p>
                     </div>
                   </section>

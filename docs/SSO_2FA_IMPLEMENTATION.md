@@ -29,7 +29,7 @@
 
 ### Documentation
 5. `docs/SSO_2FA_SETUP.md` - Complete setup guide
-6. `setup_auth.ps1` - Automated setup script
+6. `scripts/setup_auth.ps1` - Automated setup script
 
 ---
 
@@ -76,7 +76,7 @@ New columns added to `users` table:
 
 ### 1. Run Setup Script
 ```powershell
-.\setup_auth.ps1
+.\scripts\setup_auth.ps1
 ```
 
 ### 2. Configure Google OAuth
