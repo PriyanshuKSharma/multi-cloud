@@ -3,6 +3,8 @@ import {
   BadgeCheck,
   Briefcase,
   Building2,
+  Cloud,
+  FolderKanban,
   KeyRound,
   Mail,
   Phone,
@@ -15,6 +17,12 @@ import axios from '../api/axios';
 import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import { useTheme } from '../context/ThemeContext';
+import { subscriptionPlans } from '../data/subscriptionPlans';
+import {
+  getSubscriptionLimits,
+  getSubscriptionPlanLabel,
+  normalizeSubscriptionPlan,
+} from '../data/subscriptionLimits';
 
 interface UserProfile {
   id: number;
@@ -27,13 +35,6 @@ interface UserProfile {
   subscription_plan?: string | null;
   last_password_change?: string | null;
 }
-
-const formatPlanLabel = (value: string | null | undefined): string => {
-  const normalized = String(value ?? '').trim().toLowerCase();
-  if (!normalized) return 'Basic';
-  if (normalized === 'pro') return 'Professional';
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-};
 
 const formatPasswordFreshness = (value: string | null | undefined): string => {
   if (!value) return 'No password rotation recorded yet';
@@ -144,6 +145,25 @@ const Profile: React.FC = () => {
     },
   });
 
+  React.useEffect(() => {
+    if (!isEditing) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !updateProfile.isPending) {
+        setIsEditing(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isEditing, updateProfile.isPending]);
+
   const cardClass = isLight
     ? 'border border-slate-200 bg-white/90 shadow-[0_24px_50px_-32px_rgba(15,23,42,0.28)]'
     : 'border border-slate-800/80 bg-[#0f0f11] shadow-[0_24px_60px_-36px_rgba(2,6,23,0.7)]';
@@ -201,6 +221,12 @@ const Profile: React.FC = () => {
   ];
   const completionScore = Math.round((profileSignals.filter(Boolean).length / profileSignals.length) * 100);
   const securityTone = currentUser.two_factor_enabled ? 'Hardened' : 'Needs reinforcement';
+  const currentPlanKey = normalizeSubscriptionPlan(currentUser.subscription_plan);
+  const currentPlanLabel = getSubscriptionPlanLabel(currentUser.subscription_plan);
+  const currentPlanLimits = getSubscriptionLimits(currentUser.subscription_plan);
+  const currentPlanMeta = subscriptionPlans.find((plan) => plan.id === currentPlanKey);
+  const currentPlanDescription = currentPlanMeta?.description ?? 'Your active workspace subscription plan.';
+  const currentPlanPriceLabel = currentPlanMeta ? `$${currentPlanMeta.price.usd}/month` : '$0/month';
 
   const profileDetails = [
     {
@@ -230,7 +256,7 @@ const Profile: React.FC = () => {
     },
     {
       label: 'Plan',
-      value: formatPlanLabel(currentUser.subscription_plan),
+      value: currentPlanLabel,
       icon: BadgeCheck,
     },
   ];
@@ -249,7 +275,7 @@ const Profile: React.FC = () => {
         description="Manage your operator identity, contact information, and account security posture from one screen."
         chips={[
           { label: currentUser.email, tone: 'indigo' },
-          { label: formatPlanLabel(currentUser.subscription_plan), tone: 'blue' },
+          { label: currentPlanLabel, tone: 'blue' },
           { label: currentUser.two_factor_enabled ? '2FA enabled' : '2FA disabled', tone: currentUser.two_factor_enabled ? 'emerald' : 'default' },
         ]}
         actions={
@@ -304,6 +330,103 @@ const Profile: React.FC = () => {
           {errorMessage}
         </div>
       ) : null}
+
+      <section className={`relative overflow-hidden rounded-[30px] p-7 xl:p-8 ${cardClass}`}>
+        <div
+          className={`pointer-events-none absolute inset-0 ${
+            isLight
+              ? 'bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_34%)]'
+              : 'bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_32%)]'
+          }`}
+        />
+
+        <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
+          <div className="min-w-0">
+            <div
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                isLight
+                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  : 'border-blue-400/25 bg-blue-500/10 text-blue-200'
+              }`}
+            >
+              <BadgeCheck className="h-3.5 w-3.5" />
+              <span>Active Subscription</span>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <h3 className={`text-2xl font-bold tracking-tight ${sectionTitleClass}`}>{currentPlanLabel}</h3>
+              <span
+                className={`rounded-2xl border px-3 py-2 text-xs font-semibold ${
+                  isLight
+                    ? 'border-slate-200 bg-white text-slate-700'
+                    : 'border-slate-700/70 bg-slate-900/70 text-slate-200'
+                }`}
+              >
+                {currentPlanPriceLabel}
+              </span>
+            </div>
+
+            <p className={`mt-2 text-sm ${bodyTextClass}`}>
+              You are currently using the {currentPlanLabel} plan. {currentPlanDescription}
+            </p>
+
+            {currentPlanMeta?.features?.length ? (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {currentPlanMeta.features.slice(0, 4).map((feature) => (
+                  <span
+                    key={feature}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                      isLight
+                        ? 'border-slate-200 bg-slate-50 text-slate-600'
+                        : 'border-slate-700/70 bg-slate-900/70 text-slate-300'
+                    }`}
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div
+            className={`rounded-[24px] border p-5 ${
+              isLight
+                ? 'border-slate-200/90 bg-white/85'
+                : 'border-slate-800/70 bg-slate-950/45'
+            }`}
+          >
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-blue-400">
+              <FolderKanban className="h-3.5 w-3.5" />
+              <span>Project Capacity</span>
+            </div>
+            <p className={`mt-4 text-3xl font-black ${sectionTitleClass}`}>
+              {currentPlanLimits.projects === null ? 'Unlimited' : currentPlanLimits.projects}
+            </p>
+            <p className={`mt-2 text-sm ${mutedTextClass}`}>
+              {currentPlanLimits.projects === null ? 'projects available on this plan' : 'active projects allowed on this plan'}
+            </p>
+          </div>
+
+          <div
+            className={`rounded-[24px] border p-5 ${
+              isLight
+                ? 'border-slate-200/90 bg-white/85'
+                : 'border-slate-800/70 bg-slate-950/45'
+            }`}
+          >
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-blue-400">
+              <Cloud className="h-3.5 w-3.5" />
+              <span>Cloud Accounts</span>
+            </div>
+            <p className={`mt-4 text-3xl font-black ${sectionTitleClass}`}>
+              {currentPlanLimits.cloudAccounts === null ? 'Unlimited' : currentPlanLimits.cloudAccounts}
+            </p>
+            <p className={`mt-2 text-sm ${mutedTextClass}`}>
+              {currentPlanLimits.cloudAccounts === null ? 'cloud connections available on this plan' : 'cloud accounts allowed on this plan'}
+            </p>
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-8">
         <section className={`relative overflow-hidden rounded-[32px] p-8 xl:p-10 ${featureCardClass}`}>
@@ -442,7 +565,7 @@ const Profile: React.FC = () => {
 
                 <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
                   <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Workspace plan</p>
-                  <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{formatPlanLabel(currentUser.subscription_plan)}</p>
+                  <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{currentPlanLabel}</p>
                   <p className={`mt-2 text-sm ${mutedTextClass}`}>
                     Your plan shapes project limits, cloud-account limits, and available support level.
                   </p>
@@ -552,7 +675,7 @@ const Profile: React.FC = () => {
               </div>
               <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-950/45'}`}>
                 <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Support tier</p>
-                <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{formatPlanLabel(currentUser.subscription_plan)}</p>
+                <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{currentPlanLabel}</p>
               </div>
               <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-950/45'}`}>
                 <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Security status</p>
@@ -568,93 +691,6 @@ const Profile: React.FC = () => {
           </section>
         </div>
       </div>
-
-      {isEditing ? (
-        <section className={`rounded-[28px] p-7 xl:p-8 ${cardClass}`}>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-blue-400">Profile Editor</p>
-              <h3 className={`mt-2 text-2xl font-semibold ${sectionTitleClass}`}>Update operator details</h3>
-              <p className={`mt-2 text-sm ${mutedTextClass}`}>
-                Keep your identity metadata accurate so ownership and audit context stay clear across the workspace.
-              </p>
-            </div>
-            <button
-              onClick={() => setIsEditing(false)}
-              className={`rounded-2xl px-4 py-2 text-sm font-semibold ${
-                isLight
-                  ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  : 'border border-slate-700/70 bg-slate-900/70 text-slate-200 hover:bg-slate-800/80'
-              }`}
-            >
-              Close
-            </button>
-          </div>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <div>
-              <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Full name</label>
-              <input
-                type="text"
-                value={profileForm.full_name}
-                onChange={(event) => setProfileForm((prev) => ({ ...prev, full_name: event.target.value }))}
-                placeholder="Full Name"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Job profile</label>
-              <input
-                type="text"
-                value={profileForm.job_profile}
-                onChange={(event) => setProfileForm((prev) => ({ ...prev, job_profile: event.target.value }))}
-                placeholder="Job Profile"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Organization</label>
-              <input
-                type="text"
-                value={profileForm.organization}
-                onChange={(event) => setProfileForm((prev) => ({ ...prev, organization: event.target.value }))}
-                placeholder="Organization"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Phone number</label>
-              <input
-                type="text"
-                value={profileForm.phone_number}
-                onChange={(event) => setProfileForm((prev) => ({ ...prev, phone_number: event.target.value }))}
-                placeholder="Phone Number"
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              onClick={() => updateProfile.mutate()}
-              disabled={updateProfile.isPending}
-              className="rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:from-blue-400 hover:to-indigo-400 disabled:opacity-60"
-            >
-              {updateProfile.isPending ? 'Saving profile...' : 'Save Profile'}
-            </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              className={`rounded-2xl px-5 py-3 text-sm font-semibold ${
-                isLight
-                  ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  : 'border border-slate-700/70 bg-slate-900/70 text-slate-200 hover:bg-slate-800/80'
-              }`}
-            >
-              Cancel
-            </button>
-          </div>
-        </section>
-      ) : null}
 
       {showPasswordForm ? (
         <section className={`rounded-[28px] p-7 xl:p-8 ${cardClass}`}>
@@ -731,6 +767,113 @@ const Profile: React.FC = () => {
             </button>
           </div>
         </section>
+      ) : null}
+
+      {isEditing ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-[2px]"
+          onClick={() => {
+            if (!updateProfile.isPending) setIsEditing(false);
+          }}
+        >
+          <div
+            className={`w-full max-w-5xl overflow-hidden rounded-[30px] ${
+              isLight
+                ? 'border border-slate-200 bg-white shadow-[0_26px_60px_-28px_rgba(15,23,42,0.45)]'
+                : 'border border-slate-800/80 bg-[#0f0f11] shadow-[0_26px_60px_-28px_rgba(2,6,23,0.78)]'
+            }`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={`border-b px-6 py-5 xl:px-8 ${isLight ? 'border-slate-200' : 'border-slate-700/70'}`}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-blue-400">Profile Editor</p>
+                  <h3 className={`mt-2 text-2xl font-semibold ${sectionTitleClass}`}>Update operator details</h3>
+                  <p className={`mt-2 text-sm ${mutedTextClass}`}>
+                    Keep your identity metadata accurate so ownership and audit context stay clear across the workspace.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  disabled={updateProfile.isPending}
+                  className={`rounded-2xl px-4 py-2 text-sm font-semibold disabled:opacity-60 ${
+                    isLight
+                      ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      : 'border border-slate-700/70 bg-slate-900/70 text-slate-200 hover:bg-slate-800/80'
+                  }`}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto px-6 py-6 xl:px-8">
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <div>
+                  <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Full name</label>
+                  <input
+                    type="text"
+                    value={profileForm.full_name}
+                    onChange={(event) => setProfileForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                    placeholder="Full Name"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Job profile</label>
+                  <input
+                    type="text"
+                    value={profileForm.job_profile}
+                    onChange={(event) => setProfileForm((prev) => ({ ...prev, job_profile: event.target.value }))}
+                    placeholder="Job Profile"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Organization</label>
+                  <input
+                    type="text"
+                    value={profileForm.organization}
+                    onChange={(event) => setProfileForm((prev) => ({ ...prev, organization: event.target.value }))}
+                    placeholder="Organization"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={`mb-2 block text-xs font-semibold uppercase tracking-[0.14em] ${labelClass}`}>Phone number</label>
+                  <input
+                    type="text"
+                    value={profileForm.phone_number}
+                    onChange={(event) => setProfileForm((prev) => ({ ...prev, phone_number: event.target.value }))}
+                    placeholder="Phone Number"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={`flex flex-wrap justify-end gap-3 border-t px-6 py-5 xl:px-8 ${isLight ? 'border-slate-200' : 'border-slate-700/70'}`}>
+              <button
+                onClick={() => setIsEditing(false)}
+                disabled={updateProfile.isPending}
+                className={`rounded-2xl px-5 py-3 text-sm font-semibold disabled:opacity-60 ${
+                  isLight
+                    ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    : 'border border-slate-700/70 bg-slate-900/70 text-slate-200 hover:bg-slate-800/80'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => updateProfile.mutate()}
+                disabled={updateProfile.isPending}
+                className="rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:from-blue-400 hover:to-indigo-400 disabled:opacity-60"
+              >
+                {updateProfile.isPending ? 'Saving profile...' : 'Save Profile'}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );
