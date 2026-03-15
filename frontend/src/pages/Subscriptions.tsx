@@ -13,75 +13,13 @@ import {
 } from 'lucide-react';
 import PageHero from '../components/ui/PageHero';
 import PageGuide from '../components/ui/PageGuide';
+import { subscriptionPlans } from '../data/subscriptionPlans';
 
-interface PricingPlan {
-
-  id: string;
-  name: string;
-  price: {
-    usd: number;
-    inr: number;
-  };
-  description: string;
-  features: string[];
-  icon: React.ReactNode;
-  tone: 'blue' | 'purple' | 'cyan' | 'emerald' | 'orange' | 'indigo';
-  popular?: boolean;
-}
-
-const plans: PricingPlan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: { usd: 0, inr: 0 },
-    description: 'Perfect for exploring multi-cloud orchestration.',
-    icon: <Rocket className="w-6 h-6" />,
-    tone: 'blue',
-    features: [
-      '1 Cloud Account',
-      '5 Active Projects',
-      'Basic Cost Analytics',
-      'Community Support',
-      'Standard Infrastructure Templates',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Professional',
-    price: { usd: 49, inr: 4000 },
-    description: 'Scaling operations with advanced automation.',
-    icon: <Zap className="w-6 h-6" />,
-    tone: 'purple',
-    popular: true,
-    features: [
-      'Unlimited Cloud Accounts',
-      '25 Active Projects',
-      'Advanced Cost Intelligence',
-      'Priority Email Support',
-      'Custom Deployment Filters',
-      'Automated Backups',
-      'Resource Scheduling',
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: { usd: 199, inr: 16000 },
-    description: 'Enterprise-grade security and control.',
-    icon: <Crown className="w-6 h-6" />,
-    tone: 'indigo',
-    features: [
-      'Everything in Professional',
-      'Multi-Org Management',
-      'Unlimited Active Projects',
-      'Dedicated Account Manager',
-      'Custom SLA & Support',
-      'SSO & SAML Integration',
-      'Advanced Role-Based Access',
-      'Compliance Auditing',
-    ],
-  },
-];
+const planIcons = {
+  starter: <Rocket className="w-6 h-6" />,
+  pro: <Zap className="w-6 h-6" />,
+  enterprise: <Crown className="w-6 h-6" />,
+};
 
 const Subscriptions: React.FC = () => {
   const [currency, setCurrency] = useState<'usd' | 'inr'>('usd');
@@ -135,7 +73,7 @@ const Subscriptions: React.FC = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-        {plans.map((plan, index) => (
+        {subscriptionPlans.map((plan, index) => (
           <motion.div
             key={plan.id}
             initial={{ opacity: 0, y: 20 }}
@@ -158,7 +96,7 @@ const Subscriptions: React.FC = () => {
               plan.tone === 'purple' ? 'bg-purple-500/10 text-purple-400 border border-purple-400/20' :
               'bg-indigo-500/10 text-indigo-400 border border-indigo-400/20'
             }`}>
-              {plan.icon}
+              {planIcons[plan.id]}
             </div>
 
             <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
