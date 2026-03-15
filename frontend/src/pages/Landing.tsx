@@ -72,23 +72,63 @@ const joinReasons = [
   },
 ];
 
+const testimonials = [
+  {
+    quote:
+      'Nebula gave our platform team one operating layer for AWS, Azure, and GCP without hiding the controls we still needed.',
+    name: 'Platform Engineering Team',
+    role: 'Internal preview feedback',
+  },
+  {
+    quote:
+      'The strongest part is the governance posture. Teams can move faster, but there is still clear operational visibility.',
+    name: 'Cloud Operations Lead',
+    role: 'Control and compliance review',
+  },
+  {
+    quote:
+      'The interface reduces context switching. Provisioning, oversight, and delivery tracking feel like one coherent workflow.',
+    name: 'Delivery Engineering Group',
+    role: 'Workflow validation',
+  },
+];
+
+const faqs = [
+  {
+    question: 'What does Nebula manage?',
+    answer: 'Nebula coordinates provisioning, governance, visibility, and operator workflows across AWS, Azure, and GCP.',
+  },
+  {
+    question: 'Who is the platform built for?',
+    answer: 'It is designed for engineering organizations that need repeatable multi-cloud operations with controlled access and clearer delivery oversight.',
+  },
+  {
+    question: 'Can teams start small and scale later?',
+    answer: 'Yes. The pricing model supports smaller starting footprints and expands into higher-governance operational tiers as usage grows.',
+  },
+  {
+    question: 'Where can I get support or policy details?',
+    answer: 'Use the Help Center, Contact Us, Privacy Policy, and Terms of Service links in the footer for support and legal information.',
+  },
+];
+
 const footerSections = [
   {
     title: 'Platform',
     links: [
       { label: 'Features', type: 'section', target: 'features' },
       { label: 'Pricing', type: 'section', target: 'pricing' },
-      { label: 'Testimonials', type: 'section', target: 'team' },
-      { label: 'FAQ', type: 'route', target: '/help' },
+      { label: 'Testimonials', type: 'section', target: 'testimonials' },
+      { label: 'FAQ', type: 'section', target: 'faq' },
     ],
   },
   {
     title: 'Legal & Support',
     links: [
-      { label: 'Privacy Policy', type: 'route', target: '/docs' },
-      { label: 'Terms of Service', type: 'route', target: '/docs' },
-      { label: 'Help Center', type: 'route', target: '/help' },
-      { label: 'Contact Us', type: 'route', target: '/help' },
+      { label: 'Privacy Policy', type: 'route', target: '/privacy-policy' },
+      { label: 'Terms of Service', type: 'route', target: '/terms-of-service' },
+      { label: 'Help Center', type: 'route', target: '/help-center' },
+      { label: 'Contact Us', type: 'route', target: '/contact-us' },
     ],
   },
 ] as const;
@@ -112,7 +152,7 @@ const teamMembers = [
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
     profiles: [
-      { label: 'GitHub', href: null, icon: Github },
+      { label: 'GitHub', href: 'https://github.com/vaish105', icon: Github },
       { label: 'LinkedIn', href: null, icon: Linkedin },
       { label: 'Twitter', href: null, icon: Twitter },
       { label: 'Portfolio', href: null, icon: Globe },
@@ -124,7 +164,7 @@ const teamMembers = [
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
     profiles: [
-      { label: 'GitHub', href: null, icon: Github },
+      { label: 'GitHub', href: 'https://github.com/VaibhavGulge', icon: Github },
       { label: 'LinkedIn', href: null, icon: Linkedin },
       { label: 'Twitter', href: null, icon: Twitter },
       { label: 'Portfolio', href: null, icon: Globe },
@@ -400,6 +440,30 @@ const Landing: React.FC = () => {
             </div>
           </section>
 
+          <section id="testimonials" className={`border-b py-14 ${dividerClass}`}>
+            <div className="mb-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Testimonials</p>
+              <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>What teams value in the platform</h2>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-3">
+              {testimonials.map((item, index) => (
+                <motion.article
+                  key={item.name}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.32, delay: index * 0.06 }}
+                  className={`border-l-2 border-blue-500/60 pl-4`}
+                >
+                  <p className={`text-sm leading-relaxed ${textMutedClass}`}>&ldquo;{item.quote}&rdquo;</p>
+                  <p className={`mt-4 text-sm font-semibold ${textStrongClass}`}>{item.name}</p>
+                  <p className={`text-xs uppercase tracking-[0.14em] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{item.role}</p>
+                </motion.article>
+              ))}
+            </div>
+          </section>
+
           <section id="pricing" className={`border-b py-16 ${dividerClass}`}>
             <div className="text-center mb-16">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Pricing</p>
@@ -524,6 +588,29 @@ const Landing: React.FC = () => {
               <Link to="/login" className="nebula-btn-secondary rounded-xl px-5 py-2.5 text-sm font-semibold">
                 Login
               </Link>
+            </div>
+          </section>
+
+          <section id="faq" className={`border-b py-14 ${dividerClass}`}>
+            <div className="mb-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">FAQ</p>
+              <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Common questions before you join</h2>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {faqs.map((item, index) => (
+                <motion.article
+                  key={item.question}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.32, delay: index * 0.05 }}
+                  className={`border-l-2 border-blue-500/60 pl-4`}
+                >
+                  <h3 className={`text-base font-semibold ${textStrongClass}`}>{item.question}</h3>
+                  <p className={`mt-2 text-sm leading-relaxed ${textMutedClass}`}>{item.answer}</p>
+                </motion.article>
+              ))}
             </div>
           </section>
         </main>
