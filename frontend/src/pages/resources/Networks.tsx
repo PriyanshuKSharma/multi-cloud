@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import {
   Network,
@@ -101,6 +100,15 @@ const NetworksPage: React.FC = () => {
           { label: `${networks?.length ?? 0} discovered`, tone: 'cyan' },
           { label: `${filteredNetworks.length} visible`, tone: 'blue' },
         ]}
+        guide={{
+          title: 'About Networks',
+          purpose: 'Networks tracks virtual networks, VPCs, and networking foundations used by your cloud resources.',
+          actions: [
+            'filter network resources by provider and region',
+            'inspect CIDR, gateway, and DNS metadata',
+            'provision new network topology from the create flow',
+          ],
+        }}
         actions={
           <>
             <button
@@ -119,16 +127,6 @@ const NetworksPage: React.FC = () => {
             </Link>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Networks"
-        purpose="Networks tracks virtual networks, VPCs, and networking foundations used by your cloud resources."
-        actions={[
-          'filter network resources by provider and region',
-          'inspect CIDR, gateway, and DNS metadata',
-          'provision new network topology from the create flow',
-        ]}
       />
 
       {/* Filters */}
