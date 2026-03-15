@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import { extractProvisioningErrorMessage } from '../../utils/terraformOutput';
 import {
@@ -289,6 +288,15 @@ const CreateStorage: React.FC = () => {
           { label: `provider: ${selectedProvider.toUpperCase()}`, tone: 'purple' },
           { label: `region: ${watch('region')}`, tone: 'cyan' },
         ]}
+        guide={{
+          title: 'About Create Storage',
+          purpose: 'This form provisions object storage buckets across AWS, Azure, and GCP.',
+          actions: [
+            'pick provider and region',
+            'set access, versioning, and encryption options',
+            'create a storage resource that appears in inventory',
+          ],
+        }}
         actions={
           <button
             onClick={() => navigate('/resources/storage')}
@@ -298,16 +306,6 @@ const CreateStorage: React.FC = () => {
             Back to Storage
           </button>
         }
-      />
-
-      <PageGuide
-        title="About Create Storage"
-        purpose="This form provisions object storage buckets across AWS, Azure, and GCP."
-        actions={[
-          'pick provider and region',
-          'set access, versioning, and encryption options',
-          'create a storage resource that appears in inventory',
-        ]}
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
