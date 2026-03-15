@@ -14,13 +14,18 @@ import {
   Lock,
   Mail,
   Moon,
-  ShieldCheck,
   Sun,
-  Workflow,
 } from 'lucide-react';
 import AuthCloudBackdrop from '../components/auth/AuthCloudBackdrop';
+import AuthNetworkShowcase from '../components/auth/AuthNetworkShowcase';
 import SSOButtons from '../components/auth/SSOButtons';
 import { useTheme } from '../context/ThemeContext';
+import {
+  getAuthErrorCode,
+  getAuthErrorDetail,
+  getAuthErrorStatus,
+  hasAuthErrorResponse,
+} from '../utils/authErrors';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -29,38 +34,17 @@ const loginSchema = z.object({
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
-const getErrorDetail = (error: any): string | null => {
-  const detail = error?.response?.data?.detail;
-  if (!detail) {
-    return null;
-  }
-
-  if (typeof detail === 'string') {
-    return detail;
-  }
-
-  if (Array.isArray(detail)) {
-    const message = detail
-      .map((item) => (typeof item?.msg === 'string' ? item.msg : ''))
-      .filter(Boolean)
-      .join(', ');
-    return message || null;
-  }
-
-  return null;
-};
-
-const getLoginErrorMessage = (error: any): string => {
-  const backendMessage = getErrorDetail(error);
+const getLoginErrorMessage = (error: unknown): string => {
+  const backendMessage = getAuthErrorDetail(error);
   if (backendMessage) {
     return backendMessage;
   }
 
-  if (error?.code === 'ERR_NETWORK' || !error?.response) {
+  if (getAuthErrorCode(error) === 'ERR_NETWORK' || !hasAuthErrorResponse(error)) {
     return `Cannot reach API server (${API_BASE_URL}). Set VITE_API_URL to your deployed backend URL and allow your frontend origin in backend CORS.`;
   }
 
-  if (error?.response?.status === 404) {
+  if (getAuthErrorStatus(error) === 404) {
     return `Login endpoint not found at ${API_BASE_URL}/auth/login. Verify VITE_API_URL and backend deployment.`;
   }
 
@@ -68,9 +52,15 @@ const getLoginErrorMessage = (error: any): string => {
 };
 
 const LOGIN_HIGHLIGHTS = [
-  'Centralized authentication with project-level access boundaries.',
-  'Unified visibility into deployments, inventory, and activity.',
-  'Cross-cloud operating model for AWS, Azure, and GCP.',
+  'Route operator access through one India-centered control layer with governed cloud visibility.',
+  'Track transfer motion between AWS, Azure, and GCP before you enter the workspace.',
+  'Keep sign-in, deployment telemetry, and policy context aligned in a single operator flow.',
+];
+
+const LOGIN_STATS = [
+  { label: 'Cloud fabric', value: 'AWS + Azure + GCP' },
+  { label: 'Transfer view', value: 'Live path animation' },
+  { label: 'Access posture', value: 'Policy-governed sign-in' },
 ];
 
 const Login: React.FC = () => {
@@ -128,7 +118,7 @@ const Login: React.FC = () => {
       try {
         await login(ssoToken);
         navigate('/', { replace: true });
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (!cancelled) {
           const message = getLoginErrorMessage(error);
           setError('root', { message: `SSO sign-in failed: ${message}` });
@@ -155,7 +145,7 @@ const Login: React.FC = () => {
 
       await login(response.data.access_token);
       navigate('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('root', {
         message: getLoginErrorMessage(err),
       });
@@ -164,19 +154,21 @@ const Login: React.FC = () => {
   };
 
   const isLight = theme === 'light';
-  const shellClass = isLight
-    ? 'border border-slate-200 bg-white/95 shadow-[0_32px_80px_-24px_rgba(15,23,42,0.12)] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-slate-50/50 to-white'
-    : 'border border-slate-700/50 bg-slate-900/90 shadow-[0_40px_100px_-24px_rgba(2,6,23,1)] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800/40 via-slate-900/80 to-slate-950';
-
-  const softClass = isLight
-    ? 'border border-slate-200/85 bg-slate-50/92'
-    : 'border border-slate-300/12 bg-slate-900/60';
+  const formShellClass = isLight
+    ? 'border border-white/75 bg-white/64 shadow-[0_30px_80px_-42px_rgba(37,99,235,0.3)]'
+    : 'border border-white/8 bg-slate-950/18';
   const chipClass = isLight
-    ? 'border border-blue-200/90 bg-blue-50 text-blue-700'
+    ? 'border border-white/75 bg-white/82 text-blue-700 shadow-[0_16px_34px_-24px_rgba(37,99,235,0.34)]'
     : 'border border-blue-400/30 bg-blue-500/12 text-blue-300';
-  const logoTileClass = isLight
-    ? 'border border-slate-200/90 bg-white shadow-[0_10px_24px_-18px_rgba(15,23,42,0.3)]'
-    : 'border border-slate-300/12 bg-slate-900/70 shadow-[0_12px_24px_-16px_rgba(2,6,23,0.8)]';
+  const headerClass = isLight
+    ? 'border-b border-slate-300/75'
+    : 'border-b border-slate-700/35';
+  const headerActionClass = isLight
+    ? 'border border-white/80 bg-white/80 text-slate-700 shadow-[0_18px_34px_-24px_rgba(15,23,42,0.22)] hover:bg-white'
+    : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:bg-slate-900';
+  const headerLinkClass = isLight
+    ? 'border border-white/80 bg-white/80 text-slate-700 shadow-[0_18px_34px_-24px_rgba(15,23,42,0.22)] hover:border-blue-300 hover:text-slate-900'
+    : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:border-blue-300/40';
   const dividerClass = isLight ? 'border-slate-200/85' : 'border-slate-300/14';
   const textStrongClass = isLight ? 'text-slate-900' : 'text-slate-50';
   const textMutedClass = isLight ? 'text-slate-600' : 'text-slate-300';
@@ -187,7 +179,7 @@ const Login: React.FC = () => {
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-8 sm:px-6 lg:px-10">
         <div className="w-full space-y-6">
-          <header className={`rounded-2xl px-4 py-3 backdrop-blur-md sm:px-5 ${shellClass}`}>
+          <header className={`px-1 py-2 pb-5 sm:px-0 ${headerClass}`}>
             <div className="flex items-center justify-between gap-3">
               <Link to="/" className="inline-flex items-center gap-2">
                 <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${chipClass}`}>
@@ -203,11 +195,7 @@ const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors ${
-                    isLight
-                      ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                      : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:bg-slate-900'
-                  }`}
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors ${headerActionClass}`}
                   aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
                   title={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
                 >
@@ -217,11 +205,7 @@ const Login: React.FC = () => {
 
                 <Link
                   to="/signup"
-                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                    isLight
-                      ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
-                      : 'border border-slate-300/16 bg-slate-900/65 text-slate-200 hover:border-blue-300/40'
-                  }`}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${headerLinkClass}`}
                 >
                   Create Account
                 </Link>
@@ -229,65 +213,38 @@ const Login: React.FC = () => {
             </div>
           </header>
 
-          <div className="grid w-full gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="lg:hidden">
+            <AuthNetworkShowcase
+              compact
+              eyebrow="India-Centered Cloud Grid"
+              title="Watch global cloud traffic converge before you sign in."
+              description="Nebula presents AWS, Azure, and GCP activity as one operational network anchored on India-led control and visible transfer lanes."
+              highlights={LOGIN_HIGHLIGHTS}
+              stats={LOGIN_STATS}
+            />
+          </div>
+
+          <div className="grid w-full gap-6 lg:grid-cols-[1.08fr_0.92fr]">
             <motion.section
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
-              className={`hidden rounded-[30px] p-8 backdrop-blur-md lg:flex lg:min-h-[640px] lg:flex-col ${shellClass}`}
+              className="hidden lg:block"
             >
-              <div className="space-y-7">
-                <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${chipClass}`}>
-                  <Workflow className="h-3.5 w-3.5" />
-                  Enterprise Sign-In
-                </div>
-
-                <h1 className={`text-4xl font-bold leading-tight ${textStrongClass}`}>
-                  Operate your cloud organization from one secure control plane.
-                </h1>
-
-                <p className={`text-sm leading-relaxed ${textMutedClass}`}>
-                  Continue to your workspace and manage infrastructure delivery, governance, and deployment visibility.
-                </p>
-
-                <div className={`rounded-2xl p-4 ${softClass}`}>
-                  {LOGIN_HIGHLIGHTS.map((item, index) => (
-                    <div
-                      key={item}
-                      className={`flex items-start gap-3 py-2 ${
-                        index !== LOGIN_HIGHLIGHTS.length - 1 ? `border-b ${dividerClass}` : ''
-                      }`}
-                    >
-                      <ShieldCheck className="mt-0.5 h-4 w-4 text-blue-500" />
-                      <p className={`text-sm leading-relaxed ${textMutedClass}`}>{item}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-auto pt-7">
-                <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                  Trusted cloud providers
-                </p>
-                <div className="mt-3 grid grid-cols-3 gap-3">
-                  {[
-                    { src: '/provider-logos/aws.svg', alt: 'AWS' },
-                    { src: '/provider-logos/azure.svg', alt: 'Azure' },
-                    { src: '/provider-logos/gcp.svg', alt: 'Google Cloud' },
-                  ].map((provider) => (
-                    <div key={provider.alt} className={`flex items-center justify-center rounded-xl p-3 ${logoTileClass}`}>
-                      <img src={provider.src} alt={provider.alt} className="h-7 w-auto object-contain" />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <AuthNetworkShowcase
+                eyebrow="India-Centered Cloud Grid"
+                title="Watch global cloud traffic converge before you sign in."
+                description="Nebula presents AWS, Azure, and GCP activity as one operational network anchored on India-led control and visible transfer lanes."
+                highlights={LOGIN_HIGHLIGHTS}
+                stats={LOGIN_STATS}
+              />
             </motion.section>
 
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className={`overflow-hidden rounded-[30px] backdrop-blur-md ${shellClass}`}
+              className={`max-w-xl overflow-hidden rounded-[30px] backdrop-blur-xl lg:ml-auto ${formShellClass}`}
             >
               <div className={`border-b px-6 py-6 sm:px-8 ${dividerClass}`}>
                 <div className="flex items-start gap-4">
@@ -295,8 +252,8 @@ const Login: React.FC = () => {
                     <CloudLightning className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h2 className={`text-2xl font-bold ${textStrongClass}`}>Welcome Back</h2>
-                    <p className={`mt-1 text-sm ${textMutedClass}`}>Sign in to continue your platform operations.</p>
+                    <h2 className={`text-2xl font-bold ${textStrongClass}`}>Secure Sign In</h2>
+                    <p className={`mt-1 text-sm ${textMutedClass}`}>Enter your workspace and continue multi-cloud operations with live transfer context.</p>
                   </div>
                 </div>
               </div>
