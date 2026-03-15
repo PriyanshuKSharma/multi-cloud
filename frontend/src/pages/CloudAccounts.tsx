@@ -7,6 +7,8 @@ import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useNotifications } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
+import { getSubscriptionLimits, getSubscriptionPlanLabel } from '../data/subscriptionLimits';
 import {
   Cloud,
   Plus,
@@ -91,6 +93,7 @@ const formatSyncDate = (value: string): string => {
 };
 
 const CloudAccountsPage: React.FC = () => {
+  const { user } = useAuth();
   const { addNotification } = useNotifications();
   const { data: accounts, isLoading, refetch } = useQuery<CloudAccount[]>({
     queryKey: ['cloud-accounts'],
@@ -109,6 +112,13 @@ const CloudAccountsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [accountToDelete, setAccountToDelete] = React.useState<CloudAccount | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
+  const cloudAccountLimit = getSubscriptionLimits(user?.subscription_plan).cloudAccounts;
+  const hasReachedCloudAccountLimit =
+    cloudAccountLimit !== null && (accounts?.length ?? 0) >= cloudAccountLimit;
+  const cloudAccountLimitMessage =
+    hasReachedCloudAccountLimit && cloudAccountLimit !== null
+      ? `${getSubscriptionPlanLabel(user?.subscription_plan)} plan allows up to ${cloudAccountLimit} cloud account${cloudAccountLimit === 1 ? '' : 's'}. Remove one to add another.`
+      : null;
 
   const deleteMutation = useMutation({
     mutationFn: async (account: CloudAccount) => {
@@ -187,10 +197,13 @@ const CloudAccountsPage: React.FC = () => {
             </button>
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all"
+              disabled={hasReachedCloudAccountLimit}
+              className="flex items-center space-x-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-indigo-500"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Account</span>
+              <span className="text-sm font-medium">
+                {hasReachedCloudAccountLimit ? 'Account Limit Reached' : 'Add Account'}
+              </span>
             </button>
           </>
         }
@@ -209,6 +222,12 @@ const CloudAccountsPage: React.FC = () => {
       {actionError && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
           {actionError}
+        </div>
+      )}
+
+      {cloudAccountLimitMessage && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+          {cloudAccountLimitMessage}
         </div>
       )}
 

@@ -3,6 +3,8 @@ import api from '../api/axios';
 import AddCredentialModal from '../components/AddCredentialModal';
 import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
+import { useAuth } from '../context/AuthContext';
+import { getSubscriptionLimits, getSubscriptionPlanLabel } from '../data/subscriptionLimits';
 import { Trash2, Plus, Shield, Key, Calendar, Cloud, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,9 +16,17 @@ interface Credential {
 }
 
 const Settings: React.FC = () => {
+  const { user } = useAuth();
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const cloudAccountLimit = getSubscriptionLimits(user?.subscription_plan).cloudAccounts;
+  const hasReachedCloudAccountLimit =
+    cloudAccountLimit !== null && credentials.length >= cloudAccountLimit;
+  const cloudAccountLimitMessage =
+    hasReachedCloudAccountLimit && cloudAccountLimit !== null
+      ? `${getSubscriptionPlanLabel(user?.subscription_plan)} plan allows up to ${cloudAccountLimit} cloud account${cloudAccountLimit === 1 ? '' : 's'}. Remove one to connect another.`
+      : null;
 
   useEffect(() => {
     fetchCredentials();
@@ -97,14 +107,21 @@ const Settings: React.FC = () => {
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="btn-primary flex items-center space-x-2 group whitespace-nowrap"
+            disabled={hasReachedCloudAccountLimit}
+            className="btn-primary flex items-center space-x-2 group whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
-            <span>Connect Provider</span>
+            <span>{hasReachedCloudAccountLimit ? 'Account Limit Reached' : 'Connect Provider'}</span>
           </button>
         </div>
 
         <div className="p-6">
+          {cloudAccountLimitMessage && (
+            <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+              {cloudAccountLimitMessage}
+            </div>
+          )}
+
           <AnimatePresence mode="popLayout">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">

@@ -5,6 +5,8 @@ import axios from '../api/axios';
 import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { useAuth } from '../context/AuthContext';
+import { getSubscriptionLimits, getSubscriptionPlanLabel } from '../data/subscriptionLimits';
 import {
   CURRENT_PROJECT_CHANGED_EVENT,
   readCurrentProjectId,
@@ -40,6 +42,7 @@ interface ProjectCreatePayload {
 }
 
 const ProjectsPage: React.FC = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = React.useState('');
   const [showCreateModal, setShowCreateModal] = React.useState(false);
@@ -108,6 +111,12 @@ const ProjectsPage: React.FC = () => {
   const filteredProjects = (projects ?? []).filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+  const projectLimit = getSubscriptionLimits(user?.subscription_plan).projects;
+  const hasReachedProjectLimit = projectLimit !== null && (projects?.length ?? 0) >= projectLimit;
+  const projectLimitMessage =
+    hasReachedProjectLimit && projectLimit !== null
+      ? `${getSubscriptionPlanLabel(user?.subscription_plan)} plan allows up to ${projectLimit} projects. Delete one to create another.`
+      : null;
 
   React.useEffect(() => {
     if (!projects || projects.length === 0) return;
@@ -133,6 +142,7 @@ const ProjectsPage: React.FC = () => {
   }, []);
 
   const openCreateModal = () => {
+    if (hasReachedProjectLimit) return;
     setFormError(null);
     setShowCreateModal(true);
   };
@@ -186,10 +196,13 @@ const ProjectsPage: React.FC = () => {
             </button>
             <button
               onClick={openCreateModal}
-              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
+              disabled={hasReachedProjectLimit}
+              className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-blue-500"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">New Project</span>
+              <span className="text-sm font-medium">
+                {hasReachedProjectLimit ? 'Project Limit Reached' : 'New Project'}
+              </span>
             </button>
           </>
         }
@@ -235,6 +248,12 @@ const ProjectsPage: React.FC = () => {
       {actionError && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-300">
           {actionError}
+        </div>
+      )}
+
+      {projectLimitMessage && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          {projectLimitMessage}
         </div>
       )}
 
@@ -322,10 +341,13 @@ const ProjectsPage: React.FC = () => {
           <p className="text-sm text-gray-500 mb-6">Create your first project to get started</p>
           <button
             onClick={openCreateModal}
-            className="cursor-pointer inline-flex items-center space-x-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
+            disabled={hasReachedProjectLimit}
+            className="cursor-pointer inline-flex items-center space-x-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-blue-500"
           >
             <Plus className="w-4 h-4" />
-            <span className="font-medium">New Project</span>
+            <span className="font-medium">
+              {hasReachedProjectLimit ? 'Project Limit Reached' : 'New Project'}
+            </span>
           </button>
         </div>
       )}

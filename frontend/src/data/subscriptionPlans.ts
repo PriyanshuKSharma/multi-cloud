@@ -1,4 +1,4 @@
-export const subscriptionPlanIds = ['starter', 'pro', 'enterprise'] as const;
+export const subscriptionPlanIds = ['basic', 'pro', 'enterprise'] as const;
 
 export type SubscriptionPlanId = (typeof subscriptionPlanIds)[number];
 
@@ -23,17 +23,16 @@ export const isSubscriptionPlanId = (value: unknown): value is SubscriptionPlanI
 
 export const subscriptionPlans: SubscriptionPlan[] = [
   {
-    id: 'starter',
-    name: 'Starter',
+    id: 'basic',
+    name: 'Basic',
     price: { usd: 0, inr: 0 },
-    description: 'Perfect for exploring multi-cloud orchestration.',
+    description: 'Perfect for individuals and small teams.',
     tone: 'blue',
     features: [
       '1 Cloud Account',
       '5 Active Projects',
-      'Basic Cost Analytics',
+      'Basic Analytics',
       'Community Support',
-      'Standard Infrastructure Templates',
     ],
   },
   {

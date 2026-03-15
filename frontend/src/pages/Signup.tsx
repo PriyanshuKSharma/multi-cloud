@@ -28,6 +28,7 @@ import {
   subscriptionPlans,
   type SubscriptionPlanId,
 } from '../data/subscriptionPlans';
+import { normalizeSubscriptionPlan } from '../data/subscriptionLimits';
 import {
   getAuthErrorCode,
   getAuthErrorDetail,
@@ -121,7 +122,8 @@ const Signup: React.FC = () => {
     }
 
     const storedPlan = window.localStorage.getItem('nebula:selectedSubscription');
-    return isSubscriptionPlanId(storedPlan) ? storedPlan : defaultSubscriptionPlanId;
+    const normalizedStoredPlan = normalizeSubscriptionPlan(storedPlan);
+    return isSubscriptionPlanId(normalizedStoredPlan) ? normalizedStoredPlan : defaultSubscriptionPlanId;
   });
   const {
     register,

@@ -27,11 +27,32 @@ from app.schemas.user import (
 from app.core import security
 from app.services.two_factor import TwoFactorService
 from app.services.sso import SSOService, oauth
+from app.services.subscription import (
+    DEFAULT_SUBSCRIPTION_PLAN,
+    get_user_subscription_plan,
+    normalize_subscription_plan,
+)
 
 router = APIRouter()
 
 SSO_STATE_EXPIRE_MINUTES = 10
 DEFAULT_FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173").strip() or "http://localhost:5173"
+
+
+def _serialize_user(user: User) -> UserResponse:
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        job_profile=user.job_profile,
+        organization=user.organization,
+        phone_number=user.phone_number,
+        is_active=user.is_active,
+        two_factor_enabled=user.two_factor_enabled,
+        sso_provider=user.sso_provider,
+        subscription_plan=get_user_subscription_plan(user),
+        last_password_change=user.last_password_change,
+    )
 
 
 def _build_default_frontend_redirect() -> str:
@@ -315,6 +336,7 @@ def _get_or_create_sso_user(db: Session, email: str, full_name: str) -> User:
         hashed_password=security.get_password_hash(random_password),
         full_name=full_name or normalized_email.split("@")[0],
         two_factor_enabled=False,
+        subscription_plan=DEFAULT_SUBSCRIPTION_PLAN,
         last_password_change=datetime.utcnow(),
         is_superuser=False,
     )
@@ -454,13 +476,14 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         two_factor_enabled=False,
         two_factor_secret=None,
         sso_provider=None,
+        subscription_plan=normalize_subscription_plan(user_in.subscription_plan),
         last_password_change=datetime.utcnow(),
         is_superuser=False,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return _serialize_user(user)
 
 
 @router.post("/login", response_model=Token)
@@ -482,7 +505,7 @@ def login_access_token(
 
 @router.get("/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return _serialize_user(current_user)
 
 
 @router.put("/me", response_model=UserResponse)
@@ -490,7 +513,7 @@ def update_profile(
     profile_in: UserProfileUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> User:
+) -> UserResponse:
     if profile_in.full_name is not None:
         current_user.full_name = profile_in.full_name
     if profile_in.job_profile is not None:
@@ -503,7 +526,7 @@ def update_profile(
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
-    return current_user
+    return _serialize_user(current_user)
 
 
 @router.post("/change-password")
@@ -536,12 +559,12 @@ def set_two_factor(
     payload: TwoFactorRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> User:
+) -> UserResponse:
     current_user.two_factor_enabled = payload.enabled
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
-    return current_user
+    return _serialize_user(current_user)
 
 
 # ===== 2FA Endpoints =====

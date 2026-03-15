@@ -20,6 +20,7 @@ from app.worker import provision_resource_task
 from app.core.security import decrypt_data
 
 from app.services.cloud_sync import CloudSyncService
+from app.services.subscription import enforce_project_limit
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -719,6 +720,7 @@ def create_resource(
             .first()
         )
         if not project:
+            enforce_project_limit(db, current_user)
             project = Project(name="Default Project", user_id=current_user.id)
             db.add(project)
             db.commit()

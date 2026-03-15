@@ -35,6 +35,7 @@ const REGIONS = {
 
 const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { register, handleSubmit, reset, watch, setValue } = useForm<any>({
       defaultValues: {
           provider: 'aws',
@@ -54,8 +55,19 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
     }
   }, [provider, setValue]);
 
+  React.useEffect(() => {
+    if (!isOpen) {
+      setErrorMessage(null);
+      reset({
+        provider: 'aws',
+        region: 'us-east-1',
+      });
+    }
+  }, [isOpen, reset]);
+
   const onSubmit = async (data: any) => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const payload: any = {
         provider: data.provider,
@@ -112,7 +124,16 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
       onClose();
     } catch (err) {
       console.error(err);
-      alert(`Failed to save ${data.provider.toUpperCase()} credentials`);
+      const detail =
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail;
+      setErrorMessage(
+        typeof detail === 'string'
+          ? detail
+          : `Failed to save ${String(data.provider ?? 'cloud').toUpperCase()} credentials.`
+      );
     } finally {
       setLoading(false);
     }
@@ -139,6 +160,12 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {errorMessage && (
+                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  {errorMessage}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                   <div>
                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Account Name</label>

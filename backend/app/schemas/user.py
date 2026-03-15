@@ -11,6 +11,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    subscription_plan: Optional[str] = None
 
 class UserLogin(UserBase):
     password: str
@@ -20,6 +21,7 @@ class UserResponse(UserBase):
     is_active: bool
     two_factor_enabled: Optional[bool] = False
     sso_provider: Optional[str] = None
+    subscription_plan: str = 'basic'
     last_password_change: Optional[datetime] = None
 
     class Config:
