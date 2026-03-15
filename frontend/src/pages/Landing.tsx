@@ -192,6 +192,13 @@ const Landing: React.FC = () => {
     ? 'border-slate-200/80 bg-slate-100/90 text-slate-500'
     : 'border-slate-700/80 bg-slate-900/70 text-slate-500';
 
+  const TeamSignature: React.FC<{ light?: boolean }> = ({ light = false }) => (
+    <div className={`flex items-center gap-1.5 opacity-40 transition-opacity hover:opacity-100 ${light ? 'text-slate-100' : isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+      <Users className="h-3 w-3" />
+      <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Crafted by Nebula Engineering Group</span>
+    </div>
+  );
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <AuthCloudBackdrop />
@@ -297,6 +304,9 @@ const Landing: React.FC = () => {
                   Login
                 </Link>
               </div>
+              <div className="mt-10">
+                <TeamSignature />
+              </div>
             </motion.div>
 
             <motion.div
@@ -324,7 +334,10 @@ const Landing: React.FC = () => {
           <section id="features" className={`border-b py-14 ${dividerClass}`}>
             <div className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Core Capabilities</p>
-              <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Designed for serious cloud operations</h2>
+              <div className="flex items-center justify-between gap-4 mt-2">
+                <h2 className={`text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Designed for serious cloud operations</h2>
+                <TeamSignature />
+              </div>
             </div>
 
             <div className="grid gap-x-8 gap-y-7 md:grid-cols-2 xl:grid-cols-4">
@@ -359,6 +372,9 @@ const Landing: React.FC = () => {
               <p className={`mt-3 text-sm ${textMutedClass}`}>
                 Nebula focuses on practical operating discipline, cloud abstraction where it helps, and transparency where it matters.
               </p>
+              <div className="mt-6">
+                <TeamSignature />
+              </div>
             </div>
 
             <div className={`space-y-5 border-l pl-8 ${dividerClass}`}>
@@ -433,7 +449,10 @@ const Landing: React.FC = () => {
           <section id="testimonials" className={`border-b py-14 ${dividerClass}`}>
             <div className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Testimonials</p>
-              <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>What teams value in the platform</h2>
+              <div className="flex items-center justify-between gap-4 mt-2">
+                <h2 className={`text-2xl font-bold sm:text-3xl ${textStrongClass}`}>What teams value in the platform</h2>
+                <TeamSignature />
+              </div>
             </div>
 
             <div className="grid gap-8 md:grid-cols-3">
@@ -461,6 +480,9 @@ const Landing: React.FC = () => {
               <p className={`mx-auto mt-3 max-w-2xl text-sm ${textMutedClass}`}>
                 Choose the plan that fits your organizational needs. All plans include standard multi-cloud capabilities.
               </p>
+              <div className="mt-6 flex justify-center">
+                <TeamSignature />
+              </div>
             </div>
 
             <div className="grid gap-8 md:grid-cols-3">
@@ -584,7 +606,10 @@ const Landing: React.FC = () => {
           <section id="faq" className={`border-b py-14 ${dividerClass}`}>
             <div className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">FAQ</p>
-              <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Common questions before you join</h2>
+              <div className="flex items-center justify-between gap-4 mt-2">
+                <h2 className={`text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Common questions before you join</h2>
+                <TeamSignature />
+              </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -653,6 +678,26 @@ const Landing: React.FC = () => {
           </div>
         </footer>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        className="fixed bottom-6 right-6 z-50 group"
+      >
+        <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-md shadow-2xl transition-all hover:-translate-y-1 ${isLight ? 'bg-white/80 border-slate-200 shadow-blue-500/10' : 'bg-slate-900/80 border-slate-700 shadow-blue-500/20'}`}>
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
+            <div className="relative h-8 w-8 rounded-full border-2 border-blue-500/30 overflow-hidden bg-blue-500/10 flex items-center justify-center">
+              <Users className="h-4 w-4 text-blue-500" />
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold uppercase tracking-[0.14em] ${textStrongClass}`}>Nebula OS</p>
+            <p className={`text-[9px] font-medium ${textMutedClass}`}>Built by 3-Member Engineering Group</p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
