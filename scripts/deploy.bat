@@ -1,4 +1,7 @@
 @echo off
+setlocal
+REM Ensure we run from the repo root (parent of this scripts directory)
+cd /d "%~dp0.."
 echo ========================================
 echo Multi-Cloud Platform Deployment Script
 echo ========================================

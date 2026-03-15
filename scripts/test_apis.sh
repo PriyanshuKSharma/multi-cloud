@@ -1,18 +1,37 @@
 #!/bin/bash
 # Quick test script to verify all APIs are working
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
+
+JQ_BIN=""
+if command -v jq >/dev/null 2>&1; then
+  JQ_BIN="jq"
+fi
+
 echo "🧪 Testing Multi-Cloud Platform APIs"
 echo "======================================"
 echo ""
 
 # Test 1: Health Check
 echo "1️⃣  Testing Health Endpoint..."
-curl -s http://localhost:8000/health | jq '.'
+if [ -n "${JQ_BIN}" ]; then
+  curl -s http://localhost:8000/health | jq '.'
+else
+  curl -s http://localhost:8000/health
+  echo ""
+fi
 echo ""
 
 # Test 2: Dashboard Stats (requires auth, will show 401 if not logged in)
 echo "2️⃣  Testing Dashboard Stats API..."
-curl -s http://localhost:8000/dashboard/stats | jq '.' || echo "⚠️  Requires authentication (expected)"
+if [ -n "${JQ_BIN}" ]; then
+  curl -s http://localhost:8000/dashboard/stats | jq '.' || echo "⚠️  Requires authentication (expected)"
+else
+  curl -s http://localhost:8000/dashboard/stats || echo "⚠️  Requires authentication (expected)"
+  echo ""
+fi
 echo ""
 
 # Test 3: API Documentation

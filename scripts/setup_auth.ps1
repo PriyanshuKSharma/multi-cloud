@@ -1,5 +1,9 @@
 # SSO and 2FA Setup Script
 
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = (Resolve-Path (Join-Path $ScriptDir '..')).Path
+Set-Location $RepoRoot
+
 Write-Host "🔐 Setting up SSO and 2FA..." -ForegroundColor Cyan
 
 # Step 1: Rebuild containers with new dependencies
