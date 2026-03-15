@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import ProviderIcon from '../components/ui/ProviderIcon';
@@ -340,6 +339,15 @@ const ProjectsPage: React.FC = () => {
           { label: `${filteredProjects.length} visible`, tone: 'cyan' },
           { label: currentProjectId ? `current: #${currentProjectId}` : 'current: none', tone: 'indigo' },
         ]}
+        guide={{
+          title: 'About Projects',
+          purpose: 'Projects group your infrastructure into logical workspaces for ownership, cost visibility, and lifecycle control.',
+          actions: [
+            'search and review existing projects',
+            'open project details to inspect managed resources',
+            'edit project metadata or delete a project with its resource records',
+          ],
+        }}
         actions={
           <>
             <button
@@ -361,16 +369,6 @@ const ProjectsPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Projects"
-        purpose="Projects group your infrastructure into logical workspaces for ownership, cost visibility, and lifecycle control."
-        actions={[
-          'search and review existing projects',
-          'open project details to inspect managed resources',
-          'edit project metadata or delete a project with its resource records',
-        ]}
       />
 
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
