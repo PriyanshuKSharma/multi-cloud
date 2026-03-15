@@ -31,6 +31,7 @@ export type ServiceGuide = {
   id: string;
   name: string;
   description: string;
+  category?: string;
   icon: LucideIcon;
   route?: string;
   createRoute?: string;
