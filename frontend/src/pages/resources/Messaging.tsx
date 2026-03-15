@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
@@ -730,6 +729,11 @@ const MessagingPage: React.FC = () => {
           { label: `type: ${serviceType.toUpperCase()}`, tone: 'cyan' },
           { label: `${resources?.length ?? 0} resources`, tone: 'orange' },
         ]}
+        guide={{
+          title: `About ${serviceLabel}`,
+          purpose: pageGuidePurpose,
+          actions: pageGuideActions,
+        }}
         actions={
           <>
             <button
@@ -748,12 +752,6 @@ const MessagingPage: React.FC = () => {
             </Link>
           </>
         }
-      />
-
-      <PageGuide
-        title={`About ${serviceLabel}`}
-        purpose={pageGuidePurpose}
-        actions={pageGuideActions}
       />
 
       {actionMessage && (
