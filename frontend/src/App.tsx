@@ -36,7 +36,9 @@ import Activity from './pages/Activity';
 import Blueprints from './pages/Blueprints';
 import CloudConsole from './pages/CloudConsole';
 import Profile from './pages/Profile';
+import Subscriptions from './pages/Subscriptions';
 import HelpPage from './pages/Help';
+
 import Docs from './pages/Docs';
 
 // Create Query Client
@@ -141,7 +143,9 @@ function App() {
                   <Route path="console" element={<CloudConsole />} />
                   <Route path="blueprints" element={<Blueprints />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="subscriptions" element={<Subscriptions />} />
                   <Route path="profile" element={<Profile />} />
+
                   <Route path="help" element={<HelpPage />} />
                   <Route path="docs" element={<Docs />} />
                 </Route>
