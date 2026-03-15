@@ -38,8 +38,11 @@ import CloudConsole from './pages/CloudConsole';
 import Profile from './pages/Profile';
 import Subscriptions from './pages/Subscriptions';
 import HelpPage from './pages/Help';
-
 import Docs from './pages/Docs';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import HelpCenter from './pages/HelpCenter';
+import ContactUs from './pages/ContactUs';
 
 // Create Query Client
 const queryClient = new QueryClient({
@@ -92,6 +95,10 @@ function App() {
             <NotificationProvider>
               <Routes>
                 {/* Public Routes */}
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/help-center" element={<HelpCenter />} />
+                <Route path="/contact-us" element={<ContactUs />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 
