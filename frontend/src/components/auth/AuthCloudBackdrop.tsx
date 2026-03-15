@@ -2,28 +2,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
-const PROVIDER_LOGOS = [
-  {
-    src: '/provider-logos/aws.svg',
-    alt: 'AWS logo',
-    className: 'left-[9%] top-[18%] w-36 sm:w-40 lg:w-44',
-    duration: 14,
-    delay: 0,
-  },
-  {
-    src: '/provider-logos/azure.svg',
-    alt: 'Azure logo',
-    className: 'right-[10%] top-[22%] w-36 sm:w-40 lg:w-44',
-    duration: 16,
-    delay: 0.35,
-  },
-  {
-    src: '/provider-logos/gcp.svg',
-    alt: 'Google Cloud logo',
-    className: 'left-[20%] bottom-[14%] w-36 sm:w-40 lg:w-44',
-    duration: 18,
-    delay: 0.7,
-  },
+const ambientContours = [
+  'M124 238C188 164 284 140 380 154C466 166 542 214 556 292C564 344 520 374 450 376C388 378 350 344 304 334C228 318 122 312 124 238Z',
+  'M656 188C714 154 804 150 886 170C962 188 1024 230 1036 292C1046 344 1010 388 940 394C874 402 820 378 770 356C710 330 628 280 628 230C628 212 638 198 656 188Z',
+  'M1006 492C1048 458 1114 452 1172 470C1228 486 1278 522 1288 566C1298 606 1274 644 1228 652C1170 662 1118 638 1080 612C1032 582 978 526 1006 492Z',
+];
+
+const ambientTransfers = [
+  { d: 'M748 318C668 274 542 248 380 246', duration: 12 },
+  { d: 'M748 318C778 282 844 246 960 242', duration: 10.5 },
+  { d: 'M748 318C820 344 900 402 1038 540', duration: 13.5 },
 ];
 
 const AuthCloudBackdrop: React.FC = () => {
@@ -35,73 +23,77 @@ const AuthCloudBackdrop: React.FC = () => {
       <div
         className={`absolute inset-0 ${
           isLight
-            ? 'bg-[radial-gradient(circle_at_12%_12%,rgba(59,130,246,0.15),transparent_38%),radial-gradient(circle_at_90%_10%,rgba(37,99,235,0.11),transparent_34%),linear-gradient(145deg,#f8fbff_0%,#eff4fc_52%,#e9f1fb_100%)]'
-            : 'bg-[radial-gradient(circle_at_12%_12%,rgba(59,130,246,0.23),transparent_35%),radial-gradient(circle_at_90%_10%,rgba(30,64,175,0.2),transparent_34%),linear-gradient(145deg,#050c18_0%,#0a1528_52%,#091322_100%)]'
+            ? 'bg-[radial-gradient(circle_at_10%_12%,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_90%_10%,rgba(59,130,246,0.14),transparent_30%),linear-gradient(145deg,#f5fbff_0%,#edf4fd_54%,#e5eefb_100%)]'
+            : 'bg-[radial-gradient(circle_at_10%_12%,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_90%_10%,rgba(59,130,246,0.16),transparent_30%),linear-gradient(145deg,#04111f_0%,#08172a_54%,#091220_100%)]'
         }`}
       />
 
       <div
-        className={`absolute inset-0 [background-image:linear-gradient(to_right,rgba(148,163,184,0.32)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.32)_1px,transparent_1px)] [background-size:48px_48px] ${
-          isLight ? 'opacity-[0.14]' : 'opacity-[0.15]'
+        className={`absolute inset-0 [background-image:linear-gradient(to_right,rgba(148,163,184,0.24)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.24)_1px,transparent_1px)] [background-size:56px_56px] ${
+          isLight ? 'opacity-[0.18]' : 'opacity-[0.14]'
         }`}
       />
 
-      <div
-        className={`absolute left-1/2 top-[8%] h-72 w-72 -translate-x-1/2 rounded-full blur-3xl ${
-          isLight ? 'bg-blue-500/10' : 'bg-blue-400/12'
-        }`}
-      />
-      <div
-        className={`absolute -left-20 top-[26%] h-72 w-72 rounded-full blur-3xl ${
-          isLight ? 'bg-blue-500/12' : 'bg-blue-500/18'
-        }`}
-      />
-      <div
-        className={`absolute -right-20 bottom-[18%] h-80 w-80 rounded-full blur-3xl ${
-          isLight ? 'bg-indigo-500/10' : 'bg-indigo-500/18'
-        }`}
-      />
+      <div className={`absolute left-[52%] top-[34%] h-[22rem] w-[22rem] rounded-full blur-3xl ${isLight ? 'bg-cyan-400/16' : 'bg-cyan-400/14'}`} />
+      <div className={`absolute right-[-6rem] top-[14%] h-[24rem] w-[24rem] rounded-full blur-3xl ${isLight ? 'bg-blue-500/10' : 'bg-blue-500/12'}`} />
+      <div className={`absolute left-[-8rem] bottom-[10%] h-[22rem] w-[22rem] rounded-full blur-3xl ${isLight ? 'bg-sky-500/10' : 'bg-sky-500/12'}`} />
 
-      <motion.div
-        className="absolute left-1/2 top-1/2 hidden h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 lg:block"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+      <svg
+        viewBox="0 0 1440 900"
+        className="absolute inset-0 h-full w-full"
+        fill="none"
+        aria-hidden="true"
       >
-        <div className={`absolute inset-0 rounded-full ${isLight ? 'border border-blue-500/12' : 'border border-blue-200/12'}`} />
-        <div
-          className={`absolute left-1/2 top-1/2 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed ${
-            isLight ? 'border-indigo-500/18' : 'border-indigo-200/14'
-          }`}
-        />
-        <div
-          className={`absolute left-1/2 top-1/2 h-[128px] w-[128px] -translate-x-1/2 -translate-y-1/2 rounded-full backdrop-blur-sm ${
-            isLight ? 'border border-blue-600/15 bg-white/65' : 'border border-white/15 bg-slate-950/55'
-          }`}
-        />
-        <div
-          className={`absolute left-1/2 top-1/2 h-[9px] w-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full ${
-            isLight
-              ? 'bg-blue-500 shadow-[0_0_24px_rgba(37,99,235,0.55)]'
-              : 'bg-blue-300 shadow-[0_0_26px_rgba(147,197,253,0.72)]'
-          }`}
-        />
-      </motion.div>
+        {ambientContours.map((contour) => (
+          <path
+            key={contour}
+            d={contour}
+            fill={isLight ? 'rgba(226,232,240,0.2)' : 'rgba(51,65,85,0.16)'}
+            stroke={isLight ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.08)'}
+            strokeWidth="2"
+          />
+        ))}
 
-      {PROVIDER_LOGOS.map((logo) => (
-        <motion.img
-          key={`${logo.src}-${logo.className}`}
-          src={logo.src}
-          alt={logo.alt}
-          className={`absolute rounded-2xl p-2 backdrop-blur-sm ${logo.className} ${
-            isLight
-              ? 'border border-slate-200/90 bg-white/84 shadow-xl shadow-slate-900/8'
-              : 'border border-slate-300/10 bg-slate-950/42 shadow-2xl shadow-black/30'
-          }`}
-          initial={{ y: 0, opacity: isLight ? 0.76 : 0.82 }}
-          animate={{ y: [0, -8, 0, 6, 0], opacity: [0.66, 0.9, 0.72, 0.86, 0.66] }}
-          transition={{ duration: logo.duration, repeat: Infinity, ease: 'easeInOut', delay: logo.delay }}
+        {ambientTransfers.map((transfer) => (
+          <React.Fragment key={transfer.d}>
+            <path
+              d={transfer.d}
+              stroke={isLight ? 'rgba(56,189,248,0.1)' : 'rgba(34,211,238,0.12)'}
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <motion.path
+              d={transfer.d}
+              stroke={isLight ? 'rgba(14,165,233,0.42)' : 'rgba(103,232,249,0.36)'}
+              strokeWidth="4"
+              strokeDasharray="16 22"
+              strokeLinecap="round"
+              initial={{ strokeDashoffset: 0 }}
+              animate={{ strokeDashoffset: -320 }}
+              transition={{ duration: transfer.duration, repeat: Infinity, ease: 'linear' }}
+            />
+          </React.Fragment>
+        ))}
+
+        <motion.circle
+          cx="748"
+          cy="318"
+          r="16"
+          fill={isLight ? 'rgba(2,132,199,0.74)' : 'rgba(103,232,249,0.82)'}
+          animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.64, 1, 0.64] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
         />
-      ))}
+        <motion.circle
+          cx="748"
+          cy="318"
+          r="38"
+          fill="none"
+          stroke={isLight ? 'rgba(14,165,233,0.18)' : 'rgba(103,232,249,0.18)'}
+          strokeWidth="2.5"
+          animate={{ scale: [0.92, 1.24, 0.92], opacity: [0.18, 0.42, 0.18] }}
+          transition={{ duration: 4.1, repeat: Infinity, ease: 'easeOut' }}
+        />
+      </svg>
     </div>
   );
 };
