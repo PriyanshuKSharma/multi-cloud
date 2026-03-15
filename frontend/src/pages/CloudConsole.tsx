@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { normalizeLogText } from '../utils/terraformOutput';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import ProviderIcon from '../components/ui/ProviderIcon';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -422,6 +421,15 @@ const CloudConsole: React.FC = () => {
           { label: `${deployments?.length ?? 0} deployments`, tone: 'cyan' },
           { label: `${resourcesCount} resources`, tone: 'blue' },
         ]}
+        guide={{
+          title: 'About Cloud Console',
+          purpose: 'Cloud Console streams real provisioning jobs and resource records from the backend in a terminal-style interface.',
+          actions: [
+            'watch command history for each deployment',
+            'open live logs from Terraform/orchestration output',
+            'verify resources created across providers in real time',
+          ],
+        }}
         actions={
           <>
             <button
@@ -440,16 +448,6 @@ const CloudConsole: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Cloud Console"
-        purpose="Cloud Console streams real provisioning jobs and resource records from the backend in a terminal-style interface."
-        actions={[
-          'watch command history for each deployment',
-          'open live logs from Terraform/orchestration output',
-          'verify resources created across providers in real time',
-        ]}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
