@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
@@ -167,6 +166,16 @@ const FunctionsPage: React.FC = () => {
             tone: 'emerald',
           },
         ]}
+        guide={{
+          title: 'About Serverless Functions',
+          purpose: 'Functions are lightweight event-driven workloads where runtime, timeout, and memory are managed as infrastructure.',
+          actions: [
+            'create new provider-native function runtimes',
+            'configure trigger type, actions, and destinations',
+            'monitor deployment state and runtime profile',
+            'open deployment traces for execution logs',
+          ],
+        }}
         actions={
           <>
             <button
@@ -185,17 +194,6 @@ const FunctionsPage: React.FC = () => {
             </Link>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Serverless Functions"
-        purpose="Functions are lightweight event-driven workloads where runtime, timeout, and memory are managed as infrastructure."
-        actions={[
-          'create new provider-native function runtimes',
-          'configure trigger type, actions, and destinations',
-          'monitor deployment state and runtime profile',
-          'open deployment traces for execution logs',
-        ]}
       />
 
       {actionMessage && (
