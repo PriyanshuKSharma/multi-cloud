@@ -16,7 +16,7 @@ import PageGuide from '../components/ui/PageGuide';
 import { subscriptionPlans } from '../data/subscriptionPlans';
 
 const planIcons = {
-  starter: <Rocket className="w-6 h-6" />,
+  basic: <Rocket className="w-6 h-6" />,
   pro: <Zap className="w-6 h-6" />,
   enterprise: <Crown className="w-6 h-6" />,
 };
