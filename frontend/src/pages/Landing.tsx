@@ -12,8 +12,13 @@ import {
   Sun,
   Users,
   Workflow,
+  Check,
+  Zap,
+  Star,
+  Crown,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+
 
 const heroStats = [
   { label: 'Cloud Coverage', value: 'AWS | Azure | GCP' },
@@ -87,11 +92,12 @@ const teamMembers = [
 const Landing: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
-  const scrollToWhyJoin = () => {
-    document.getElementById('why-join')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const isLight = theme === 'light';
+
   const textStrongClass = isLight ? 'text-slate-900' : 'text-slate-100';
   const textMutedClass = isLight ? 'text-slate-600' : 'text-slate-300';
   const dividerClass = isLight ? 'border-slate-200/90' : 'border-slate-700/70';
@@ -123,7 +129,22 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <nav className="hidden md:flex items-center gap-6 mr-6">
+              <button 
+                onClick={() => scrollToSection('why-join')}
+                className={`text-sm font-medium transition-colors ${isLight ? 'text-slate-600 hover:text-blue-600' : 'text-slate-400 hover:text-blue-400'}`}
+              >
+                Why Us
+              </button>
+              <button 
+                onClick={() => scrollToSection('pricing')}
+                className={`text-sm font-medium transition-colors ${isLight ? 'text-slate-600 hover:text-blue-600' : 'text-slate-400 hover:text-blue-400'}`}
+              >
+                Pricing
+              </button>
+            </nav>
+
             <button
               type="button"
               onClick={toggleTheme}
@@ -141,7 +162,7 @@ const Landing: React.FC = () => {
 
             <Link
               to="/login"
-              className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+              className={`hidden sm:inline-block rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
                 isLight
                   ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
                   : 'border border-slate-700 bg-slate-900 text-slate-200 hover:border-blue-400/45'
@@ -154,6 +175,7 @@ const Landing: React.FC = () => {
               Join Us
             </Link>
           </div>
+
         </header>
 
         <main>
@@ -176,7 +198,8 @@ const Landing: React.FC = () => {
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  onClick={scrollToWhyJoin}
+                  onClick={() => scrollToSection('why-join')}
+
                   className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
                     isLight
                       ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
@@ -297,7 +320,116 @@ const Landing: React.FC = () => {
             </div>
           </section>
 
+          <section id="pricing" className={`border-b py-16 ${dividerClass}`}>
+            <div className="text-center mb-16">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Pricing</p>
+              <h2 className={`mt-2 text-3xl font-bold sm:text-4xl ${textStrongClass}`}>Simple, transparent pricing</h2>
+              <p className={`mx-auto mt-3 max-w-2xl text-sm ${textMutedClass}`}>
+                Choose the plan that fits your organizational needs. All plans include standard multi-cloud capabilities.
+              </p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-3">
+              {/* Starter */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                className={`relative flex flex-col rounded-3xl border p-8 ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/40 border-slate-800'}`}
+              >
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                    <Zap className="h-5 w-5" />
+                  </div>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'}`}>Starter</span>
+                </div>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl font-bold ${textStrongClass}`}>$0</span>
+                    <span className={`text-sm ${textMutedClass}`}>/month</span>
+                  </div>
+                  <p className={`mt-2 text-xs ${textMutedClass}`}>Perfect for individuals and small teams.</p>
+                </div>
+                <ul className="mb-8 flex-1 space-y-3">
+                  {['1 Cloud Account', '5 Active Projects', 'Basic Analytics', 'Community Support'].map((f) => (
+                    <li key={f} className="flex items-center gap-3 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500" />
+                      <span className={textMutedClass}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/signup" className={`block w-full text-center rounded-xl py-3 text-sm font-semibold transition-all ${isLight ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10' : 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg shadow-white/5'}`}>
+                  Get Started
+                </Link>
+              </motion.div>
+
+              {/* Pro */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                className={`relative flex flex-col rounded-3xl border p-8 scale-105 z-20 ${isLight ? 'bg-white border-blue-400 shadow-xl shadow-blue-500/10' : 'bg-slate-900 border-blue-500/50 shadow-2xl shadow-blue-500/10'}`}
+              >
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap">
+                  Recommended
+                </div>
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                    <Star className="h-5 w-5" />
+                  </div>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isLight ? 'bg-blue-50 text-blue-600' : 'bg-blue-500/10 text-blue-400'}`}>Professional</span>
+                </div>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl font-bold ${textStrongClass}`}>$49</span>
+                    <span className={`text-sm ${textMutedClass}`}>/month</span>
+                  </div>
+                  <p className={`mt-2 text-xs ${textMutedClass}`}>Everything you need for scaling ops.</p>
+                </div>
+                <ul className="mb-8 flex-1 space-y-3">
+                  {['Unlimited Accounts', '25 Active Projects', 'Pro Analytics', 'Priority Support', 'Automated Backups'].map((f) => (
+                    <li key={f} className="flex items-center gap-3 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500" />
+                      <span className={textMutedClass}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/signup" className="nebula-btn-primary block w-full text-center rounded-xl py-3 text-sm font-semibold shadow-xl shadow-blue-600/20">
+                  Subscribe Now
+                </Link>
+              </motion.div>
+
+              {/* Enterprise */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                className={`relative flex flex-col rounded-3xl border p-8 ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/40 border-slate-800'}`}
+              >
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                    <Crown className="h-5 w-5" />
+                  </div>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'}`}>Enterprise</span>
+                </div>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl font-bold ${textStrongClass}`}>$199</span>
+                    <span className={`text-sm ${textMutedClass}`}>/month</span>
+                  </div>
+                  <p className={`mt-2 text-xs ${textMutedClass}`}>Security and control for global orgs.</p>
+                </div>
+                <ul className="mb-8 flex-1 space-y-3">
+                  {['Unlimited Everything', 'Multi-Org Setup', 'SSO/SAML support', 'Dedicated Account Manager', 'SLA Guarantees'].map((f) => (
+                    <li key={f} className="flex items-center gap-3 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500" />
+                      <span className={textMutedClass}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/signup" className={`block w-full text-center rounded-xl py-3 text-sm font-semibold transition-all ${isLight ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10' : 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg shadow-white/5'}`}>
+                  Contact Sales
+                </Link>
+              </motion.div>
+            </div>
+          </section>
+
           <section className="py-16 text-center">
+
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Get Started</p>
             <h2 className={`mt-2 text-2xl font-bold sm:text-3xl ${textStrongClass}`}>Ready to modernize cloud operations?</h2>
             <p className={`mx-auto mt-2 max-w-2xl text-sm ${textMutedClass}`}>
