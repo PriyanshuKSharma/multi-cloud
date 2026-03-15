@@ -8,6 +8,24 @@ class ProjectCreate(BaseModel):
     description: Optional[str] = None
 
 
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class ProjectResourceSummary(BaseModel):
+    id: int
+    name: str
+    provider: str
+    type: str
+    status: str
+    region: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class ProjectResponse(BaseModel):
     id: int
     name: str
@@ -20,3 +38,6 @@ class ProjectResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class ProjectDetailResponse(ProjectResponse):
+    resources: list[ProjectResourceSummary]
