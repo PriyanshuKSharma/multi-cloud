@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   BadgeCheck,
   Briefcase,
@@ -508,6 +509,16 @@ const Profile: React.FC = () => {
               >
                 {currentPlanPriceLabel}
               </span>
+              <Link
+                to="/subscriptions"
+                className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-semibold transition-colors ${
+                  isLight
+                    ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    : 'border-slate-700/70 bg-slate-900/70 text-slate-200 hover:bg-slate-800/80'
+                }`}
+              >
+                Change plan
+              </Link>
             </div>
 
             <p className={`mt-2 text-sm ${bodyTextClass}`}>
