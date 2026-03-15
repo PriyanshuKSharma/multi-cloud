@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import TextInputDialog from '../../components/ui/TextInputDialog';
@@ -767,6 +766,15 @@ const StoragePage: React.FC = () => {
           { label: `${inventoryCount} inventory`, tone: 'blue' },
           { label: `${encryptedCount} encrypted`, tone: 'emerald' },
         ]}
+        guide={{
+          title: 'About Storage',
+          purpose: 'Storage shows object and block storage resources discovered from connected cloud accounts.',
+          actions: [
+            'search and filter storage assets by provider and region',
+            'review size, object count, and security-related flags',
+            'create new storage resources from this page',
+          ],
+        }}
         actions={
           <>
             <Link
@@ -792,16 +800,6 @@ const StoragePage: React.FC = () => {
             </Link>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Storage"
-        purpose="Storage shows object and block storage resources discovered from connected cloud accounts."
-        actions={[
-          'search and filter storage assets by provider and region',
-          'review size, object count, and security-related flags',
-          'create new storage resources from this page',
-        ]}
       />
 
       {deleteError && (
