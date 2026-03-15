@@ -27,7 +27,7 @@ const channels = [
 const ContactUs: React.FC = () => {
   const { theme } = useTheme();
   const isLight = theme === 'light';
-  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'priyansh17ks@gmail.com';
+  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'priyanshu17ks@gmail.com';
 
   return (
     <PublicInfoLayout
