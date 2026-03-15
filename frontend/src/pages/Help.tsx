@@ -39,7 +39,7 @@ const HelpPage: React.FC = () => {
 
     const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
     const swaggerUrl = `${apiBaseUrl}/docs`;
-    const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'support@cloudorch.com';
+    const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'priyanshu17ks@gmail.com';
 
     const filteredFaqs = React.useMemo(() => {
         const query = searchTerm.trim().toLowerCase();
