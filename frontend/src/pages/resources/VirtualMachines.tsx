@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
-import PageGuide from '../../components/ui/PageGuide';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
@@ -274,6 +273,15 @@ const VirtualMachinesPage: React.FC = () => {
           { label: `${filteredVMs.length} filtered`, tone: 'cyan' },
           { label: `${(vms ?? []).filter((vm) => ['running', 'active'].includes(vm.status)).length} running`, tone: 'emerald' },
         ]}
+        guide={{
+          title: 'About Virtual Machines',
+          purpose: 'Virtual Machines lists compute instances across all connected providers with current operational state.',
+          actions: [
+            'filter by provider, region, and status',
+            'inspect key metadata such as IPs, tags, and cost',
+            'open instance detail pages and start new VM provisioning',
+          ],
+        }}
         actions={
           <>
             <button
@@ -292,16 +300,6 @@ const VirtualMachinesPage: React.FC = () => {
             </Link>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Virtual Machines"
-        purpose="Virtual Machines lists compute instances across all connected providers with current operational state."
-        actions={[
-          'filter by provider, region, and status',
-          'inspect key metadata such as IPs, tags, and cost',
-          'open instance detail pages and start new VM provisioning',
-        ]}
       />
 
       {actionMessage && (
