@@ -22,6 +22,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import AuthCloudBackdrop from '../components/auth/AuthCloudBackdrop';
 
 
 const heroStats = [
@@ -193,18 +194,7 @@ const Landing: React.FC = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div
-        className={`absolute inset-0 ${
-          isLight
-            ? 'bg-[radial-gradient(circle_at_14%_14%,rgba(59,130,246,0.12),transparent_34%),radial-gradient(circle_at_86%_10%,rgba(37,99,235,0.08),transparent_38%),linear-gradient(180deg,#f8fbff_0%,#eef4fb_56%,#e8f0fa_100%)]'
-            : 'bg-[radial-gradient(circle_at_10%_12%,rgba(59,130,246,0.18),transparent_32%),radial-gradient(circle_at_88%_8%,rgba(30,64,175,0.16),transparent_35%),linear-gradient(180deg,#070d18_0%,#0b1423_58%,#0b1628_100%)]'
-        }`}
-      />
-      <div
-        className={`absolute inset-0 [background-image:linear-gradient(to_right,rgba(148,163,184,0.24)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.24)_1px,transparent_1px)] [background-size:52px_52px] ${
-          isLight ? 'opacity-[0.2]' : 'opacity-[0.12]'
-        }`}
-      />
+      <AuthCloudBackdrop />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 pt-5 sm:px-6 lg:px-10">
         <header className={`flex items-center justify-between border-b py-5 ${dividerClass}`}>
