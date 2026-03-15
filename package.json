@@ -1,4 +1,7 @@
 {
+  "name": "multi-cloud",
+  "private": true,
+  "license": "UNLICENSED",
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
     "vercel": "^28.18.5"
