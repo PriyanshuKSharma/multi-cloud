@@ -12,7 +12,6 @@ import {
   Star
 } from 'lucide-react';
 import PageHero from '../components/ui/PageHero';
-import PageGuide from '../components/ui/PageGuide';
 import { subscriptionPlans } from '../data/subscriptionPlans';
 
 const planIcons = {
@@ -60,16 +59,15 @@ const Subscriptions: React.FC = () => {
             </button>
           </div>
         }
-      />
-
-      <PageGuide
-        title="Subscription Overview"
-        purpose="Monthly subscriptions provide predictable billing and access to premium features."
-        actions={[
-          'toggle between USD and INR pricing',
-          'compare feature sets across plans',
-          'upgrade or downgrade anytime from billing settings',
-        ]}
+        guide={{
+          title: 'Subscription Overview',
+          purpose: 'Monthly subscriptions provide predictable billing and access to premium features.',
+          actions: [
+            'toggle between USD and INR pricing',
+            'compare feature sets across plans',
+            'upgrade or downgrade anytime from billing settings',
+          ],
+        }}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
