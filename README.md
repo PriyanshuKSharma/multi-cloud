@@ -1,10 +1,29 @@
 # 🌌 Nebula: The Multi-Cloud Command Center
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=0A0A0A)](https://react.dev/)
-[![Terraform](https://img.shields.io/badge/Terraform-1.5+-844FBA?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
-[![License](https://img.shields.io/badge/License-Proprietary-555555?style=for-the-badge)](LICENSE)
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="AWS logo" height="44" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg" alt="Microsoft Azure logo" height="44" />
+  <img src="https://cdn.simpleicons.org/googlecloud/4285F4" alt="Google Cloud logo" height="44" />
+  <img src="https://cdn.simpleicons.org/docker/2496ED" alt="Docker logo" height="44" />
+  <img src="https://cdn.simpleicons.org/terraform/844FBA" alt="Terraform logo" height="44" />
+  <img src="https://cdn.simpleicons.org/fastapi/009688" alt="FastAPI logo" height="44" />
+  <img src="https://cdn.simpleicons.org/react/61DAFB" alt="React logo" height="44" />
+  <img src="https://cdn.simpleicons.org/postgresql/4169E1" alt="PostgreSQL logo" height="44" />
+  <img src="https://cdn.simpleicons.org/redis/DC382D" alt="Redis logo" height="44" />
+  <img src="https://cdn.simpleicons.org/celery/37814A" alt="Celery logo" height="44" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+ badge" />
+  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI backend badge" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=0A0A0A" alt="React 19 badge" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5 badge" />
+  <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 15 badge" />
+  <img src="https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis 7 badge" />
+  <img src="https://img.shields.io/badge/Terraform-1.5+-844FBA?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform 1.5+ badge" />
+  <img src="https://img.shields.io/badge/License-Proprietary-555555?style=for-the-badge" alt="Proprietary license badge" />
+  
+</p>
 
 Nebula is a high-performance, API-first orchestration engine designed to unify the fragmented multi-cloud landscape. It abstracts **AWS, Azure, and GCP** into a single control plane, enabling developers to provision, monitor, and troubleshoot infrastructure without leaving their cockpit.
 
@@ -73,6 +92,24 @@ flowchart TD
     State <--> AWS & AZ & GCP
 ```
 
+```mermaid
+flowchart LR
+    UI[React + Vite Frontend] --> API[FastAPI API]
+    API --> PG[(PostgreSQL)]
+    API --> REDIS[(Redis)]
+    API --> CW[Celery Worker]
+    CW --> AWS[AWS APIs]
+    CW --> AZ[Azure APIs]
+    CW --> GCP[GCP APIs]
+    CW --> TF[Terraform Modules]
+```
+
+Core backend routers:
+
+- `auth`, `credentials`, `dashboard`, `inventory`, `billing`
+- `resources`, `projects`, `deployments`, `blueprints`
+
+
 ---
 
 ## 🛠️ Developer Interface (API Core)
@@ -111,19 +148,33 @@ Validate your installation instantly:
 
 ## 📂 Engineering Layout
 
+## Repository Layout
+
 ```text
 multi-cloud/
-├── backend/            # FastAPI + Celery Logic
-│   ├── app/api/        # Modular Routers
-│   ├── app/services/   # Cloud-Specific Sync Engines
-│   └── app/tasks/      # Background Provisioning Tasks
-├── frontend/           # React 19 + Framer Motion
-│   ├── src/context/    # Theme and Auth Logic
-│   └── src/pages/      # Dynamic Resource Management
-├── terraform/          # Hardened Provider-Specific Modules
-└── docs/              # In-depth Engineering Documentation
+|-- backend/
+|   |-- app/
+|   |   |-- api/endpoints/
+|   |   |-- core/
+|   |   |-- db/
+|   |   |-- models/
+|   |   |-- schemas/
+|   |   |-- services/
+|   |   `-- tasks/
+|   |-- main.py
+|   `-- requirements.txt
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- context/
+|   |   |-- pages/
+|   |   `-- api/
+|   `-- package.json
+|-- terraform/modules/
+|-- docs/
+|-- docker-compose.yml
+`-- docker-compose.prod.yml
 ```
-
 ---
 
 ## 🗺️ Roadmap & Beyond
@@ -136,5 +187,5 @@ multi-cloud/
 
 ### ⚖️ Legal & Trademarks
 
-Distributed under a **Proprietary All-Rights-Reserved License**.
+Distributed under a **Proprietary All-Rights-Reserved License**. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 AWS, Azure, GCP, and other third-party marks are the property of their respective owners.
