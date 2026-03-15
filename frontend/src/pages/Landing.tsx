@@ -136,7 +136,7 @@ const footerSections = [
 
 const teamMembers = [
   {
-    name: 'Priyanshu K. Sharma',
+    name: 'Priyanshu Kumar Sharma',
     college: 'Ajeenkya D Y Patil University',
     role: 'Product, Platform & Infrastructure Lead',
     focus: 'Platform architecture, cloud systems, provisioning automation, deployment reliability, policy integration and long-range product direction.',
@@ -154,19 +154,19 @@ const teamMembers = [
     focus: 'Interface systems, workflow design, and operator experience quality.',
     profiles: [
       { label: 'GitHub', href: 'https://github.com/vaish105', icon: Github },
-      { label: 'LinkedIn', href: null, icon: Linkedin },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/vaishnavi-jadhav-92bb6635b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app', icon: Linkedin },
       { label: 'Twitter', href: null, icon: Twitter },
       { label: 'Portfolio', href: null, icon: Globe },
     ],
   },
   {
-    name: 'Vaibhav Gulage',
+    name: 'Vaibhav Gulge',
     college: 'Ajeenkya D Y Patil University',
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
     profiles: [
       { label: 'GitHub', href: 'https://github.com/VaibhavGulge', icon: Github },
-      { label: 'LinkedIn', href: null, icon: Linkedin },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/vaibhav-gulge?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app', icon: Linkedin },
       { label: 'Twitter', href: null, icon: Twitter },
       { label: 'Portfolio', href: null, icon: Globe },
     ],
