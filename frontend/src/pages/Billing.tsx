@@ -2,7 +2,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 
 import {
@@ -42,6 +41,15 @@ const BillingPage: React.FC = () => {
           { label: `$${currentMonth.toFixed(2)} current month`, tone: 'orange' },
           { label: `${Math.abs(change).toFixed(1)}% variance`, tone: change >= 0 ? 'pink' : 'emerald' },
         ]}
+        guide={{
+          title: 'About Cost & Billing',
+          purpose: 'This page helps you understand spending trends across cloud providers and services.',
+          actions: [
+            'track current and historical monthly costs',
+            'compare provider-level cost distribution',
+            'review spend trend to identify anomalies',
+          ],
+        }}
         actions={
           <>
             <button
@@ -62,16 +70,6 @@ const BillingPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Cost & Billing"
-        purpose="This page helps you understand spending trends across cloud providers and services."
-        actions={[
-          'track current and historical monthly costs',
-          'compare provider-level cost distribution',
-          'review spend trend to identify anomalies',
-        ]}
       />
 
       {/* Cost Summary */}
