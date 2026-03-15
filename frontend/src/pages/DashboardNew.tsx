@@ -5,7 +5,6 @@ import axios from '../api/axios';
 import MetricCard from '../components/ui/MetricCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import ProviderIcon from '../components/ui/ProviderIcon';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import {
   Server,
@@ -133,16 +132,15 @@ const DashboardPage: React.FC = () => {
             </button>
           </>
         }
-      />
-
-      <PageGuide
-        title="About Dashboard"
-        purpose="This dashboard gives a real-time summary of your multi-cloud estate and platform health."
-        actions={[
-          'monitor VM, storage, network, and cost KPIs',
-          'track provider health and recent activity',
-          'refresh data to validate current backend sync status',
-        ]}
+        guide={{
+          title: 'About Dashboard',
+          purpose: 'This dashboard gives a real-time summary of your multi-cloud estate and platform health.',
+          actions: [
+            'monitor VM, storage, network, and cost KPIs',
+            'track provider health and recent activity',
+            'refresh data to validate current backend sync status',
+          ],
+        }}
       />
 
       {/* Metric Cards */}
