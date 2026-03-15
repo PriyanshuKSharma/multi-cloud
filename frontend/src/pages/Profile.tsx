@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
-import PageGuide from '../components/ui/PageGuide';
 import PageHero from '../components/ui/PageHero';
 import { useTheme } from '../context/ThemeContext';
 import { subscriptionPlans } from '../data/subscriptionPlans';
@@ -278,6 +277,15 @@ const Profile: React.FC = () => {
           { label: currentPlanLabel, tone: 'blue' },
           { label: currentUser.two_factor_enabled ? '2FA enabled' : '2FA disabled', tone: currentUser.two_factor_enabled ? 'emerald' : 'default' },
         ]}
+        guide={{
+          title: 'About Profile',
+          purpose: 'Profile centralizes the user identity that appears across the workspace and the security controls that protect account access.',
+          actions: [
+            'review identity and contact information',
+            'update role, organization, and phone details',
+            'rotate your password and manage two-factor authentication',
+          ],
+        }}
         actions={
           <div className="flex flex-wrap gap-3">
             <button
@@ -310,15 +318,151 @@ const Profile: React.FC = () => {
         }
       />
 
-      <PageGuide
-        title="About Profile"
-        purpose="Profile centralizes the user identity that appears across the workspace and the security controls that protect account access."
-        actions={[
-          'review identity and contact information',
-          'update role, organization, and phone details',
-          'rotate your password and manage two-factor authentication',
-        ]}
-      />
+      <section className={`relative overflow-hidden rounded-[32px] p-8 xl:p-10 ${featureCardClass}`}>
+        <div
+          className={`pointer-events-none absolute inset-0 ${
+            isLight
+              ? 'bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.12),transparent_34%)]'
+              : 'bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(79,70,229,0.16),transparent_34%)]'
+          }`}
+        />
+
+        <div className="relative grid gap-10 xl:grid-cols-[minmax(0,1.6fr)_360px] xl:items-start 2xl:grid-cols-[minmax(0,1.75fr)_400px]">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-start gap-5">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-blue-500 via-indigo-500 to-cyan-400 text-2xl font-black text-white shadow-[0_18px_40px_-22px_rgba(59,130,246,0.8)]">
+                {displayInitials}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                    isLight
+                      ? 'border-blue-200 bg-blue-50 text-blue-700'
+                      : 'border-blue-400/25 bg-blue-500/10 text-blue-200'
+                  }`}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Operator Identity</span>
+                </div>
+                <h2 className={`mt-4 text-3xl font-bold tracking-tight ${sectionTitleClass}`}>{displayName}</h2>
+                <p className={`mt-2 text-sm ${bodyTextClass}`}>
+                  {displayRole} at {displayOrganization}
+                </p>
+                <p className={`mt-2 max-w-2xl text-sm leading-relaxed ${mutedTextClass}`}>
+                  This identity is used across workspace activity, audit-friendly change history, and ownership context for projects and deployments.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+              {profileDetails.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.label}
+                    className={`rounded-2xl border p-4 ${
+                      isLight
+                        ? 'border-slate-200/90 bg-white/85'
+                        : 'border-slate-800/70 bg-slate-950/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-blue-400">
+                      <Icon className="h-3.5 w-3.5" />
+                      <span>{item.label}</span>
+                    </div>
+                    <p className={`mt-3 break-words text-sm font-medium ${sectionTitleClass}`}>{item.value}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <aside
+            className={`w-full rounded-[30px] border p-6 xl:p-7 ${
+              isLight
+                ? 'border-slate-200/90 bg-white/88'
+                : 'border-slate-800/70 bg-slate-950/55'
+            }`}
+          >
+            <p className="text-xs uppercase tracking-[0.16em] text-blue-400">Profile Strength</p>
+            <div className="mt-4 flex items-end justify-between">
+              <div>
+                <p className={`text-4xl font-black ${sectionTitleClass}`}>{completionScore}%</p>
+                <p className={`mt-1 text-sm ${mutedTextClass}`}>completion across identity and security signals</p>
+              </div>
+              <div
+                className={`rounded-2xl px-3 py-2 text-xs font-semibold ${
+                  currentUser.two_factor_enabled
+                    ? isLight
+                      ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'bg-emerald-500/12 text-emerald-300 border border-emerald-500/20'
+                    : isLight
+                      ? 'border border-amber-200 bg-amber-50 text-amber-700'
+                      : 'bg-amber-500/12 text-amber-300 border border-amber-500/20'
+                }`}
+              >
+                {securityTone}
+              </div>
+            </div>
+
+            <div className={`mt-5 h-3 overflow-hidden rounded-full ${isLight ? 'bg-slate-100' : 'bg-slate-900'}`}>
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 transition-all"
+                style={{ width: `${completionScore}%` }}
+              />
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Two-factor authentication</p>
+                    <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>
+                      {currentUser.two_factor_enabled ? 'Enabled and protecting sign-in' : 'Disabled for this account'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setTwoFactor.mutate(!currentUser.two_factor_enabled)}
+                    disabled={setTwoFactor.isPending}
+                    className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+                      currentUser.two_factor_enabled
+                        ? isLight
+                          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20'
+                        : isLight
+                          ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          : 'bg-blue-500/15 text-blue-300 hover:bg-blue-500/20'
+                    }`}
+                  >
+                    {setTwoFactor.isPending
+                      ? 'Updating...'
+                      : currentUser.two_factor_enabled
+                        ? 'Disable'
+                        : 'Enable'}
+                  </button>
+                </div>
+              </div>
+
+              <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
+                <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Password posture</p>
+                <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{passwordFreshness}</p>
+                <p className={`mt-2 text-sm ${mutedTextClass}`}>
+                  Rotate credentials regularly and use a unique password for this workspace.
+                </p>
+              </div>
+
+              <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
+                <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Workspace plan</p>
+                <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{currentPlanLabel}</p>
+                <p className={`mt-2 text-sm ${mutedTextClass}`}>
+                  Your plan shapes project limits, cloud-account limits, and available support level.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
 
       {statusMessage ? (
         <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
@@ -428,154 +572,7 @@ const Profile: React.FC = () => {
         </div>
       </section>
 
-      <div className="grid gap-8">
-        <section className={`relative overflow-hidden rounded-[32px] p-8 xl:p-10 ${featureCardClass}`}>
-          <div
-            className={`pointer-events-none absolute inset-0 ${
-              isLight
-                ? 'bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.12),transparent_34%)]'
-                : 'bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(79,70,229,0.16),transparent_34%)]'
-            }`}
-          />
-
-          <div className="relative grid gap-10 xl:grid-cols-[minmax(0,1.6fr)_360px] xl:items-start 2xl:grid-cols-[minmax(0,1.75fr)_400px]">
-            <div className="flex-1">
-              <div className="flex flex-wrap items-start gap-5">
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-blue-500 via-indigo-500 to-cyan-400 text-2xl font-black text-white shadow-[0_18px_40px_-22px_rgba(59,130,246,0.8)]">
-                  {displayInitials}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                      isLight
-                        ? 'border-blue-200 bg-blue-50 text-blue-700'
-                        : 'border-blue-400/25 bg-blue-500/10 text-blue-200'
-                    }`}
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Operator Identity</span>
-                  </div>
-                  <h2 className={`mt-4 text-3xl font-bold tracking-tight ${sectionTitleClass}`}>{displayName}</h2>
-                  <p className={`mt-2 text-sm ${bodyTextClass}`}>
-                    {displayRole} at {displayOrganization}
-                  </p>
-                  <p className={`mt-2 max-w-2xl text-sm leading-relaxed ${mutedTextClass}`}>
-                    This identity is used across workspace activity, audit-friendly change history, and ownership context for projects and deployments.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-                {profileDetails.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.label}
-                      className={`rounded-2xl border p-4 ${
-                        isLight
-                          ? 'border-slate-200/90 bg-white/85'
-                          : 'border-slate-800/70 bg-slate-950/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-blue-400">
-                        <Icon className="h-3.5 w-3.5" />
-                        <span>{item.label}</span>
-                      </div>
-                      <p className={`mt-3 break-words text-sm font-medium ${sectionTitleClass}`}>{item.value}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <aside
-              className={`w-full rounded-[30px] border p-6 xl:p-7 ${
-                isLight
-                  ? 'border-slate-200/90 bg-white/88'
-                  : 'border-slate-800/70 bg-slate-950/55'
-              }`}
-            >
-              <p className="text-xs uppercase tracking-[0.16em] text-blue-400">Profile Strength</p>
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <p className={`text-4xl font-black ${sectionTitleClass}`}>{completionScore}%</p>
-                  <p className={`mt-1 text-sm ${mutedTextClass}`}>completion across identity and security signals</p>
-                </div>
-                <div
-                  className={`rounded-2xl px-3 py-2 text-xs font-semibold ${
-                    currentUser.two_factor_enabled
-                      ? isLight
-                        ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                        : 'bg-emerald-500/12 text-emerald-300 border border-emerald-500/20'
-                      : isLight
-                        ? 'border border-amber-200 bg-amber-50 text-amber-700'
-                        : 'bg-amber-500/12 text-amber-300 border border-amber-500/20'
-                  }`}
-                >
-                  {securityTone}
-                </div>
-              </div>
-
-              <div className={`mt-5 h-3 overflow-hidden rounded-full ${isLight ? 'bg-slate-100' : 'bg-slate-900'}`}>
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 transition-all"
-                  style={{ width: `${completionScore}%` }}
-                />
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Two-factor authentication</p>
-                      <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>
-                        {currentUser.two_factor_enabled ? 'Enabled and protecting sign-in' : 'Disabled for this account'}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setTwoFactor.mutate(!currentUser.two_factor_enabled)}
-                      disabled={setTwoFactor.isPending}
-                      className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
-                        currentUser.two_factor_enabled
-                          ? isLight
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                            : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20'
-                          : isLight
-                            ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                            : 'bg-blue-500/15 text-blue-300 hover:bg-blue-500/20'
-                      }`}
-                    >
-                      {setTwoFactor.isPending
-                        ? 'Updating...'
-                        : currentUser.two_factor_enabled
-                          ? 'Disable'
-                          : 'Enable'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
-                  <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Password posture</p>
-                  <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{passwordFreshness}</p>
-                  <p className={`mt-2 text-sm ${mutedTextClass}`}>
-                    Rotate credentials regularly and use a unique password for this workspace.
-                  </p>
-                </div>
-
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50/80' : 'border-slate-800/70 bg-slate-900/55'}`}>
-                  <p className={`text-xs uppercase tracking-[0.14em] ${labelClass}`}>Workspace plan</p>
-                  <p className={`mt-2 text-sm font-medium ${sectionTitleClass}`}>{currentPlanLabel}</p>
-                  <p className={`mt-2 text-sm ${mutedTextClass}`}>
-                    Your plan shapes project limits, cloud-account limits, and available support level.
-                  </p>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </section>
-
-        <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
           <section className={`rounded-[28px] p-7 xl:p-8 ${cardClass}`}>
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -689,7 +686,6 @@ const Profile: React.FC = () => {
               </div>
             </div>
           </section>
-        </div>
       </div>
 
       {showPasswordForm ? (
