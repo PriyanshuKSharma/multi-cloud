@@ -23,14 +23,22 @@ const AuthCloudBackdrop: React.FC = () => {
       <div
         className={`absolute inset-0 ${
           isLight
-            ? 'bg-[radial-gradient(circle_at_10%_12%,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_90%_10%,rgba(59,130,246,0.14),transparent_30%),linear-gradient(145deg,#f5fbff_0%,#edf4fd_54%,#e5eefb_100%)]'
+            ? 'bg-[radial-gradient(circle_at_10%_12%,rgba(56,189,248,0.22),transparent_34%),radial-gradient(circle_at_88%_14%,rgba(59,130,246,0.16),transparent_28%),radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.48),transparent_34%),linear-gradient(145deg,#f7fbff_0%,#eef5ff_46%,#e6effb_100%)]'
             : 'bg-[radial-gradient(circle_at_10%_12%,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_90%_10%,rgba(59,130,246,0.16),transparent_30%),linear-gradient(145deg,#04111f_0%,#08172a_54%,#091220_100%)]'
         }`}
       />
 
       <div
         className={`absolute inset-0 [background-image:linear-gradient(to_right,rgba(148,163,184,0.24)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.24)_1px,transparent_1px)] [background-size:56px_56px] ${
-          isLight ? 'opacity-[0.18]' : 'opacity-[0.14]'
+          isLight ? 'opacity-[0.22]' : 'opacity-[0.14]'
+        }`}
+      />
+
+      <div
+        className={`absolute inset-x-0 top-0 h-44 ${
+          isLight
+            ? 'bg-[linear-gradient(180deg,rgba(255,255,255,0.66)_0%,rgba(255,255,255,0)_100%)]'
+            : 'bg-transparent'
         }`}
       />
 
@@ -48,8 +56,8 @@ const AuthCloudBackdrop: React.FC = () => {
           <path
             key={contour}
             d={contour}
-            fill={isLight ? 'rgba(226,232,240,0.2)' : 'rgba(51,65,85,0.16)'}
-            stroke={isLight ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.08)'}
+            fill={isLight ? 'rgba(255,255,255,0.22)' : 'rgba(51,65,85,0.16)'}
+            stroke={isLight ? 'rgba(148,163,184,0.18)' : 'rgba(148,163,184,0.08)'}
             strokeWidth="2"
           />
         ))}
@@ -58,13 +66,13 @@ const AuthCloudBackdrop: React.FC = () => {
           <React.Fragment key={transfer.d}>
             <path
               d={transfer.d}
-              stroke={isLight ? 'rgba(56,189,248,0.1)' : 'rgba(34,211,238,0.12)'}
+              stroke={isLight ? 'rgba(56,189,248,0.14)' : 'rgba(34,211,238,0.12)'}
               strokeWidth="4"
               strokeLinecap="round"
             />
             <motion.path
               d={transfer.d}
-              stroke={isLight ? 'rgba(14,165,233,0.42)' : 'rgba(103,232,249,0.36)'}
+              stroke={isLight ? 'rgba(14,165,233,0.5)' : 'rgba(103,232,249,0.36)'}
               strokeWidth="4"
               strokeDasharray="16 22"
               strokeLinecap="round"
@@ -79,7 +87,7 @@ const AuthCloudBackdrop: React.FC = () => {
           cx="748"
           cy="318"
           r="16"
-          fill={isLight ? 'rgba(2,132,199,0.74)' : 'rgba(103,232,249,0.82)'}
+          fill={isLight ? 'rgba(2,132,199,0.82)' : 'rgba(103,232,249,0.82)'}
           animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.64, 1, 0.64] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
         />
