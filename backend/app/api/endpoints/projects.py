@@ -9,6 +9,7 @@ from app.db.base import get_db
 from app.models.resource import Project
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse
+from app.services.subscription import enforce_project_limit
 
 router = APIRouter()
 
@@ -49,6 +50,8 @@ def create_project(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    enforce_project_limit(db, current_user)
+
     existing = (
         db.query(Project)
         .filter(Project.user_id == current_user.id, Project.name == project_in.name)
