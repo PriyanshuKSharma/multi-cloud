@@ -15,6 +15,7 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.user import (
     ChangePasswordRequest,
+    SubscriptionPlanUpdate,
     Token,
     TwoFactorRequest,
     TwoFactorSetupResponse,
@@ -29,8 +30,10 @@ from app.services.two_factor import TwoFactorService
 from app.services.sso import SSOService, oauth
 from app.services.subscription import (
     DEFAULT_SUBSCRIPTION_PLAN,
+    enforce_plan_change_allowed,
     get_user_subscription_plan,
     normalize_subscription_plan,
+    parse_subscription_plan,
 )
 
 router = APIRouter()
@@ -523,6 +526,32 @@ def update_profile(
     if profile_in.phone_number is not None:
         current_user.phone_number = profile_in.phone_number
 
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return _serialize_user(current_user)
+
+
+@router.post("/subscription-plan", response_model=UserResponse)
+def update_subscription_plan(
+    payload: SubscriptionPlanUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
+    requested_plan = parse_subscription_plan(payload.subscription_plan)
+    current_plan = get_user_subscription_plan(current_user)
+
+    if requested_plan == current_plan:
+        # Ensure canonical storage (e.g. aliases) without forcing clients to refetch.
+        if (current_user.subscription_plan or "").strip().lower() != requested_plan:
+            current_user.subscription_plan = requested_plan
+            db.add(current_user)
+            db.commit()
+            db.refresh(current_user)
+        return _serialize_user(current_user)
+
+    enforce_plan_change_allowed(db, current_user, requested_plan)
+    current_user.subscription_plan = requested_plan
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
