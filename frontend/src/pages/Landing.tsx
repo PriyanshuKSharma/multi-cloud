@@ -5,11 +5,15 @@ import {
   ArrowRight,
   CloudLightning,
   Gauge,
+  Github,
+  Globe,
   Globe2,
   Layers3,
+  Linkedin,
   Moon,
   ShieldCheck,
   Sun,
+  Twitter,
   Users,
   Workflow,
   Check,
@@ -74,18 +78,36 @@ const teamMembers = [
     college: 'Ajeenkya D Y Patil University',
     role: 'Product, Platform & Infrastructure Lead',
     focus: 'Platform architecture, cloud systems, provisioning automation, deployment reliability, policy integration and long-range product direction.',
+    profiles: [
+      { label: 'GitHub', href: 'https://github.com/PriyanshuKSharma', icon: Github },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/priyanshu-kumar-sharma-333800251/', icon: Linkedin },
+      { label: 'Twitter', href: null, icon: Twitter },
+      { label: 'Portfolio', href: 'https://priyanshuksharma.github.io/portfolio_priyanshuksharma/', icon: Globe },
+    ],
   },
   {
     name: 'Vaishnavi Jadhav',
     college: 'Ajeenkya D Y Patil University',
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
+    profiles: [
+      { label: 'GitHub', href: null, icon: Github },
+      { label: 'LinkedIn', href: null, icon: Linkedin },
+      { label: 'Twitter', href: null, icon: Twitter },
+      { label: 'Portfolio', href: null, icon: Globe },
+    ],
   },
   {
     name: 'Vaibhav Gulage',
     college: 'Ajeenkya D Y Patil University',
     role: 'Frontend & UX Engineer',
     focus: 'Interface systems, workflow design, and operator experience quality.',
+    profiles: [
+      { label: 'GitHub', href: null, icon: Github },
+      { label: 'LinkedIn', href: null, icon: Linkedin },
+      { label: 'Twitter', href: null, icon: Twitter },
+      { label: 'Portfolio', href: null, icon: Globe },
+    ],
   },
 ];
 
@@ -101,6 +123,12 @@ const Landing: React.FC = () => {
   const textStrongClass = isLight ? 'text-slate-900' : 'text-slate-100';
   const textMutedClass = isLight ? 'text-slate-600' : 'text-slate-300';
   const dividerClass = isLight ? 'border-slate-200/90' : 'border-slate-700/70';
+  const teamProfileLinkClass = isLight
+    ? 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
+    : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-blue-400/45 hover:text-slate-50';
+  const teamProfileDisabledClass = isLight
+    ? 'border-slate-200/80 bg-slate-100/90 text-slate-500'
+    : 'border-slate-700/80 bg-slate-900/70 text-slate-500';
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -315,6 +343,37 @@ const Landing: React.FC = () => {
                   </p>
                   <p className="mt-1 text-sm font-medium text-blue-500">{member.role}</p>
                   <p className={`mt-2 text-sm ${textMutedClass}`}>{member.focus}</p>
+                  <div className="mt-4 flex flex-wrap gap-2.5">
+                    {member.profiles.map((profile) => {
+                      const Icon = profile.icon;
+
+                      if (!profile.href) {
+                        return (
+                          <span
+                            key={profile.label}
+                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${teamProfileDisabledClass}`}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                            <span>{profile.label}</span>
+                            <span className="text-[10px] uppercase tracking-[0.14em]">Unavailable</span>
+                          </span>
+                        );
+                      }
+
+                      return (
+                        <a
+                          key={profile.label}
+                          href={profile.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${teamProfileLinkClass}`}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          <span>{profile.label}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
                 </motion.article>
               ))}
             </div>
