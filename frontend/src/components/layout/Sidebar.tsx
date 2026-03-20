@@ -166,7 +166,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
   return (
     <aside className={`app-sidebar border-r border-gray-800/50 flex flex-col ${className}`}>
       <div className="h-16 border-b border-gray-800/50 px-5 flex items-center">
-        <div className="flex items-center gap-3 min-w-0">
+        <Link 
+          to="/" 
+          onClick={onNavigate}
+          className="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity"
+        >
           <div className="h-9 w-9 rounded-xl border border-blue-400/30 bg-blue-500/15 flex items-center justify-center text-blue-300">
             <Cloud className="h-5 w-5" />
           </div>
@@ -174,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
             <p className="truncate text-sm font-semibold text-white tracking-wide">Nebula Cloud</p>
             <p className="truncate text-[11px] uppercase tracking-[0.14em] text-gray-500">Organization Console</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
