@@ -228,99 +228,6 @@ const Docs: React.FC = () => {
                 ))}
               </div>
             </div>
-
-            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
-              <h3 className="font-semibold text-white mb-4 flex items-center">
-                <Book className="w-4 h-4 mr-2 text-blue-400" />
-                Quick Resources
-              </h3>
-              <div className="space-y-2 text-sm">
-                <button
-                  type="button"
-                  onClick={() => goToTab('installation')}
-                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
-                >
-                  <span>Installation Guide</span>
-                  <CheckCircle className="h-4 w-4 text-emerald-400" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => goToTab('contributing')}
-                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
-                >
-                  <span>Contributing</span>
-                  <ExternalLink className="h-4 w-4 text-slate-300" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => goToTab('changelog')}
-                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
-                >
-                  <span>Changelog</span>
-                  <Activity className="h-4 w-4 text-blue-300" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => goToTab('api')}
-                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
-                >
-                  <span>API Reference</span>
-                  <ExternalLink className="h-4 w-4 text-blue-300" />
-                </button>
-                <a
-                  href={swaggerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 transition-colors hover:bg-gray-800/55"
-                >
-                  <span>Open Swagger UI</span>
-                  <ExternalLink className="h-4 w-4 text-green-300" />
-                </a>
-                <button
-                  type="button"
-                  onClick={() => goToTab('legal')}
-                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
-                >
-                  <span>License & Notice</span>
-                  <Lock className="h-4 w-4 text-purple-300" />
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
-              <h3 className="font-semibold text-white mb-2 flex items-center">
-                <Lock className="w-4 h-4 mr-2 text-purple-400" />
-                License
-              </h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                This software is proprietary. Usage is restricted to authorized access only.
-              </p>
-              <button
-                type="button"
-                onClick={() => goToTab('legal')}
-                className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-gray-700/60 bg-gray-900/40 px-4 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-gray-800/70"
-              >
-                View terms
-                <ExternalLink className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-[28px] p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-20">
-                <MessageSquare className="w-16 h-16 text-blue-400" />
-              </div>
-              <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
-              <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed">
-                Our engineering team is available 24/7 to assist with integration issues.
-              </p>
-              <button
-                type="button"
-                onClick={contactSupport}
-                className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors relative z-10"
-              >
-                Contact Support
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -1054,6 +961,121 @@ forbidden unless prior written permission is obtained from PriyanshuKSharma.`}
               )}
             </motion.div>
           </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 mt-4 border-t border-gray-800/50">
+        <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6 shadow-xl shadow-black/20">
+          <h3 className="font-semibold text-white mb-4 flex items-center">
+            <Book className="w-4 h-4 mr-2 text-blue-400" />
+            Quick Resources
+          </h3>
+          <div className="space-y-2 text-sm">
+            <button
+              type="button"
+              onClick={() => goToTab('installation')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>Installation Guide</span>
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goToTab('contributing')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>Contributing</span>
+              <ExternalLink className="h-4 w-4 text-slate-300" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goToTab('changelog')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>Changelog</span>
+              <Activity className="h-4 w-4 text-blue-300" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goToTab('api')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>API Reference</span>
+              <ExternalLink className="h-4 w-4 text-blue-300" />
+            </button>
+            <a
+              href={swaggerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 transition-all hover:bg-gray-800/55 hover:border-green-500/30"
+            >
+              <span>Open Swagger UI</span>
+              <ExternalLink className="h-4 w-4 text-green-300" />
+            </a>
+            <button
+              type="button"
+              onClick={() => goToTab('legal')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-purple-500/30"
+            >
+              <span>License & Notice</span>
+              <Lock className="h-4 w-4 text-purple-300" />
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6 shadow-xl shadow-black/20 flex flex-col">
+          <h3 className="font-semibold text-white mb-2 flex items-center">
+            <Lock className="w-4 h-4 mr-2 text-purple-400" />
+            License & Legal
+          </h3>
+          <p className="text-xs text-gray-400 leading-relaxed mb-4 flex-1">
+            Nebula is a <strong className="text-gray-200">proprietary multi-cloud orchestration suite</strong>. All automated discovery logic, unified mapping protocols, and intellectual property are strictly protected. Usage is governed by the enterprise service agreement and restricted to authorized personnel.
+          </p>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center text-[10px] text-gray-500 uppercase tracking-wider">
+              <div className="w-1 h-1 rounded-full bg-purple-500 mr-2" />
+              All Rights Reserved 2026
+            </div>
+            <div className="flex items-center text-[10px] text-gray-500 uppercase tracking-wider">
+              <div className="w-1 h-1 rounded-full bg-purple-500 mr-2" />
+              Authorized Access Only
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => goToTab('legal')}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-700/60 bg-gray-900/40 px-4 py-2.5 text-xs font-semibold text-gray-200 transition-all hover:bg-gray-800/70 hover:border-purple-500/30"
+          >
+            Review Legal Notice
+            <ExternalLink className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-[28px] p-6 relative overflow-hidden shadow-xl shadow-blue-900/5 flex flex-col">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <MessageSquare className="w-16 h-16 text-blue-400 rotate-12" />
+          </div>
+          <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
+          <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed flex-1">
+            Our specialized engineering team is available 24/7 to assist with complex infrastructure migrations, API custom integrations, and large-scale enterprise deployments. Get direct access to technical maintainers.
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-6 relative z-10">
+             <div className="flex items-center gap-2 text-[10px] text-blue-200 bg-blue-400/10 px-2 py-1.5 rounded-lg border border-blue-400/10">
+               <Zap className="w-3 h-3" />
+               Priority Desk
+             </div>
+             <div className="flex items-center gap-2 text-[10px] text-purple-200 bg-purple-400/10 px-2 py-1.5 rounded-lg border border-purple-400/10">
+               <Globe className="w-3 h-3" />
+               Global Ops
+             </div>
+          </div>
+          <button
+            type="button"
+            onClick={contactSupport}
+            className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-xl text-sm font-semibold transition-all relative z-10 shadow-lg shadow-blue-500/20"
+          >
+            Contact Engineering
+          </button>
         </div>
       </div>
     </div>
