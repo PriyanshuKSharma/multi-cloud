@@ -192,34 +192,139 @@ const Docs: React.FC = () => {
         }
       />
 
-      {/* Floating Pill Navigation */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 backdrop-blur-xl border border-purple-500/30 rounded-full px-2 sm:px-4 py-2 shadow-2xl max-w-[95vw]">
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => goToTab(tab.id)}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full transition-all font-mono text-[10px] sm:text-xs uppercase tracking-wider ${
-                activeTab === tab.id
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg scale-105'
-                  : 'text-slate-400 hover:text-purple-400 hover:bg-slate-800/50'
-              }`}
-            >
-              <div className="shrink-0 scale-90 sm:scale-100">
-                {tab.icon}
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,2.05fr)]">
+        <aside className="space-y-6">
+          <div className="sticky top-6 space-y-6">
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Sections</p>
+              <div className="mt-4 space-y-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => goToTab(tab.id)}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+                      activeTab === tab.id
+                        ? 'border-blue-500/45 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.12)]'
+                        : 'border-gray-800/80 bg-gray-900/40 hover:border-gray-700 hover:bg-gray-800/55'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`mt-0.5 rounded-xl border p-2 ${
+                          activeTab === tab.id
+                            ? 'border-blue-500/30 bg-blue-500/10 text-blue-200'
+                            : 'border-gray-800 bg-black/15 text-gray-400'
+                        }`}
+                      >
+                        {tab.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">{tab.name}</p>
+                        <p className="mt-1 text-xs text-gray-400">{tab.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
-              <span className="hidden sm:inline">{tab.name}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+            </div>
 
-      <div className="max-w-6xl mx-auto space-y-12">
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <h3 className="font-semibold text-white mb-4 flex items-center">
+                <Book className="w-4 h-4 mr-2 text-blue-400" />
+                Quick Resources
+              </h3>
+              <div className="space-y-2 text-sm">
+                <button
+                  type="button"
+                  onClick={() => goToTab('installation')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>Installation Guide</span>
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToTab('contributing')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>Contributing</span>
+                  <ExternalLink className="h-4 w-4 text-slate-300" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToTab('changelog')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>Changelog</span>
+                  <Activity className="h-4 w-4 text-blue-300" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToTab('api')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>API Reference</span>
+                  <ExternalLink className="h-4 w-4 text-blue-300" />
+                </button>
+                <a
+                  href={swaggerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>Open Swagger UI</span>
+                  <ExternalLink className="h-4 w-4 text-green-300" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => goToTab('legal')}
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-colors hover:bg-gray-800/55"
+                >
+                  <span>License & Notice</span>
+                  <Lock className="h-4 w-4 text-purple-300" />
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <Lock className="w-4 h-4 mr-2 text-purple-400" />
+                License
+              </h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                This software is proprietary. Usage is restricted to authorized access only.
+              </p>
+              <button
+                type="button"
+                onClick={() => goToTab('legal')}
+                className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-gray-700/60 bg-gray-900/40 px-4 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-gray-800/70"
+              >
+                View terms
+                <ExternalLink className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-[28px] p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-20">
+                <MessageSquare className="w-16 h-16 text-blue-400" />
+              </div>
+              <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
+              <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed">
+                Our engineering team is available 24/7 to assist with integration issues.
+              </p>
+              <button
+                type="button"
+                onClick={contactSupport}
+                className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors relative z-10"
+              >
+                Contact Support
+              </button>
+            </div>
+          </div>
+        </aside>
+
         <div className="min-w-0">
-
-
-
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -949,68 +1054,6 @@ forbidden unless prior written permission is obtained from PriyanshuKSharma.`}
               )}
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Consolidated Resources Footer */}
-        <div className="grid gap-6 md:grid-cols-3 pt-8 border-t border-gray-800/50">
-          <div className="rounded-2xl border border-gray-800/50 bg-[#0f0f11] p-6">
-            <h3 className="font-semibold text-white mb-4 flex items-center">
-              <Book className="w-4 h-4 mr-2 text-blue-400" />
-              Quick Resources
-            </h3>
-            <div className="grid grid-cols-1 gap-2 text-sm">
-              <button 
-                type="button"
-                onClick={() => goToTab('installation')} 
-                className="flex items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 hover:bg-gray-800/55 transition-colors"
-              >
-                <span>Installation</span>
-                <CheckCircle className="h-4 w-4 text-emerald-400" />
-              </button>
-              <button 
-                type="button"
-                onClick={() => goToTab('api')} 
-                className="flex items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 hover:bg-gray-800/55 transition-colors"
-              >
-                <span>API Reference</span>
-                <Code className="h-4 w-4 text-blue-300" />
-              </button>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-gray-800/50 bg-[#0f0f11] p-6">
-            <h3 className="font-semibold text-white mb-2 flex items-center">
-              <Lock className="w-4 h-4 mr-2 text-purple-400" />
-              License
-            </h3>
-            <p className="text-xs text-gray-400 leading-relaxed mb-4">
-              Proprietary software belonging to PriyanshuKSharma. All rights reserved.
-            </p>
-            <button 
-              type="button"
-              onClick={() => goToTab('legal')} 
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-700/60 bg-gray-900/40 px-4 py-2 text-xs font-semibold text-gray-200 hover:bg-gray-800/70 transition-colors"
-            >
-              View Terms <ExternalLink className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20">
-              <MessageSquare className="w-12 h-12 text-blue-400" />
-            </div>
-            <h3 className="font-semibold text-white mb-2 relative z-10 text-sm">Need Support?</h3>
-            <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed text-balance">
-              Our engineering team is available 24/7 to assist with your integration.
-            </p>
-            <button 
-              type="button"
-              onClick={contactSupport} 
-              className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium relative z-10 transition-colors"
-            >
-              Contact Support
-            </button>
-          </div>
         </div>
       </div>
     </div>
