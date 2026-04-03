@@ -13,7 +13,7 @@ This nuance is important for the present study. A platform can remain AWS-focuse
 \subsection{Standardization and Cloud Governance Frameworks}
 NIST and ISO/IEC guidance emphasizes consistency in service definitions, management interfaces, and governance controls as prerequisites for robust cloud operations \cite{nist800145, nist500292, bernstein2009intercloud}. Complementary frameworks such as TOSCA and OCCI extend this conversation to portability and interoperable service representation \cite{oasisTOSCA, calheiros2011cloudsim}.
 
-These references do not prescribe one implementation stack, but they collectively support a key engineering principle: control plane standardization should be explicit, not incidental. Cloud Simplify aligns with this principle by centralizing authentication, resource state transitions, and telemetry access behind a single API surface.
+These references do not prescribe one implementation stack, but they collectively support a key engineering principle: control plane standardization should be explicit, not incidental. Nebula aligns with this principle by centralizing authentication, resource state transitions, and telemetry access behind a single API surface.
 
 \subsection{Asynchronous Orchestration and Performance Evidence}
 Prior benchmarking work indicates that orchestration overhead is generally lower than provider-side resource creation time, especially when long-running tasks are decoupled from synchronous request handling \cite{aldhuraibi2018elasticity, brikman2019terraform}. This supports a design where API endpoints acknowledge quickly while background workers execute provisioning and synchronization routines.
@@ -23,7 +23,7 @@ The literature also reports that asynchronous patterns improve failure handling 
 \subsection{Cost Visibility and Governance Analytics}
 Industry reports continue to identify cost opacity as a recurring challenge in cloud programs \cite{armbrust2010view, vaquero2008break}. The challenge is not only forecasting; teams often lack operational linkage between resources and cost signals. Without a unified view, optimization decisions become delayed or ad hoc.
 
-For this reason, Cloud Simplify integrates resource inventory and billing outputs into the same operational plane. The literature suggests this integration is central to practical governance maturity, especially in environments where finance and engineering decisions must be synchronized.
+For this reason, Nebula integrates resource inventory and billing outputs into the same operational plane. The literature suggests this integration is central to practical governance maturity, especially in environments where finance and engineering decisions must be synchronized.
 
 \subsection{Research Gap and Positioning of This Work}
 Existing research provides strong strategic guidance, yet implementation papers with transparent operational values are less common. Many studies discuss architecture patterns conceptually but provide limited reproducible observations from working systems. This paper positions itself in that gap by delivering an AWS-first implementation with explicit metrics, workflow traces, and section-level constraints. The objective is not to over-claim universal cloud generalization, but to establish a concrete baseline that can be evaluated, critiqued, and extended.
