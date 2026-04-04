@@ -27,34 +27,34 @@ The platform implements **enterprise-grade security** for:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    USER LAYER                               │
-│  • JWT Authentication                                        │
-│  • Password hashing (bcrypt)                                 │
-│  • Session management                                        │
+│  • JWT Authentication                                       │
+│  • Password hashing (bcrypt)                                │
+│  • Session management                                       │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    API LAYER                                 │
-│  • HTTPS/TLS encryption                                      │
-│  • CORS protection                                           │
-│  • Rate limiting                                             │
-│  • Input validation (Pydantic)                               │
+│                    API LAYER                                │
+│  • HTTPS/TLS encryption                                     │
+│  • CORS protection                                          │
+│  • Rate limiting                                            │
+│  • Input validation (Pydantic)                              │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  APPLICATION LAYER                           │
-│  • Credential encryption (AES-256)                           │
-│  • Environment variable management                           │
-│  • Secret key rotation                                       │
+│                  APPLICATION LAYER                          │
+│  • Credential encryption (AES-256)                          │
+│  • Environment variable management                          │
+│  • Secret key rotation                                      │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   DATABASE LAYER                             │
-│  • Encrypted connections (SSL)                               │
-│  • User isolation (row-level security)                       │
-│  • Encrypted credentials at rest                             │
+│                   DATABASE LAYER                            │
+│  • Encrypted connections (SSL)                              │
+│  • User isolation (row-level security)                      │
+│  • Encrypted credentials at rest                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
