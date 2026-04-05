@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 import StatusBadge from '../components/ui/StatusBadge';
 import ProviderIcon from '../components/ui/ProviderIcon';
-import PageGuide from '../components/ui/PageGuide';
+import PageHero from '../components/ui/PageHero';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import ResourceLogs from '../components/ResourceLogs';
 import {
   Rocket,
@@ -86,6 +87,7 @@ const DeploymentsPage: React.FC = () => {
   const [isLogsOpen, setIsLogsOpen] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [deploymentToDelete, setDeploymentToDelete] = React.useState<Deployment | null>(null);
   
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -175,31 +177,36 @@ const DeploymentsPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <Rocket className="w-8 h-8 text-orange-500" />
-            <span>Deployments</span>
-          </h1>
-          <p className="text-gray-400 mt-1">Track your infrastructure deployments and provisioning</p>
-        </div>
-        <button
-          onClick={() => refetch()}
-          className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          <span className="text-sm font-medium">Refresh</span>
-        </button>
-      </div>
-
-      <PageGuide
-        title="About Deployments"
-        purpose="Deployments track infrastructure changes executed by Terraform and orchestration workers."
-        actions={[
-          'monitor running and completed deployment jobs',
-          'inspect status by resource and provider',
-          'open logs, drill into each resource, and delete failed provisioning records',
+      <PageHero
+        id="deployments"
+        tone="orange"
+        eyebrow="Terraform and orchestration jobs"
+        eyebrowIcon={<Rocket className="h-3.5 w-3.5" />}
+        title="Deployments"
+        titleIcon={<Rocket className="w-8 h-8 text-orange-400" />}
+        description="Track infrastructure deployments, audit logs, and resource-level provisioning outcomes."
+        chips={[
+          { label: `${deployments?.length ?? 0} jobs`, tone: 'orange' },
+          { label: `${(deployments ?? []).filter((item) => isFailedDeployment(item.status)).length} failed`, tone: 'pink' },
         ]}
+        guide={{
+          title: 'About Deployments',
+          purpose: 'Deployments track infrastructure changes executed by Terraform and orchestration workers.',
+          actions: [
+            'monitor running and completed deployment jobs',
+            'inspect status by resource and provider',
+            'open logs, drill into each resource, and delete failed provisioning records',
+          ],
+        }}
+        actions={
+          <button
+            onClick={() => refetch()}
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="text-sm font-medium">Refresh</span>
+          </button>
+        }
       />
 
       {deleteError && (
@@ -272,15 +279,7 @@ const DeploymentsPage: React.FC = () => {
                   </Link>
                   {isFailedDeployment(deployment.status) && (
                     <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `Delete failed resource "${deployment.resource_name}"? This removes it from your deployment/resource history.`
-                          )
-                        ) {
-                          deleteMutation.mutate(deployment.id);
-                        }
-                      }}
+                      onClick={() => setDeploymentToDelete(deployment)}
                       className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm border border-red-500/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                       disabled={deletingId === deployment.id}
                     >
@@ -297,7 +296,7 @@ const DeploymentsPage: React.FC = () => {
         <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-12 text-center">
           <FileCode className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-400 mb-2">No deployments yet</h3>
-          <p className="text-sm text-gray-500">Create VM/Storage/Network resources and Terraform runs will appear here</p>
+          <p className="text-sm text-gray-500">Create VM/Storage/Network/Function resources and Terraform runs will appear here</p>
         </div>
       )}
 
@@ -310,6 +309,35 @@ const DeploymentsPage: React.FC = () => {
             : deploymentDetail?.logs || 'No logs available for this deployment yet.'
         }
         resourceName={deploymentDetail?.resource_name || 'Deployment'}
+      />
+
+      <ConfirmDialog
+        open={deploymentToDelete !== null}
+        title="Delete Failed Resource"
+        message={
+          deploymentToDelete
+            ? `Delete failed resource "${deploymentToDelete.resource_name}"? This removes it from your deployment/resource history.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        tone="danger"
+        isLoading={
+          deploymentToDelete !== null &&
+          deletingId === deploymentToDelete.id &&
+          deleteMutation.isPending
+        }
+        onCancel={() => {
+          if (!deleteMutation.isPending) {
+            setDeploymentToDelete(null);
+          }
+        }}
+        onConfirm={() => {
+          if (!deploymentToDelete) return;
+          deleteMutation.mutate(deploymentToDelete.id, {
+            onSettled: () => setDeploymentToDelete(null),
+          });
+        }}
       />
     </div>
   );

@@ -1,6 +1,22 @@
-Future enhancements for Cloud Simplify include:
+\subsection{Future Scope: Risk and Challenge Management}
+In this project phase, risk and challenge management is framed as an explicit future-scope roadmap rather than a closed evaluation result. The roadmap emphasizes operational hardening and governance maturity.
+
 \begin{itemize}
-    \item \textbf{Auto-Healing Infrastructure}: Implementing a feedback loop where the platform automatically detects a resource failure and triggers a "terraform apply" to restore the desired state.
-    \item \textbf{Cross-Cloud Migration}: A feature to automatically migrate workloads between AWS and Azure based on real-time cost-saving opportunities or regional latency changes.
-    \item \textbf{Websocket-Based Live Logs}: Moving from polling to real-time streaming of Terraform execution logs to the frontend.
+    \item \textbf{Terraform State Integrity}: migrate state handling to hardened remote backends (for example, S3-backed state with locking strategy), and define recovery playbooks for interrupted applies.
+    \item \textbf{Credential Governance}: introduce policy-driven key rotation windows, least-privilege IAM templates, and auditable credential usage trails.
+    \item \textbf{Failure Engineering}: institutionalize chaos-style drills for queue backlog, worker crash, API degradation, and partial provisioning failures.
+    \item \textbf{Policy-as-Code Enforcement}: integrate pre-apply policy checks to block non-compliant configuration before resource creation.
+    \item \textbf{Compliance Traceability}: add structured event logs aligned with governance and audit reporting requirements.
 \end{itemize}
+
+\subsection{Functional Evolution Roadmap}
+The next functional expansions are planned in staged form:
+\begin{itemize}
+    \item \textbf{Stage 1 - Live Operational Feedback}: WebSocket-based real-time logs for synchronization and Terraform execution.
+    \item \textbf{Stage 2 - Cost Intelligence}: recommendation engine for idle assets, right-sizing opportunities, and budget alerts.
+    \item \textbf{Stage 3 - Predictive Governance}: anomaly scoring and risk-prioritized action queues.
+    \item \textbf{Stage 4 - Controlled Multi-Cloud Extension}: reintroduce Azure and GCP modules only after AWS baseline hardening targets are consistently met, including a unified FaaS intent layer mapped to AWS Lambda, Azure Functions, and Google Cloud Functions \cite{aws_lambda_docs_2026, azure_functions_docs_2026, gcp_cloud_functions_docs_2026}.
+\end{itemize}
+
+\subsection{Research Extensions}
+Future academic work can evaluate comparative outcomes across providers, perform longitudinal drift studies, and test decision-support effectiveness of AI-guided optimization against manual operator baselines. These directions would strengthen external validity while preserving the implementation-centered approach introduced in this paper.

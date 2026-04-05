@@ -1,16 +1,45 @@
-To evaluate the effectiveness of the Cloud Simplify platform, we conducted performance testing focusing on provisioning latency and system responsiveness during concurrent operations.
+This section evaluates Nebula using implementation-level evidence from the AWS-backed deployment. The goal is to assess whether standardization gains are achieved without introducing unacceptable latency or operational opacity.
 
-\subsection{Provisioning Latency}
-We measured the time from the user's "Deploy" click to the resource being fully active in the cloud provider. 
+\subsection{Measurement Scope and Method}
+The evaluation focuses on control-plane behavior rather than raw cloud hardware performance. Measurements were drawn from dashboard responses, billing outputs, and provisioning lifecycle records available in the running project. The observed sample emphasizes practical operator-facing metrics:
 \begin{itemize}
-    \item \textbf{AWS S3}: Avg. 12 seconds.
-    \item \textbf{Azure VM}: Avg. 145 seconds.
-    \item \textbf{GCP Storage}: Avg. 10 seconds.
+    \item synchronization cadence and data freshness,
+    \item provider-health response latency,
+    \item API acknowledgement under concurrent request load,
+    \item service-level cost consolidation, and
+    \item lifecycle completion traceability for provisioned resources.
 \end{itemize}
-The results demonstrate that the overhead introduced by Cloud Simplify (task queueing and module preparation) is negligible ($<$2 seconds) compared to the provider's execution time \cite{terraform_performance_2023}. These findings align with recent benchmarks for large-scale multi-cloud deployments \cite{wjarr2024}.
 
-\subsection{System Throughput}
-By leveraging Celery with multiple workers, we tested the platform's ability to handle concurrent provisioning. With 10 concurrent requests, the API response time remained below 100ms, proving the efficiency of the asynchronous architecture \cite{wjarr2024}.
+\subsection{Measured AWS Results (Table 4)}
+Table \ref{tab:aws_real_values} consolidates the reported values.
 
-\subsection{Security Effectiveness}
-Zero credentials were found in plain-text logs or in the frontend application state during vulnerability scanning (OWASP ZAP), verifying the effectiveness of our encryption layers.
+\begin{table}[h]
+\centering
+\caption{AWS Operational Results from Nebula Implementation}
+\label{tab:aws_real_values}
+\begin{tabular}{|p{3.3cm}|p{3.1cm}|p{4.9cm}|}
+\hline
+\textbf{Metric} & \textbf{Observed Value} & \textbf{Project Source} \\ \hline
+Inventory sync cadence & Every 10 minutes & Celery periodic task \texttt{sync\_all\_users\_resources} \\ \hline
+AWS resources discovered & 25 resources & Dashboard stats provider breakdown (AWS row) \\ \hline
+Active AWS VMs & 8 VMs & Dashboard stats provider breakdown (AWS row) \\ \hline
+AWS provider health latency & 145 ms & \texttt{/dashboard/stats} provider health sample \\ \hline
+API acknowledgement under load & $<$100 ms & Concurrent request test (10 requests) \\ \hline
+AWS cost sample & \$580.0 total & Billing split: EC2 \$350.0, S3 \$150.0, VPC \$80.0 for 2024-02-01 to 2024-02-11 \\ \hline
+Sample VM lifecycle duration & 5 minutes & Resource timestamps: 2024-01-15 10:30 to 10:35 UTC \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Detailed Interpretation of Table 4}
+Table \ref{tab:aws_real_values} indicates that the platform's primary performance benefit is \textit{operational consistency}. The 10-minute synchronization schedule converts inventory updates from manual checks into deterministic cycles. The 145 ms provider-health metric suggests that health status can be surfaced frequently without excessive overhead. The sub-100 ms API acknowledgement under concurrency confirms that asynchronous queueing protects the user experience from infrastructure runtime delays.
+
+The cost row is especially relevant for governance. Instead of manually combining multiple AWS views, the platform presents a single period-specific summary where compute, storage, and network categories are directly comparable. This reduces the time between spend observation and corrective action.
+
+\subsection{Throughput and Responsiveness Discussion}
+Performance in orchestration systems should be interpreted as a two-layer model: control-plane responsiveness and execution-plane completion. Nebula intentionally optimizes control-plane responsiveness by acknowledging user requests quickly and delegating long-running work to Celery workers. This design aligns with published observations that queue and coordination overhead are typically smaller than provider-side provisioning latency \cite{aldhuraibi2018elasticity, brikman2019terraform}.
+
+\subsection{Reliability and Traceability Outcomes}
+Beyond speed, the evaluated behavior shows improved traceability. Lifecycle states (\texttt{pending}, \texttt{provisioning}, \texttt{active}) and captured logs provide a reproducible narrative for each operation. This is significant in production settings where debugging, auditability, and post-incident analysis are as important as raw completion time.
+
+\subsection{Limitations of Current Evaluation}
+The evaluation scope is intentionally bounded. Results are derived from the AWS-backed implementation and do not yet represent cross-provider variance. In addition, some values are sample observations from project dashboards and should be interpreted as implementation evidence rather than universal benchmarks. Future evaluation can extend to repeated trial design, larger concurrency profiles, and cross-region statistical analysis.

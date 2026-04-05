@@ -1,0 +1,24 @@
+# Dependency directories
+node_modules
+**/node_modules
+
+# Python environments and caches
+backend/multi-venv
+backend/venv
+venv
+.venv
+**/__pycache__
+*.py[cod]
+
+# Terraform local artifacts (includes the >100 MB provider binary)
+**/.terraform
+**/.terraform/**
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*
+**/tfplan
+
+# Local CLI/workspace files
+.vercel
+*.log
+docs

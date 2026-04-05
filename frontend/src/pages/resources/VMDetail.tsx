@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
-import ProviderIcon from '../../components/ui/ProviderIcon';
+import PageHero from '../../components/ui/PageHero';
 import {
   ArrowLeft,
   Server,
@@ -117,60 +117,57 @@ const VMDetailPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/resources/vms"
-            className="p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-400" />
-          </Link>
-          <div>
-            <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-white">{vm.resource_name}</h1>
-              <StatusBadge status={vm.status as any} size="md" />
-            </div>
-            <div className="flex items-center space-x-3 mt-2">
-              <ProviderIcon provider={vm.provider as any} size="sm" showLabel />
-              <span className="text-gray-500">•</span>
-              <span className="text-sm text-gray-400">{vm.region}</span>
-              <span className="text-gray-500">•</span>
-              <span className="text-sm text-gray-400">{vm.resource_id}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => refetch()}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all duration-200"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Refresh</span>
-          </button>
-          {vm.status === 'stopped' && (
-            <button className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-lg border border-green-500/20 transition-all duration-200">
-              <Play className="w-4 h-4" />
-              <span className="text-sm font-medium">Start</span>
+      <PageHero
+        id={`vm-detail-${vm.id}`}
+        tone="blue"
+        eyebrow="Compute instance detail"
+        eyebrowIcon={<Server className="h-3.5 w-3.5" />}
+        title={vm.resource_name}
+        titleIcon={<Server className="w-8 h-8 text-blue-300" />}
+        description={`VM ${vm.resource_id} in ${vm.region}`}
+        chips={[
+          { label: vm.provider.toUpperCase(), tone: 'blue' },
+          { label: vm.region, tone: 'cyan' },
+          { label: vm.status, tone: vm.status === 'running' ? 'emerald' : 'default' },
+        ]}
+        actions={
+          <>
+            <Link
+              to="/resources/vms"
+              className="cursor-pointer flex items-center rounded-lg border border-gray-700/60 bg-gray-800/60 px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-gray-800"
+            >
+              <ArrowLeft className="mr-2 w-4 h-4 text-gray-400" />
+              Back
+            </Link>
+            <button
+              onClick={() => refetch()}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-lg border border-gray-700/50 transition-all duration-200"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">Refresh</span>
             </button>
-          )}
-          {vm.status === 'running' && (
-            <button className="flex items-center space-x-2 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 rounded-lg border border-yellow-500/20 transition-all duration-200">
-              <Square className="w-4 h-4" />
-              <span className="text-sm font-medium">Stop</span>
+            {vm.status === 'stopped' && (
+              <button className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-lg border border-green-500/20 transition-all duration-200">
+                <Play className="w-4 h-4" />
+                <span className="text-sm font-medium">Start</span>
+              </button>
+            )}
+            {vm.status === 'running' && (
+              <button className="flex items-center space-x-2 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 rounded-lg border border-yellow-500/20 transition-all duration-200">
+                <Square className="w-4 h-4" />
+                <span className="text-sm font-medium">Stop</span>
+              </button>
+            )}
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-all duration-200"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="text-sm font-medium">Destroy</span>
             </button>
-          )}
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-all duration-200"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="text-sm font-medium">Destroy</span>
-          </button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Overview & Security */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  Activity,
   Book,
   Server,
   Database,
@@ -19,19 +21,122 @@ import {
   MessageSquare,
   Github
 } from 'lucide-react';
+import PageHero from '../components/ui/PageHero';
+import ServiceGuidePicker from '../components/docs/ServiceGuidePicker';
+import {
+  defaultDocsServiceGuideId,
+  docsServiceGuides,
+  getDocsServiceGuide,
+} from '../data/docsServiceGuides';
 
 const Docs: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
+  const navigate = useNavigate();
+  const [selectedServiceGuideId, setSelectedServiceGuideId] = React.useState<string>(() => {
+    if (typeof window === 'undefined') return defaultDocsServiceGuideId;
+    try {
+      const persisted = window.localStorage.getItem('docs:user-guide:selected');
+      return persisted ? persisted : defaultDocsServiceGuideId;
+    } catch {
+      return defaultDocsServiceGuideId;
+    }
+  });
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
   const swaggerUrl = `${apiBaseUrl}/docs`;
+  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'priyanshu17ks@gmail.com';
+  const selectedServiceGuide = React.useMemo(
+    () => getDocsServiceGuide(selectedServiceGuideId),
+    [selectedServiceGuideId]
+  );
+  const SelectedServiceIcon = selectedServiceGuide.icon;
+
+  React.useEffect(() => {
+    if (selectedServiceGuide.id !== selectedServiceGuideId) {
+      setSelectedServiceGuideId(selectedServiceGuide.id);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('docs:user-guide:selected', selectedServiceGuideId);
+    } catch {
+      // ignore persistence issues
+    }
+  }, [selectedServiceGuide.id, selectedServiceGuideId]);
+
+  const goToTab = (tabId: string) => {
+    setActiveTab(tabId);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const contactSupport = () => {
+    const subject = encodeURIComponent('Nebula Support Request');
+    const body = encodeURIComponent('Hi team,\n\nI need help with:\n\n');
+    window.location.href = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
+  };
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: <Book className="w-4 h-4" /> },
-    { id: 'quickstart', name: 'User Guide', icon: <Zap className="w-4 h-4" /> },
-    { id: 'architecture', name: 'Architecture', icon: <Layers className="w-4 h-4" /> },
-    { id: 'backend', name: 'Backend', icon: <Server className="w-4 h-4" /> },
-    { id: 'frontend', name: 'Frontend', icon: <Globe className="w-4 h-4" /> },
-    { id: 'api', name: 'API Reference', icon: <Code className="w-4 h-4" /> },
+    {
+      id: 'overview',
+      name: 'Overview',
+      description: 'What Nebula is and how it works.',
+      icon: <Book className="w-4 h-4" />,
+    },
+    {
+      id: 'installation',
+      name: 'Installation',
+      description: 'Run locally or deploy with Docker.',
+      icon: <Terminal className="w-4 h-4" />,
+    },
+    {
+      id: 'quickstart',
+      name: 'User Guide',
+      description: 'Step-by-step operator workflows.',
+      icon: <Zap className="w-4 h-4" />,
+    },
+    {
+      id: 'contributing',
+      name: 'Contributing',
+      description: 'Developer workflow and standards.',
+      icon: <Github className="w-4 h-4" />,
+    },
+    {
+      id: 'changelog',
+      name: 'Changelog',
+      description: 'Recent product changes.',
+      icon: <Activity className="w-4 h-4" />,
+    },
+    {
+      id: 'architecture',
+      name: 'Architecture',
+      description: 'System design, core flows, and stack.',
+      icon: <Layers className="w-4 h-4" />,
+    },
+    {
+      id: 'backend',
+      name: 'Backend',
+      description: 'FastAPI, Celery, storage, and Terraform.',
+      icon: <Server className="w-4 h-4" />,
+    },
+    {
+      id: 'frontend',
+      name: 'Frontend',
+      description: 'React UI stack and client-side patterns.',
+      icon: <Globe className="w-4 h-4" />,
+    },
+    {
+      id: 'api',
+      name: 'API Reference',
+      description: 'Endpoints, auth model, and Swagger.',
+      icon: <Code className="w-4 h-4" />,
+    },
+    {
+      id: 'legal',
+      name: 'License',
+      description: 'Proprietary terms and usage boundaries.',
+      icon: <Lock className="w-4 h-4" />,
+    },
   ];
 
   const variants = {
@@ -41,48 +146,92 @@ const Docs: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-800/50">
-        <div>
-          <h1 className="text-4xl font-bold text-white tracking-tight">Documentation</h1>
-          <p className="text-gray-400 mt-2 text-lg">
-            Complete guide to the Multi-Cloud SaaS Orchestration Platform.
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-           <a href="https://github.com/PriyanshuKSharma/multi-cloud" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700">
-             <Github className="w-4 h-4" />
-             <span>GitHub Repo</span>
-           </a>
-           <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20">
-             <LifeBuoy className="w-4 h-4" />
-             <span>Support</span>
-           </button>
-        </div>
-      </div>
+    <div className="w-full space-y-8 p-6 pb-12 lg:p-8 xl:p-10">
+      <PageHero
+        id="documentation"
+        tone="blue"
+        eyebrow="Knowledge base and API guidance"
+        eyebrowIcon={<Book className="h-3.5 w-3.5" />}
+        title="Documentation"
+        titleIcon={<Book className="w-8 h-8 text-blue-300" />}
+        description="Complete guide to the Multi-Cloud SaaS Orchestration Platform."
+        chips={[
+          { label: `${tabs.length} sections`, tone: 'blue' },
+          { label: 'Frontend + Backend + API', tone: 'cyan' },
+          { label: 'Proprietary', tone: 'default' },
+        ]}
+        guide={{
+          title: 'About Documentation',
+          purpose: 'Documentation centralizes product guidance, architecture notes, and the API reference needed to operate the platform safely.',
+          actions: [
+            'navigate sections from the left rail',
+            'open Swagger for endpoint details',
+            'review licensing and usage boundaries',
+          ],
+        }}
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="https://github.com/PriyanshuKSharma/multi-cloud"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-700/70 bg-slate-900/75 px-4 py-2.5 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-800/85"
+            >
+              <Github className="w-4 h-4" />
+              <span>GitHub</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => navigate('/help')}
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:from-blue-400 hover:to-indigo-400"
+            >
+              <LifeBuoy className="w-4 h-4" />
+              <span>Support</span>
+            </button>
+          </div>
+        }
+      />
 
-      {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-5 py-2.5 rounded-lg transition-all font-medium whitespace-nowrap border ${
-              activeTab === tab.id
-                ? 'bg-blue-500/10 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
-                : 'bg-gray-900/50 text-gray-400 border-gray-800 hover:text-white hover:bg-gray-800 hover:border-gray-700'
-            }`}
-          >
-            {tab.icon}
-            <span>{tab.name}</span>
-          </button>
-        ))}
-      </div>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,2.05fr)]">
+        <aside className="space-y-6">
+          <div className="sticky top-6 space-y-6">
+            <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Sections</p>
+              <div className="mt-4 space-y-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => goToTab(tab.id)}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+                      activeTab === tab.id
+                        ? 'border-blue-500/45 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.12)]'
+                        : 'border-gray-800/80 bg-gray-900/40 hover:border-gray-700 hover:bg-gray-800/55'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`mt-0.5 rounded-xl border p-2 ${
+                          activeTab === tab.id
+                            ? 'border-blue-500/30 bg-blue-500/10 text-blue-200'
+                            : 'border-gray-800 bg-black/15 text-gray-400'
+                        }`}
+                      >
+                        {tab.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">{tab.name}</p>
+                        <p className="mt-1 text-xs text-gray-400">{tab.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
 
-      {/* Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3">
+        <div className="min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -91,7 +240,7 @@ const Docs: React.FC = () => {
               exit="exit"
               variants={variants}
               transition={{ duration: 0.2 }}
-              className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-8 min-h-[600px]"
+              className="bg-[#0f0f11] border border-gray-800/50 rounded-[28px] p-7 xl:p-8 min-h-[650px]"
             >
               {/* OVERVIEW */}
               {activeTab === 'overview' && (
@@ -157,71 +306,401 @@ const Docs: React.FC = () => {
                 </div>
               )}
 
+              {/* INSTALLATION */}
+              {activeTab === 'installation' && (
+                <div className="space-y-8">
+                  <header>
+                    <h2 className="text-2xl font-bold text-white mb-2">Installation Guide</h2>
+                    <p className="text-gray-400">
+                      Local development is easiest with Docker Compose. Use the checklist below to get the full stack running.
+                    </p>
+                  </header>
+
+                  <section className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Quick Start (Docker Compose)</h3>
+                    <ol className="space-y-3 text-sm text-gray-300 leading-relaxed">
+                      <li>
+                        <span className="font-semibold text-white">1. Clone and configure</span>
+                        <pre className="mt-2 rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`git clone https://github.com/PriyanshuKSharma/multi-cloud.git
+cd multi-cloud
+cp .env.example .env`}
+                        </pre>
+                      </li>
+                      <li>
+                        <span className="font-semibold text-white">2. Start services</span>
+                        <pre className="mt-2 rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`docker compose up -d --build`}
+                        </pre>
+                      </li>
+                      <li>
+                        <span className="font-semibold text-white">3. Open the app</span>
+                        <div className="mt-2 grid gap-2 text-xs text-gray-400 sm:grid-cols-2">
+                          <div className="rounded-xl border border-gray-800 bg-black/20 px-3 py-2">
+                            <span className="font-semibold text-gray-200">Frontend:</span> http://localhost:5173
+                          </div>
+                          <div className="rounded-xl border border-gray-800 bg-black/20 px-3 py-2">
+                            <span className="font-semibold text-gray-200">Backend Swagger:</span> http://localhost:8000/docs
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <span className="font-semibold text-white">4. Smoke test (optional)</span>
+                        <pre className="mt-2 rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`./scripts/test_apis.sh`}
+                        </pre>
+                      </li>
+                      <li>
+                        <span className="font-semibold text-white">5. Stop services</span>
+                        <pre className="mt-2 rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`docker compose down`}
+                        </pre>
+                      </li>
+                    </ol>
+                  </section>
+
+                  <section className="grid gap-6 lg:grid-cols-2">
+                    <div className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-3">
+                      <h3 className="text-lg font-semibold text-white">Environment Variables</h3>
+                      <p className="text-sm text-gray-300 leading-relaxed">
+                        Start by copying <code className="text-gray-200">.env.example</code> to <code className="text-gray-200">.env</code>.
+                        In production, set strong secrets and restrict CORS origins.
+                      </p>
+                      <pre className="rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`# Frontend
+VITE_API_URL=http://localhost:8000
+VITE_SUPPORT_EMAIL=your-support@example.com
+
+# Backend (example)
+DATABASE_URL=postgresql://user:
+  password@db:5432/multicloud
+REDIS_URL=redis://redis:6379/0
+SECRET_KEY=change-me-to-a-long-random-secret`}
+                      </pre>
+                    </div>
+
+                    <div className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-3">
+                      <h3 className="text-lg font-semibold text-white">Production Deploy (Compose)</h3>
+                      <p className="text-sm text-gray-300 leading-relaxed">
+                        For a single-server deployment, use the production compose file after setting production-grade environment values.
+                      </p>
+                      <pre className="rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`docker compose -f docker-compose.prod.yml up -d --build`}
+                      </pre>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        Tip: Review <code className="text-gray-200">docs/DEPLOYMENT_CHECKLIST.md</code> before shipping to production.
+                      </p>
+                    </div>
+                  </section>
+
+                  <section className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-6 space-y-2">
+                    <h3 className="text-lg font-semibold text-amber-50">Troubleshooting</h3>
+                    <ul className="space-y-2 text-sm text-amber-50/90 leading-relaxed">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-200/80" />
+                        <span>If ports are busy (5173/8000), stop the process using them or change ports in compose.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-200/80" />
+                        <span>Check container logs: <code className="text-amber-50">docker compose logs -f backend</code> and <code className="text-amber-50">docker compose logs -f celery_worker</code>.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-200/80" />
+                        <span>If the UI can’t reach the API, verify <code className="text-amber-50">VITE_API_URL</code> matches the backend origin.</span>
+                      </li>
+                    </ul>
+                  </section>
+                </div>
+              )}
+
               {/* QUICK START / USER GUIDE */}
               {activeTab === 'quickstart' && (
                 <div className="space-y-8">
                   <header>
                      <h2 className="text-2xl font-bold text-white mb-2">User Guide</h2>
-                     <p className="text-gray-400">Step-by-step instructions for common tasks.</p>
+                     <p className="text-gray-400">
+                       Select the service you want to execute, then follow the detailed checklist below.
+                     </p>
                   </header>
 
-                  <div className="space-y-6">
-                    <div className="bg-gray-800/20 border border-gray-700/50 rounded-xl overflow-hidden">
-                       <div className="bg-gray-800/50 px-6 py-4 border-b border-gray-700/50">
-                         <h3 className="font-semibold text-white flex items-center">
-                           <Play className="w-4 h-4 mr-2 text-blue-400" />
-                           Creating a Virtual Machine
-                         </h3>
-                       </div>
-                       <div className="p-6 space-y-4">
-                         <ol className="list-decimal list-inside space-y-4 text-gray-300">
-                           <li className="pl-2">
-                             <span className="font-medium text-white">Navigate to Resources:</span> Go to the sidebar and click on <strong>Resources &gt; Virtual Machines</strong>.
-                           </li>
-                           <li className="pl-2">
-                             <span className="font-medium text-white">Click Create:</span> Press the <span className="text-blue-400">"Create VM"</span> button in the top right corner.
-                           </li>
-                           <li className="pl-2">
-                             <span className="font-medium text-white">Configure Details:</span>
-                             <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm text-gray-400">
-                               <li>Choose Provider (AWS, Azure, GCP)</li>
-                               <li>Select Region (e.g., us-east-1)</li>
-                               <li>Choose Instance Type (e.g., t2.micro)</li>
-                             </ul>
-                           </li>
-                           <li className="pl-2">
-                             <span className="font-medium text-white">Deploy:</span> Click "Provision Resource". The system will trigger a Terraform job in the background.
-                           </li>
-                         </ol>
-                       </div>
+	                  <div className="space-y-7">
+	                    <div className="flex flex-col gap-4 rounded-2xl border border-gray-800/70 bg-gray-950/30 p-6 lg:flex-row lg:items-end lg:justify-between">
+	                      <div className="min-w-0">
+	                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Select Service</p>
+	                        <p className="mt-2 text-sm text-gray-400">
+	                          Choose what you want to run. Use the launcher to search fast and switch services instantly.
+	                        </p>
+	                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+	                          <ServiceGuidePicker
+	                            value={selectedServiceGuide.id}
+	                            guides={docsServiceGuides}
+	                            onChange={(nextId) => setSelectedServiceGuideId(nextId)}
+	                            hotkeyEnabled
+	                          />
+	
+	                          <div className="flex flex-wrap gap-3">
+	                            {selectedServiceGuide.route ? (
+	                              <button
+	                                type="button"
+                                onClick={() => navigate(selectedServiceGuide.route!)}
+                                className="inline-flex items-center gap-2 rounded-2xl border border-gray-700/70 bg-gray-900/50 px-4 py-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-800/70"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                Open page
+                              </button>
+                            ) : null}
+                            {selectedServiceGuide.createRoute ? (
+                              <button
+                                type="button"
+                                onClick={() => navigate(selectedServiceGuide.createRoute!)}
+                                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:from-blue-400 hover:to-indigo-400"
+                              >
+                                <Play className="h-4 w-4" />
+                                Create / Run
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="hidden lg:block text-right">
+                        <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Current Selection</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{selectedServiceGuide.name}</p>
+                        <p className="mt-1 text-xs text-gray-400">{selectedServiceGuide.description}</p>
+                      </div>
                     </div>
 
-                    <div className="bg-gray-800/20 border border-gray-700/50 rounded-xl overflow-hidden">
-                       <div className="bg-gray-800/50 px-6 py-4 border-b border-gray-700/50">
-                         <h3 className="font-semibold text-white flex items-center">
-                           <Lock className="w-4 h-4 mr-2 text-purple-400" />
-                           Adding Cloud Credentials
-                         </h3>
-                       </div>
-                       <div className="p-6">
-                         <p className="text-gray-300 mb-4">To enable syncing, you must add credentials for each provider you wish to use.</p>
-                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                           <div className="p-4 bg-gray-900 rounded-lg border border-gray-800">
-                             <h4 className="text-white font-medium mb-2">AWS</h4>
-                             <p className="text-xs text-gray-400">Requires Access Key ID and Secret Access Key with EC2ReadOnly privileges.</p>
-                           </div>
-                           <div className="p-4 bg-gray-900 rounded-lg border border-gray-800">
-                             <h4 className="text-white font-medium mb-2">Azure</h4>
-                             <p className="text-xs text-gray-400">Requires Tenant ID, Client ID, and Client Secret (Service Principal).</p>
-                           </div>
-                           <div className="p-4 bg-gray-900 rounded-lg border border-gray-800">
-                             <h4 className="text-white font-medium mb-2">GCP</h4>
-                             <p className="text-xs text-gray-400">Requires Service Account JSON Key with Compute Viewer roles.</p>
-                           </div>
-                         </div>
-                       </div>
+                    <div className="space-y-6">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <div className="shrink-0 rounded-2xl border border-gray-800/80 bg-gray-900/60 p-3 text-blue-200">
+                            <SelectedServiceIcon className="h-6 w-6" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xl font-bold text-white">{selectedServiceGuide.name}</h3>
+                            <p className="mt-2 text-sm leading-relaxed text-gray-300">
+                              {selectedServiceGuide.summary}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+                          {selectedServiceGuide.route ? (
+                            <span className="rounded-full border border-gray-800 bg-gray-900/40 px-3 py-1">
+                              route: {selectedServiceGuide.route}
+                            </span>
+                          ) : null}
+                          {selectedServiceGuide.createRoute ? (
+                            <span className="rounded-full border border-gray-800 bg-gray-900/40 px-3 py-1">
+                              action: {selectedServiceGuide.createRoute}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {selectedServiceGuide.prerequisites.length > 0 ? (
+                        <div className="rounded-2xl border border-gray-800/70 bg-gray-900/30 p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
+                            Prerequisites
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm text-gray-300">
+                            {selectedServiceGuide.prerequisites.map((item) => (
+                              <li key={item} className="flex items-start gap-2">
+                                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400/80" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+
+                      <div className="space-y-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
+                          Detailed Steps
+                        </p>
+                        <ol className="space-y-4">
+                          {selectedServiceGuide.steps.map((step, index) => (
+                            <li
+                              key={`${selectedServiceGuide.id}:${step.title}`}
+                              className="rounded-2xl border border-gray-800/70 bg-gray-950/30 p-5"
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10 text-sm font-semibold text-blue-200">
+                                  {index + 1}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-base font-semibold text-white">{step.title}</p>
+                                  {step.details.length > 0 ? (
+                                    <ul className="mt-2 space-y-2 text-sm leading-relaxed text-gray-300">
+                                      {step.details.map((detail) => (
+                                        <li key={detail} className="flex items-start gap-2">
+                                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                                          <span>{detail}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : null}
+                                  {step.expected ? (
+                                    <p className="mt-3 text-xs text-gray-400">
+                                      <span className="font-semibold text-gray-200">Expected:</span> {step.expected}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      {selectedServiceGuide.troubleshooting?.length ? (
+                        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100">
+                            Troubleshooting
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm text-amber-50/90">
+                            {selectedServiceGuide.troubleshooting.map((item) => (
+                              <li key={item} className="flex items-start gap-2">
+                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-200/80" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* CONTRIBUTING */}
+              {activeTab === 'contributing' && (
+                <div className="space-y-8">
+                  <header>
+                    <h2 className="text-2xl font-bold text-white mb-2">Contributing</h2>
+                    <p className="text-gray-400">
+                      Contribution guidance for building features, fixing bugs, and keeping the platform consistent.
+                    </p>
+                  </header>
+
+                  <section className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Local Development Workflow</h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      The simplest path is running everything with Docker. For frontend-only changes, you can run Vite locally against a running backend.
+                    </p>
+                    <pre className="rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`# Full stack (recommended)
+docker compose up -d --build
+
+# Frontend dev (optional)
+npm -C frontend install
+npm -C frontend run dev`}
+                    </pre>
+                  </section>
+
+                  <section className="grid gap-6 lg:grid-cols-2">
+                    <div className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-3">
+                      <h3 className="text-lg font-semibold text-white">Quality Gates</h3>
+                      <p className="text-sm text-gray-300 leading-relaxed">
+                        Run lint and build before opening a PR.
+                      </p>
+                      <pre className="rounded-xl border border-gray-800 bg-black/30 p-3 text-xs text-gray-200 whitespace-pre-wrap">
+{`npm -C frontend run lint
+npm -C frontend run build`}
+                      </pre>
+                    </div>
+                    <div className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-3">
+                      <h3 className="text-lg font-semibold text-white">UI Conventions</h3>
+                      <ul className="space-y-2 text-sm text-gray-300 leading-relaxed">
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                          <span>Use <code className="text-gray-200">PageHero</code> on pages to keep titles, descriptions, and Expand/Collapse consistent.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                          <span>Prefer clear empty-states and confirmation dialogs for destructive actions.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                          <span>Keep plan limits enforced server-side; the UI should display limits and handle 403 errors gracefully.</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-3">
+                    <h3 className="text-lg font-semibold text-white">Docs: Add or Update a Service Guide</h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      The Docs page User Guide dropdown is data-driven. Add services or refine steps in:
+                      <code className="ml-2 text-gray-200">frontend/src/data/docsServiceGuides.ts</code>
+                    </p>
+                  </section>
+
+                  <section className="rounded-2xl border border-blue-400/15 bg-blue-500/10 p-6 space-y-2">
+                    <h3 className="text-lg font-semibold text-blue-50">Need help contributing?</h3>
+                    <p className="text-sm text-blue-50/80 leading-relaxed">
+                      If you are blocked by setup or a failing workflow, contact support with logs and the steps you tried.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={contactSupport}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:from-blue-400 hover:to-indigo-400"
+                    >
+                      <LifeBuoy className="h-4 w-4" />
+                      Contact Support
+                    </button>
+                  </section>
+                </div>
+              )}
+
+              {/* CHANGELOG */}
+              {activeTab === 'changelog' && (
+                <div className="space-y-8">
+                  <header>
+                    <h2 className="text-2xl font-bold text-white mb-2">Changelog</h2>
+                    <p className="text-gray-400">High-level release notes and product evolution.</p>
+                  </header>
+
+                  <section className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-lg font-semibold text-white">Unreleased</h3>
+                      <span className="rounded-full border border-gray-800 bg-gray-900/40 px-3 py-1 text-xs text-gray-400">
+                        tracked manually
+                      </span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-300 leading-relaxed">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                        <span>Docs: redesigned layout with a left rail and a dropdown-driven User Guide for all services.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                        <span>Projects: added edit flow, delete flow, and a resource list inside project details.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                        <span>Subscriptions: server-side plan enforcement and UI plan switching.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                        <span>Legal: embedded proprietary LICENSE and NOTICE guidance directly in the Docs page.</span>
+                      </li>
+                    </ul>
+                  </section>
+
+                  <section className="rounded-2xl border border-gray-800/60 bg-gray-950/30 p-6 space-y-3">
+                    <h3 className="text-lg font-semibold text-white">Full History</h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      For the full commit history and PR timeline, open the repository on GitHub.
+                    </p>
+                    <a
+                      href="https://github.com/PriyanshuKSharma/multi-cloud"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-gray-700/70 bg-gray-900/50 px-4 py-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-800/70"
+                    >
+                      <Github className="h-4 w-4" />
+                      Open GitHub
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </section>
                 </div>
               )}
 
@@ -434,48 +913,169 @@ const Docs: React.FC = () => {
                    </div>
                 </div>
               )}
+
+              {/* LEGAL */}
+              {activeTab === 'legal' && (
+                <div className="space-y-8">
+                  <header>
+                    <h2 className="text-2xl font-bold text-white mb-2">License & Intellectual Property</h2>
+                    <p className="text-gray-400">
+                      Proprietary terms for using and distributing this project.
+                    </p>
+                  </header>
+
+                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
+                    <p className="text-sm text-amber-100 leading-relaxed">
+                      <strong className="text-white">Summary:</strong> This software is proprietary and all rights are reserved. Do not copy, redistribute, or reuse code or materials without prior written permission.
+                    </p>
+                  </div>
+
+                  <section className="space-y-3">
+                    <h3 className="text-lg font-semibold text-white">LICENSE</h3>
+                    <pre className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4 text-xs leading-relaxed text-gray-200 whitespace-pre-wrap">
+{`Copyright (c) 2026 PriyanshuKSharma. All Rights Reserved.
+
+NOTICE: All information contained herein is, and remains
+the property of PriyanshuKSharma. The intellectual and technical concepts contained
+herein are proprietary to PriyanshuKSharma and may be covered by patents,
+patents in process, and are protected by trade secret or copyright law.
+Dissemination of this information or reproduction of this material
+is strictly forbidden unless prior written permission is obtained
+from PriyanshuKSharma.`}
+                    </pre>
+                  </section>
+
+                  <section className="space-y-3">
+                    <h3 className="text-lg font-semibold text-white">NOTICE</h3>
+                    <pre className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4 text-xs leading-relaxed text-gray-200 whitespace-pre-wrap">
+{`Copyright (c) 2026 PriyanshuKSharma. All Rights Reserved.
+
+NOTICE: All information contained herein is, and remains the property of PriyanshuKSharma.
+The intellectual and technical concepts contained herein are proprietary to PriyanshuKSharma
+and may be covered by patents, patents in process, and are protected by trade secret or
+copyright law. Dissemination of this information or reproduction of this material is strictly
+forbidden unless prior written permission is obtained from PriyanshuKSharma.`}
+                    </pre>
+                  </section>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
 
-        {/* Sidebar Widgets */}
-        <div className="space-y-6">
-          <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
-            <h3 className="font-semibold text-white mb-4 flex items-center">
-              <Book className="w-4 h-4 mr-2 text-blue-400" />
-              Quick Resources
-            </h3>
-            <ul className="space-y-3 text-sm">
-                <li>
-                  <a href="#" className="flex items-center text-gray-400 hover:text-white transition-colors">
-                    <CheckCircle className="w-3 h-3 mr-2 text-green-500" /> Installation Guide
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="flex items-center text-gray-400 hover:text-white transition-colors">
-                    <CheckCircle className="w-3 h-3 mr-2 text-purple-500" /> Contributing
-                  </a>
-                </li>
-                <li>
-                   <a href="#" className="flex items-center text-gray-400 hover:text-white transition-colors">
-                    <CheckCircle className="w-3 h-3 mr-2 text-orange-500" /> Changelog
-                  </a>
-                </li>
-            </ul>
-          </div>
-
-           <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20">
-               <MessageSquare className="w-16 h-16 text-blue-400" />
-            </div>
-            <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
-            <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed">
-              Our engineering team is available 24/7 to assist with integration issues.
-            </p>
-            <button className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors relative z-10">
-              Contact Support
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 mt-4 border-t border-gray-800/50">
+        <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6 shadow-xl shadow-black/20">
+          <h3 className="font-semibold text-white mb-4 flex items-center">
+            <Book className="w-4 h-4 mr-2 text-blue-400" />
+            Quick Resources
+          </h3>
+          <div className="space-y-2 text-sm">
+            <button
+              type="button"
+              onClick={() => goToTab('installation')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>Installation Guide</span>
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goToTab('contributing')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>Contributing</span>
+              <ExternalLink className="h-4 w-4 text-slate-300" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goToTab('changelog')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>Changelog</span>
+              <Activity className="h-4 w-4 text-blue-300" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goToTab('api')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-blue-500/30"
+            >
+              <span>API Reference</span>
+              <ExternalLink className="h-4 w-4 text-blue-300" />
+            </button>
+            <a
+              href={swaggerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-gray-300 transition-all hover:bg-gray-800/55 hover:border-green-500/30"
+            >
+              <span>Open Swagger UI</span>
+              <ExternalLink className="h-4 w-4 text-green-300" />
+            </a>
+            <button
+              type="button"
+              onClick={() => goToTab('legal')}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-800/70 bg-gray-900/30 px-3 py-2 text-left text-gray-300 transition-all hover:bg-gray-800/55 hover:border-purple-500/30"
+            >
+              <span>License & Notice</span>
+              <Lock className="h-4 w-4 text-purple-300" />
             </button>
           </div>
+        </div>
+
+        <div className="rounded-[28px] border border-gray-800/50 bg-[#0f0f11] p-6 shadow-xl shadow-black/20 flex flex-col">
+          <h3 className="font-semibold text-white mb-2 flex items-center">
+            <Lock className="w-4 h-4 mr-2 text-purple-400" />
+            License & Legal
+          </h3>
+          <p className="text-xs text-gray-400 leading-relaxed mb-4 flex-1">
+            Nebula is a <strong className="text-gray-200">proprietary multi-cloud orchestration suite</strong>. All automated discovery logic, unified mapping protocols, and intellectual property are strictly protected. Usage is governed by the enterprise service agreement and restricted to authorized personnel.
+          </p>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center text-[10px] text-gray-500 uppercase tracking-wider">
+              <div className="w-1 h-1 rounded-full bg-purple-500 mr-2" />
+              All Rights Reserved 2026
+            </div>
+            <div className="flex items-center text-[10px] text-gray-500 uppercase tracking-wider">
+              <div className="w-1 h-1 rounded-full bg-purple-500 mr-2" />
+              Authorized Access Only
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => goToTab('legal')}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-700/60 bg-gray-900/40 px-4 py-2.5 text-xs font-semibold text-gray-200 transition-all hover:bg-gray-800/70 hover:border-purple-500/30"
+          >
+            Review Legal Notice
+            <ExternalLink className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-[28px] p-6 relative overflow-hidden shadow-xl shadow-blue-900/5 flex flex-col">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <MessageSquare className="w-16 h-16 text-blue-400 rotate-12" />
+          </div>
+          <h3 className="font-semibold text-white mb-2 relative z-10">Need Support?</h3>
+          <p className="text-xs text-gray-300 mb-4 relative z-10 leading-relaxed flex-1">
+            Our specialized engineering team is available 24/7 to assist with complex infrastructure migrations, API custom integrations, and large-scale enterprise deployments. Get direct access to technical maintainers.
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-6 relative z-10">
+             <div className="flex items-center gap-2 text-[10px] text-blue-200 bg-blue-400/10 px-2 py-1.5 rounded-lg border border-blue-400/10">
+               <Zap className="w-3 h-3" />
+               Priority Desk
+             </div>
+             <div className="flex items-center gap-2 text-[10px] text-purple-200 bg-purple-400/10 px-2 py-1.5 rounded-lg border border-purple-400/10">
+               <Globe className="w-3 h-3" />
+               Global Ops
+             </div>
+          </div>
+          <button
+            type="button"
+            onClick={contactSupport}
+            className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-xl text-sm font-semibold transition-all relative z-10 shadow-lg shadow-blue-500/20"
+          >
+            Contact Engineering
+          </button>
         </div>
       </div>
     </div>

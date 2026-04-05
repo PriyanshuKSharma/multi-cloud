@@ -5,6 +5,29 @@ from app.models.resource import Resource
 import os
 import json
 
+
+def _extract_gcp_service_account_info(cred_data: dict):
+    if not isinstance(cred_data, dict):
+        return None
+
+    inline = cred_data.get("service_account_json")
+    if isinstance(inline, dict):
+        return inline
+    if isinstance(inline, str) and inline.strip():
+        try:
+            parsed = json.loads(inline)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            return None
+
+    # Support storing full service account payload directly.
+    if cred_data.get("type") == "service_account" and cred_data.get("private_key"):
+        return cred_data
+
+    return None
+
+
 @celery_app.task
 def provision_resource_task(resource_id: str, provider: str, module_name: str, variables: dict):
     print(f"--- [DEBUG] Starting Task: {resource_id} {provider} {module_name} ---")
@@ -101,11 +124,20 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
                     env_vars["ARM_CLIENT_SECRET"] = cred_data.get("client_secret")
                     env_vars["ARM_SUBSCRIPTION_ID"] = cred_data.get("subscription_id")
                     env_vars["ARM_TENANT_ID"] = cred_data.get("tenant_id")
-                # Add GCP handling here...
+                elif provider == "gcp":
+                    gcp_service_account = _extract_gcp_service_account_info(cred_data)
+                    if gcp_service_account:
+                        credentials_path = os.path.join(workspace_dir, "gcp_credentials.json")
+                        with open(credentials_path, "w", encoding="utf-8") as gcp_file:
+                            json.dump(gcp_service_account, gcp_file)
+                        env_vars["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+                        env_vars["GOOGLE_CREDENTIALS"] = json.dumps(gcp_service_account)
                 
                 # Verify we actually got the essential keys
                 if provider == "aws" and not env_vars.get("AWS_ACCESS_KEY_ID"):
                      raise ValueError("AWS Access Key missing in decrypted data")
+                if provider == "gcp" and not env_vars.get("GOOGLE_APPLICATION_CREDENTIALS"):
+                     raise ValueError("GCP service account credentials missing in decrypted data")
                      
              except Exception as e:
                  import traceback

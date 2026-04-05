@@ -8,12 +8,13 @@ import api from '../api/axios';
 const resourceSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   provider: z.enum(["aws", "azure", "gcp"]),
-  type: z.enum(["vm", "storage"]),
+  type: z.enum(["vm", "storage", "faas"]),
   configuration: z.object({
     // Simplified specific config handling for MVP
     region: z.string().optional(),
     instance_type: z.string().optional(),
-    bucket_name: z.string().optional()
+    bucket_name: z.string().optional(),
+    runtime: z.string().optional(),
   })
 });
 
@@ -45,12 +46,29 @@ const CreateResource: React.FC = () => {
           if (!config.instance_type) config.instance_type = "Standard_DS1_v2";
           if (!config.region) config.region = "East US";
         }
-      } else {
+      } else if (data.type === 'storage') {
         resourceName = resourceName.toLowerCase().replace(/\s+/g, '-');
         config.bucket_name = resourceName;
         if (data.provider === 'azure') {
           config.resource_group_name = "nebula-rg";
           if (!config.region) config.region = "East US";
+        }
+      } else {
+        if (data.provider === 'aws') {
+          config.function_name = resourceName;
+          config.runtime = config.runtime || 'python3.11';
+          config.handler = 'index.lambda_handler';
+          config.timeout = 30;
+          config.memory_size = 256;
+        } else if (data.provider === 'azure') {
+          config.runtime_version = config.runtime || '3.11';
+          config.location = config.region || 'eastus';
+        } else {
+          config.function_name = resourceName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+          config.runtime = config.runtime || 'python311';
+          config.entry_point = 'handler';
+          config.timeout_seconds = 60;
+          config.memory_mb = 256;
         }
       }
       
@@ -122,6 +140,7 @@ const CreateResource: React.FC = () => {
             <select {...register('type')} className="input-field w-full cursor-pointer appearance-none text-sm py-2.5">
               <option value="vm" className="bg-[#1a1b1e]">Compute</option>
               <option value="storage" className="bg-[#1a1b1e]">Storage</option>
+              <option value="faas" className="bg-[#1a1b1e]">FaaS</option>
             </select>
           </div>
         </div>
@@ -160,6 +179,16 @@ const CreateResource: React.FC = () => {
                 {...register('configuration.instance_type')} 
                 className="input-field w-full text-sm py-2" 
                 placeholder={getPlaceholder('instance_type')} 
+              />
+            </div>
+          )}
+          {selectedType === 'faas' && (
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wider ml-1">Runtime</label>
+              <input
+                {...register('configuration.runtime')}
+                className="input-field w-full text-sm py-2"
+                placeholder={currentProvider === 'aws' ? 'python3.11' : currentProvider === 'azure' ? '3.11' : 'python311'}
               />
             </div>
           )}

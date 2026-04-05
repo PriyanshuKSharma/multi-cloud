@@ -149,7 +149,7 @@ docs/
 
 ### Path 4: DevOps Engineer
 
-1. **Deployment:** [DEPLOYMENT.md](./DEPLOYMENT.md) *(to be created)*
+1. **Deployment:** [DEPLOYMENT.md](./DEPLOYMENT.md)
    - Docker setup
    - Environment configuration
    - Production deployment
@@ -307,7 +307,7 @@ docs/
 
 - ⏳ Frontend architecture (FRONTEND.md)
 - ⏳ Terraform integration (TERRAFORM.md)
-- ⏳ Deployment guide (DEPLOYMENT.md)
+- ✅ Deployment guide (DEPLOYMENT.md)
 - ⏳ Development workflow (DEVELOPMENT.md)
 - ⏳ Testing guide
 - ⏳ Contributing guidelines
@@ -329,7 +329,7 @@ docs/
 ### Advanced Level
 1. [CLOUD_PROVIDERS.md](./CLOUD_PROVIDERS.md) - Cloud SDKs
 2. [SECURITY.md](./SECURITY.md) - Security implementation
-3. [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment *(to be created)*
+3. [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment
 
 ---
 

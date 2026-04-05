@@ -1,13 +1,57 @@
-The rapid shift toward cloud-native architectures has led organizations to adopt multi-cloud strategies to ensure high availability, cost optimization, and regional compliance. However, the lack of a standardized interface across leading Cloud Service Providers (CSPs) such as Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP) has introduced significant interoperability challenges. Developers are often burdened with mastering multiple vendor-specific consoles and APIs, leading to slower deployment cycles and increased risk of configuration drift \cite{cloud_governance_2024}.
+Cloud computing has matured from an infrastructure alternative into a primary execution environment for application delivery, data processing, and digital service integration. In practice, however, operational workflows remain fragmenteTeams still switch between service-specific consoles, one-off scripts, and partially automated pipelines to complete routine cloud tasks. In Amazon Web Services (AWS) environments, this fragmentation appears in recurring activities such as provisioning EC2 instances, validating S3 configuration, checking VPC network state, and reconciling cost reports. The result is not only slower operations but also weaker governance visibility and reduced repeatability across environments \cite{buyya2009cloud, morris2016iac}.
 
-\subsection{The Vendor Lock-In Crisis}
-Contemporary enterprise IT operates under a critical constraint: organizational dependencies on individual CSPs create structural vulnerabilities, commonly termed ``vendor lock-in.'' This manifests across four dimensions:
+\subsection{Problem Context}
+The broad discussion around cloud lock-in is often positioned as a strategic issuAt implementation level, the immediate pain point is operational inconsistency. Different AWS services expose different control surfaces, parameter models, and operational semantics. As teams scale, the same logical action (for example, "prepare a deployment-ready environment") may be executed through multiple toolchains depending on who performs it and which service is involved.
+
+This inconsistency creates a measurable execution burden:
 \begin{itemize}
-    \item \textbf{Technical Lock-In}: Proprietary services (e.g., AWS Lambda, Azure Functions) bind architectures to specific provider implementations, requiring substantial re-engineering for migration \cite{karamitsos2023multicloud}.
-    \item \textbf{Operational Lock-In}: Teams develop specialized expertise in provider-specific tools, creating a barrier to multi-cloud strategies \cite{idc2024skills}.
-    \item \textbf{Financial Lock-In}: Sophisticated pricing structures and long-term commitments economically constrain provider switching \cite{mckinsey2023costs}.
-    \item \textbf{Strategic Lock-In}: Enterprise roadmaps become inseparably intertwined with individual provider decisions \cite{gartner2024multicloud}.
+    \item \textbf{High cognitive switching cost}: engineers repeatedly translate intent between API payloads, console flows, and command-line variations.
+    \item \textbf{Observability discontinuity}: system status, costs, and health indicators are distributed across dashboards that are not operationally synchronized.
+    \item \textbf{Reproducibility risk}: infrastructure steps that are manually chained become difficult to validate, replay, or audit at scale.
 \end{itemize}
 
-\subsection{The Multi-Cloud Imperative}
-Recent research confirms that 89\% of leading enterprises are pursuing multi-cloud strategies to counteract lock-in \cite{gartner2024multicloud}. Despite the benefits, adoption remains constrained by operational complexity. Cloud Simplify addresses these barriers by providing a unified abstraction layer built on Infrastructure-as-Code (IaC) \cite{nist800145}.
+Prior work already links these conditions to slower platform delivery and higher drift probability \cite{armbrust2010view, aldhuraibi2018elasticity}. For academic and industrial relevance, the key requirement is therefore not only "more automation," but \textit{standardized automation} with traceable control points.
+
+\subsection{AWS-Centric Research Scope and Motivation}
+This study deliberately focuses on AWS because the current production-ready implementation of Nebula is AWS-backeRather than presenting a broad but partially validated multi-cloud claim, the paper follows a depth-first strategy: validate one provider with real data, then use that baseline for future extension.
+
+The scope includes:
+\begin{itemize}
+    \item synchronized AWS inventory collection (EC2, S3, VPC),
+    \item Terraform-based provisioning workflows for compute and storage,
+    \item API-level operational telemetry (resource state and provider health), and
+    \item integrated cost summarization for governance workflows.
+\end{itemize}
+
+The core motivation is practical: if a unified orchestration model can reduce operational friction within a single provider domain while retaining security and responsiveness, then the same pattern can be generalized with lower risk.
+
+\subsection{System Architecture Overview (Moved from Prior Architecture Section)}
+Nebula applies a layered architecture that separates interaction logic from execution logic and persistence logiThe architecture is summarized through five cooperating layers:
+\begin{itemize}
+    \item \textbf{Presentation Layer (React + Vite)}: presents unified user workflows for credentials, provisioning, dashboard analytics, and deployment tracking.
+    \item \textbf{Application API Layer (FastAPI)}: validates requests, enforces authentication and authorization boundaries, and exposes orchestration endpoints.
+    \item \textbf{Asynchronous Control Layer (Celery + Redis)}: queues long-running tasks so front-end interactions are not blocked by infrastructure runtime.
+    \item \textbf{Provisioning Layer (Terraform + AWS modules)}: executes deterministic infrastructure state transitions using declarative plans.
+    \item \textbf{Data and Audit Layer (PostgreSQL)}: stores user context, encrypted credentials metadata, inventory snapshots, health records, and cost artifacts.
+\end{itemize}
+
+This decomposition improves maintainability because each layer can evolve independently while preserving a stable interface contract. It also improves reliability: failures in provisioning tasks can be isolated from API responsiveness.
+
+\subsection{Research Questions and Contributions}
+The paper is guided by three implementation-centered research questions:
+\begin{itemize}
+    \item \textbf{RQ1}: Can an AWS-focused unified control plane reduce manual operational overhead in routine provisioning and monitoring workflows?
+    \item \textbf{RQ2}: Can asynchronous orchestration maintain low user-facing latency while executing provider-bound infrastructure tasks?
+    \item \textbf{RQ3}: Can cost and health telemetry be consolidated into a single governance surface without sacrificing traceability?
+\end{itemize}
+
+To answer these questions, the paper contributes:
+\begin{itemize}
+    \item an AWS-first orchestration architecture with clearly separated execution layers,
+    \item a comparative operational analysis between traditional AWS workflows and Nebula workflows,
+    \item a real-value results table using project-derived operational metrics, and
+    \item a future-scope risk and challenge roadmap aligned with production hardening.
+\end{itemize}
+
+\subsection{Structure of the Paper}
+The remaining sections are organized as follows. Section II reviews literature on IaC, lock-in, and standardization frameworks. Section III explains strategic value and operational standardization outcomes. Section IV details feature abstractions and AI-oriented extensions. Section V documents implementation architecture, technology stack rationale, and workflow traceability. Section VI presents performance evidence with real project values. Section VII covers deployment scope and future risk-management directions. Section VIII concludes with findings, limitations, and expansion pathway.

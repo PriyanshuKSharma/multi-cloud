@@ -14,24 +14,24 @@
 
 \begin{document}
 
-\title{Democratizing Cloud Platforms: A Unified Multi-Cloud Orchestration Approach to Vendor Independence\\
-{\footnotesize \textsuperscript{*}An Idea Proposal and Implementation for Future Cloud Independence}
+\title{Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management\\
+{\footnotesize \textsuperscript{*}An Implementation-Driven Study with Nebula}
 }
 
-\author{\IEEEauthorblockN{Priyanshu Kumar Sharma, Vaishnavi Jadhav, Vaibhav Gulage}
-\IEEEauthorblockA{\textit{Computer Engineering Department} \\
-\textit{Ajeenkya D Y Patil University}\\
-priyanshu17ks@gmail.com}
+\author{\IEEEauthorblockN{Anonymized for Blind Review}
+\IEEEauthorblockA{\textit{Department Anonymized} \\
+\textit{Institution Anonymized}\\
+{}}
 }
 
 \maketitle
 
 \begin{abstract}
-As enterprise infrastructure scales across heterogeneous cloud environments, the complexity of managing multi-cloud ecosystems (AWS, Azure, GCP) introduces significant operational overhead and vendor lock-in risks. This paper presents \textit{Cloud Simplify}, a next-generation SaaS orchestration platform designed to unify multi-cloud provisioning through a reactive Infrastructure-as-Code (IaC) engine. By integrating FastAPI, Celery, and Terraform, the platform decouples infrastructure logic from provider-specific APIs, enabling seamless, high-performance resource deployment. Furthermore, the paper explores the integration of intelligent features for predictive cost analysis and strategic risk mitigation, laying the foundation for autonomous cloud management. Our implementation demonstrates a reduction in provisioning latency and enhanced security through zero-trust credential encapsulation, aligning with NIST and ISO/IEC standards for cloud portability.
+Cloud adoption has accelerated faster than operational standardization, creating a persistent gap between infrastructure capability and manageability. This paper addresses search gaps with \textit{Nebula}, an implementation-driven AWS orchestration platform that consolidates provisioning, inventory synchronization, monitoring, and cost visibility into a single control surface. The system utilizes React, FastAPI, PostgreSQL, Celery, and Terraform to achieve infrastructure reproducibility. The study demonstrates how a layered orchestration model decouples user-facing workflows from long-running cloud operations while preserving traceability. Empirical results derived from our AWS implementation show 25 tracked resources, 145 ms provider-health latency, and sub-100 ms API acknowledgement under concurrent load. These findings indicate that standardized cloud operations are achievable without sacrificing responsiveness. The approach establishes a defensible technical baseline for future multi-cloud expansion.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Multi-cloud independence, Vendor lock-in, Infrastructure as Code, Terraform, Idea proposal, SaaS Orchestration.
+AWS orchestration, Infrastructure as Code, Terraform, Celery, cloud standardization, SaaS platform.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -39,9 +39,6 @@ Multi-cloud independence, Vendor lock-in, Infrastructure as Code, Terraform, Ide
 
 \section{Background and Strategic Context}
 \input{sections/literature_review}
-
-\section{System Architecture and Design}
-\input{sections/architecture}
 
 \section{Strategic Value Proposition}
 \input{sections/value_proposition}
@@ -55,17 +52,25 @@ Multi-cloud independence, Vendor lock-in, Infrastructure as Code, Terraform, Ide
 \section{Performance Evaluation and Results}
 \input{sections/performance}
 
-\section{Challenges and Risk Management}
-\input{sections/risk_management}
-
-\section{Deployment and Future Work}
+\section{Deployment and Future Scope}
 \input{sections/deployment}
+\input{sections/future_work}
 
 \section{Conclusion}
 \input{sections/conclusion}
 
-\section*{Acknowledgements}
-The authors would like to thank the open-source community for the tools and frameworks that made this project possible.
+
+% Acknowledgements removed for blind review
+
+\section*{Declarations}
+\textbf{Conflicts of Interest:}\\
+All authors declare that they have no conflicts of interest.
+
+\textbf{Use of AI Technology:}\\
+During the preparation of this work, the authors utilized AI technology (Google Gemini) to assist with structural formatting, proofreading, and the standardization of bibliographic references. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the accuracy and originality of the publication.
+
+\textbf{Notes to the Editor:}\\
+This manuscript describes the design and implementation of the \textit{Nebula} AWS orchestration platform. The authors confirm that this work is original and has not been submitted for publication elsewhere.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

@@ -84,7 +84,22 @@ Welcome to the **Multi-Cloud SaaS Orchestration Platform** documentation. This c
     - Monitoring setup
     - Scaling strategies
 
-11. **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development guide
+11. **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Production deployment checklist
+    - Security checklist
+    - Pre/post deployment validation
+    - Rollback planning
+
+12. **[SSO_2FA_SETUP.md](./SSO_2FA_SETUP.md)** - SSO + 2FA setup guide
+    - OAuth credentials setup
+    - Environment configuration
+    - Verification steps
+
+13. **[SSO_2FA_IMPLEMENTATION.md](./SSO_2FA_IMPLEMENTATION.md)** - SSO + 2FA implementation notes
+    - Endpoint inventory
+    - Database changes
+    - UI components
+
+14. **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development guide
     - Local setup
     - Development workflow
     - Testing

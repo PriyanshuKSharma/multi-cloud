@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { useNotifications } from '../context/NotificationContext';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, ChevronLeft, ChevronRight, Server, Database, Activity, AlertCircle } from 'lucide-react';
 import ResourceLogs from './ResourceLogs';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 interface Resource {
   id: number;
@@ -18,10 +20,14 @@ interface Resource {
 const ITEMS_PER_PAGE = 6;
 
 const ResourceList: React.FC = () => {
+  const { addNotification } = useNotifications();
   const [resources, setResources] = useState<Resource[]>([]);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [resourceToDelete, setResourceToDelete] = useState<Resource | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -42,16 +48,45 @@ const ResourceList: React.FC = () => {
     setSelectedResource(resource);
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: number) => {
+  const openDeleteConfirm = (e: React.MouseEvent, resource: Resource) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this resource record?')) return;
+    setDeleteError(null);
+    setResourceToDelete(resource);
+  };
 
+  const handleDelete = async () => {
+    if (!resourceToDelete) return;
+    const deletedResource = resourceToDelete;
+    setIsDeleting(true);
     try {
-      await api.delete(`/resources/${id}`);
-      setResources(resources.filter(r => r.id !== id));
+      await api.delete(`/resources/${deletedResource.id}`);
+      setResources(resources.filter((r) => r.id !== deletedResource.id));
+      addNotification({
+        type: 'success',
+        title: 'Resource Deleted',
+        message: `${deletedResource.name} was removed from your managed resources.`,
+        provider: deletedResource.provider,
+        resourceName: deletedResource.name,
+        status: 'inactive',
+        action: 'Resource deleted',
+        source: 'system',
+      });
+      setResourceToDelete(null);
     } catch (error) {
       console.error('Failed to delete resource', error);
-      alert('Failed to delete resource record');
+      setDeleteError('Failed to delete resource record');
+      addNotification({
+        type: 'error',
+        title: 'Delete Failed',
+        message: `Could not delete ${deletedResource.name}. Try again.`,
+        provider: deletedResource.provider,
+        resourceName: deletedResource.name,
+        status: 'failed',
+        action: 'Resource delete failed',
+        source: 'system',
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -123,6 +158,11 @@ const ResourceList: React.FC = () => {
 
         {/* Content */}
         <div className="p-6">
+          {deleteError && (
+            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+              {deleteError}
+            </div>
+          )}
           {resources.length === 0 ? (
             <div className="text-center py-12">
               <Server className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -195,7 +235,7 @@ const ResourceList: React.FC = () => {
                         {/* Delete Button */}
                         {resource.status !== 'active' && (
                           <button 
-                            onClick={(e) => handleDelete(e, resource.id)}
+                            onClick={(e) => openDeleteConfirm(e, resource)}
                             className="absolute bottom-3 right-3 p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                             title="Delete Record"
                           >
@@ -255,7 +295,7 @@ const ResourceList: React.FC = () => {
                           <td className="p-4 text-right">
                             {res.status !== 'active' && (
                               <button 
-                                onClick={(e) => handleDelete(e, res.id)}
+                                onClick={(e) => openDeleteConfirm(e, res)}
                                 className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                                 title="Delete Record"
                               >
@@ -322,6 +362,24 @@ const ResourceList: React.FC = () => {
         onClose={() => setSelectedResource(null)}
         logs={selectedResource?.terraform_output?.logs || "No logs available yet..."} 
         resourceName={selectedResource?.name || ""}
+      />
+
+      <ConfirmDialog
+        open={resourceToDelete !== null}
+        title="Delete Resource Record"
+        message={
+          resourceToDelete
+            ? `Delete resource "${resourceToDelete.name}"? This removes the record from the platform.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        tone="danger"
+        isLoading={isDeleting}
+        onCancel={() => {
+          if (!isDeleting) setResourceToDelete(null);
+        }}
+        onConfirm={handleDelete}
       />
     </>
   );

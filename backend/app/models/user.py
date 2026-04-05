@@ -24,7 +24,8 @@ class User(Base):
     # SSO fields
     sso_provider = Column(String, nullable=True)  # 'google', 'github', etc.
     sso_id = Column(String, nullable=True)  # Provider's user ID
-    
+    subscription_plan = Column(String, default="basic")
+
     last_password_change = Column(DateTime, nullable=True)
     
     projects = relationship("Project", back_populates="owner")

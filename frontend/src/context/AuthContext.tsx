@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/axios';
+import { useQueryClient } from '@tanstack/react-query';
+import api, { AUTH_INVALID_EVENT } from '../api/axios';
 
 interface AuthContextType {
   user: any;
-  login: (token: string) => void;
+  login: (token: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -12,50 +14,78 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const logout = React.useCallback(() => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setUser(null);
+    queryClient.removeQueries({ queryKey: ['auth', 'me'], exact: true });
+  }, [queryClient]);
 
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // Set default header if not already set by interceptor (axios usually handles this if configured)
-          // But here we rely on the interceptor to pick up the token from localStorage
           const response = await api.get('/auth/me');
           setUser(response.data);
+          queryClient.setQueryData(['auth', 'me'], response.data);
           setIsAuthenticated(true);
         } catch (error) {
-          console.error('Failed to fetch user profile', error);
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
+          console.error('Failed to fetch user profile during auth initialization', error);
+          logout();
         }
       }
       setIsLoading(false);
     };
+
     initAuth();
-  }, []);
+  }, [logout, queryClient]);
+
+  useEffect(() => {
+    const handleAuthInvalid = () => logout();
+    window.addEventListener(AUTH_INVALID_EVENT, handleAuthInvalid);
+    return () => window.removeEventListener(AUTH_INVALID_EVENT, handleAuthInvalid);
+  }, [logout]);
+
+  const refreshUser = React.useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      logout();
+      return;
+    }
+
+    try {
+      const response = await api.get('/auth/me');
+      setUser(response.data);
+      queryClient.setQueryData(['auth', 'me'], response.data);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Failed to refresh user profile', error);
+      logout();
+      throw error;
+    }
+  }, [logout, queryClient]);
 
   const login = async (token: string) => {
     localStorage.setItem('token', token);
-    setIsAuthenticated(true);
     try {
-        const response = await api.get('/auth/me');
-        setUser(response.data);
+      const response = await api.get('/auth/me');
+      setUser(response.data);
+      queryClient.setQueryData(['auth', 'me'], response.data);
+      setIsAuthenticated(true);
     } catch (error) {
-        console.error('Failed to fetch user profile after login', error);
+      console.error('Failed to fetch user profile after login', error);
+      logout();
+      throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, refreshUser, isAuthenticated, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
