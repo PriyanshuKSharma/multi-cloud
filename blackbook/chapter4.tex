@@ -61,27 +61,95 @@ The following diagram illustrates the interaction between the user browser, the 
 The database (PostgreSQL) is the "Global State Manager" of the platform. It tracks the inventory of three cloud providers in a single normalized schema.
 
 \subsection{ER Diagram (TikZ)}
-The following diagram defines the primary entities and their relationships.
+The following diagram defines the primary entities and their relationships. Unlike a high-level conceptual sketch, this ER model is aligned with the persistence schema described later in the appendix. It includes the operational tables that matter most to the platform: users, encrypted cloud credentials, provisioned resources, task history, and activity logs.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=3cm, auto, scale=0.8, every node/.style={scale=0.8}]
-    \tikzstyle{entity} = [rectangle, draw, fill=green!10, text width=8em, text centered, minimum height=3em]
-    \tikzstyle{rel} = [draw, -latex, thick]
+\begin{tikzpicture}[node distance=2.6cm, auto, scale=0.78, every node/.style={scale=0.78}]
+    \tikzstyle{entity} = [rectangle, draw, rounded corners, fill=green!8, inner sep=5pt]
+    \tikzstyle{rel} = [draw, thick]
 
-    \node [entity] (user) {User};
-    \node [entity, right=1.5cm of user] (creds) {Cloud Credentials};
-    \node [entity, below=1.5cm of user] (proj) {Project};
-    \node [entity, below=1.5cm of creds] (res) {Resources};
+    \node [entity] (users) {
+        \begin{tabular}{l}
+        \textbf{USERS} \\
+        \hline
+        \textbf{PK} id \\
+        username \\
+        email \\
+        hashed\_password \\
+        created\_at
+        \end{tabular}
+    };
 
-    \draw [rel] (user) -- node {1:N} (creds);
-    \draw [rel] (user) -- node {1:N} (proj);
-    \draw [rel] (proj) -- node {1:N} (res);
-    \draw [rel] (creds) -- node {1:1} (res);
+    \node [entity, right=3.0cm of users] (creds) {
+        \begin{tabular}{l}
+        \textbf{CLOUD\_CREDENTIALS} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} user\_id \\
+        provider\_type \\
+        access\_key\_enc \\
+        secret\_key\_enc \\
+        tenant\_id\_enc \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, below=2.4cm of users] (resources) {
+        \begin{tabular}{l}
+        \textbf{RESOURCES} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} user\_id \\
+        provider \\
+        resource\_type \\
+        status \\
+        provider\_id \\
+        metadata \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, right=3.0cm of resources] (tasks) {
+        \begin{tabular}{l}
+        \textbf{TASKS} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} resource\_id \\
+        task\_uuid \\
+        status \\
+        execution\_log \\
+        started\_at \\
+        completed\_at \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, below=2.5cm of resources] (activity) {
+        \begin{tabular}{l}
+        \textbf{ACTIVITY\_LOGS} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} user\_id \\
+        action \\
+        provider \\
+        target\_id \\
+        details \\
+        created\_at
+        \end{tabular}
+    };
+
+    \draw [rel] (users) -- node[above] {1:N} (creds);
+    \draw [rel] (users) -- node[left] {1:N} (resources);
+    \draw [rel] (users.south) |- node[left, pos=0.25] {1:N} (activity.west);
+    \draw [rel] (resources) -- node[above] {1:N} (tasks);
+    \draw [rel, dashed] (creds.south) |- node[right, pos=0.28] {used for provisioning} (resources.north);
 \end{tikzpicture}
-\caption{Nebula Database Entity Relationship Diagram}
+\caption{Nebula Database Entity Relationship Diagram Aligned with the Implemented Schema}
 \label{fig:erd}
 \end{figure}
+
+This ER diagram shows that the \texttt{users} table is the root ownership entity. Each user can register multiple cloud credentials, provision multiple resources, and generate multiple activity log entries. Each provisioned resource can in turn generate multiple background task records as the worker system performs create, sync, update, or delete operations. The dashed association between \texttt{cloud\_credentials} and \texttt{resources} indicates an operational dependency: resources are provisioned by using a credential record, even though that linkage may be enforced at the application layer rather than through a direct foreign key column in the simplified schema.
 
 \section{Network Architecture and Cloud Connectivity}
 Provisioning resources in the cloud requires more than just API keys; it requires a structured networking foundation. Nebula manages this through VPC Peering and Security Group automation.
@@ -131,7 +199,7 @@ Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Ferne
 
 \section{Component Interaction (TikZ Sequence)}
 The interaction between the API, Redis, and workers is the core performance driver. When a user requests a sync:
-1. API issues a \texttt{sync_all.delay()} call.
+1. API issues a \texttt{sync\_all.delay()} call.
 2. Redis stores the job.
 3. The worker fetches the job, iterates through all registered cloud accounts, and updates PostgreSQL.
 
