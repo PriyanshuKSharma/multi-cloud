@@ -60,6 +60,31 @@ Azure requires a Service Principal for programmatic access.
 3) In Nebula, go to "Add Provider" and select "Azure."
 4) Enter the credentials to enable Azure VM/Storage provisioning.
 
+\subsection{Registering GCP Credentials}
+Google Cloud onboarding requires a service account with a JSON key and the correct project scope.
+1) Open the Google Cloud Console and create or select a project.
+2) Navigate to IAM and Admin -> Service Accounts.
+3) Create a service account with the minimum roles required for the resources you plan to manage.
+4) Generate a JSON key and store it securely.
+5) In Nebula, choose "Add Provider" -> "GCP" and upload or paste the service account fields.
+6) Confirm the project ID and default region before saving the credential.
+
+\subsection{Environment Variable Reference}
+\begin{table}[H]
+\centering
+\caption{Essential Environment Variables for Local Setup}
+\label{tab:appendix_env_vars}
+\begin{tabular}{|p{3.2cm}|p{3.2cm}|p{4.8cm}|}
+\hline
+\textbf{Variable} & \textbf{Example} & \textbf{Purpose} \\ \hline
+DATABASE\_URL & postgresql://user:pass@localhost:5432/nebula\_db & database connection string \\ \hline
+REDIS\_URL & redis://localhost:6379/0 & queue broker and task transport \\ \hline
+SECRET\_KEY & generated fernet key & encryption of provider secrets \\ \hline
+AI\_COPILOT\_API\_KEY & provider token & failure analysis integration \\ \hline
+LOG\_LEVEL & info & runtime verbosity tuning \\ \hline
+\end{tabular}
+\end{table}
+
 \section{Using the Nebula Dashboard}
 
 \subsection{Provisioning Your First Resource}
@@ -68,6 +93,39 @@ Azure requires a Service Principal for programmatic access.
 3) Select "Virtual Machine" from the resource dropdown.
 4) Enter a name (e.g., "my-dev-vm") and select "t3.micro."
 5) Click "Launch Infrastructure" and watch the real-time logs in the "Cockpit" panel.
+
+\subsection{Recommended First-Day Validation}
+Before using live cloud accounts heavily, perform a short validation cycle:
+\begin{enumerate}
+    \item create a test credential for one provider,
+    \item launch a low-cost resource in a sandbox region,
+    \item confirm that the task reaches the completed state,
+    \item verify that the resource appears in the inventory list,
+    \item trigger a manual sync and confirm metadata remains consistent,
+    \item delete the test resource and verify that cleanup completes successfully.
+\end{enumerate}
+This sequence confirms that the core path of credential storage, background execution, Terraform generation, sync, and deletion is functioning correctly.
+
+\subsection{Daily Operator Workflow}
+An operator using Nebula in a lab or project environment can follow a simple day-to-day routine:
+\begin{enumerate}
+    \item review the dashboard counters for pending or failed tasks,
+    \item check whether any provider credentials are expired or misconfigured,
+    \item launch or modify resources as needed for current work,
+    \item monitor logs during provisioning and investigate slow tasks,
+    \item run a synchronization cycle before generating reports or screenshots,
+    \item remove unused resources to avoid cost drift.
+\end{enumerate}
+
+\subsection{Cleanup Procedure}
+To clean up a project safely:
+\begin{enumerate}
+    \item filter the resource table by project or tag,
+    \item delete non-critical compute resources first,
+    \item remove dependent storage or network objects only after confirming no tasks are active,
+    \item run a final sync to detect drift or residual assets,
+    \item archive logs if the environment is part of a graded evaluation or experiment.
+\end{enumerate}
 
 \section{Troubleshooting and FAQs}
 
@@ -80,5 +138,33 @@ Azure requires a Service Principal for programmatic access.
     \item \textbf{Issue}: "Azure subscription not found."
     \item \textbf{Solution}: Verify the Tenant ID and ensure the Service Principal has \texttt{Contributor} permissions on the subscription.
 \end{itemize}
+
+\subsection{Expanded Troubleshooting Matrix}
+\begin{table}[H]
+\centering
+\caption{Common Operational Issues and Recovery Actions}
+\label{tab:appendix_troubleshooting}
+\begin{tabular}{|p{3.4cm}|p{3.4cm}|p{4.2cm}|}
+\hline
+\textbf{Symptom} & \textbf{Likely Cause} & \textbf{Recommended Action} \\ \hline
+Task remains queued & worker offline or broker unavailable & restart worker service and verify Redis connectivity \\ \hline
+Logs stop midway & Terraform process stalled or provider timeout & inspect worker logs and retry with lower concurrency \\ \hline
+Sync returns partial inventory & permission scope too narrow & validate provider role and region scope \\ \hline
+AI analysis unavailable & missing API key or rate limit & verify key configuration and retry later \\ \hline
+Repeated auth failures & expired credential or wrong secret format & re-register provider credential and test read access \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Frequently Asked Questions}
+\begin{enumerate}
+    \item \textbf{Can Nebula manage multiple accounts of the same provider?}
+    Yes. The credential vault can store multiple provider entries, provided each is tagged and scoped clearly.
+    \item \textbf{Should production credentials be used during development?}
+    No. Use sandbox or low-privilege accounts whenever possible.
+    \item \textbf{Why does a task take longer than the API request?}
+    Because the API only records intent and queues the work. The actual infrastructure execution happens asynchronously in the worker layer.
+    \item \textbf{What should I do if a resource is visible in the cloud console but missing in Nebula?}
+    Trigger a manual synchronization cycle. If the resource still does not appear, verify whether the credential used by Nebula has permission to list that resource type.
+\end{enumerate}
 
 \newpage
