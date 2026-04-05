@@ -23,6 +23,28 @@ This level focuses on the internal state transitions of the Celery Worker during
 - \textbf{Stage E}: Execute 'Apply' and capture STDOUT/STDERR.
 - \textbf{Stage F}: Update Database and mark Task as 'Complete'.
 
+\section{DFD Level 3: AI Copilot Analysis Flow}
+The Level 3 DFD zooms into the failure-analysis sub-flow:
+\begin{enumerate}
+    \item Worker stores raw execution log after a failed task.
+    \item API retrieves the failed task metadata and strips secrets or sensitive tokens.
+    \item Sanitized log excerpt is combined with provider, region, and resource context.
+    \item AI copilot receives the bounded prompt and returns a structured explanation.
+    \item The explanation is stored and made visible to the user in the dashboard.
+\end{enumerate}
+This decomposition is important because it highlights the separation between raw operational data, sanitized analysis input, and user-facing remediation output.
+
+\section{Data Stores and Trust Boundaries}
+Across all DFD levels, the following trust boundaries should be recognized:
+\begin{itemize}
+    \item \textbf{Browser to API}: authenticated but untrusted client boundary.
+    \item \textbf{API to Database}: trusted application boundary for persistent state.
+    \item \textbf{API to Broker}: asynchronous handoff boundary.
+    \item \textbf{Worker to Cloud APIs}: privileged execution boundary using decrypted provider credentials.
+    \item \textbf{Worker to AI Analyzer}: sanitized diagnostic boundary without raw secrets.
+\end{itemize}
+Mapping these trust boundaries helps explain why the architecture isolates credential handling and why logs must be filtered before external analysis.
+
 \newpage
 % Appendix I: Detailed Test Reports and Bug Tracking
 \chapter{DETAILED TEST REPORTS AND BUG TRACKING}
@@ -47,6 +69,38 @@ TC-99 & Final & 24hr System Stability & PASS & 0 Memory leaks \\ \hline
 \end{tabular}
 \end{table}
 
+\section{Test Execution Protocol}
+The testing process followed a layered order so that failures could be localized quickly:
+\begin{enumerate}
+    \item validate schemas and input constraints at the unit level,
+    \item test API routes with mocked database sessions,
+    \item verify queue delivery and worker execution using integration tests,
+    \item execute sandbox cloud tasks with low-cost resources,
+    \item review dashboard behavior and log presentation from an operator perspective.
+\end{enumerate}
+
+\section{Representative Detailed Test Extract}
+\begin{lstlisting}[language=SQL, caption=Detailed Test Extract]
+TC-01 | Auth    | Login with valid credentials                  | PASS | JWT issued
+TC-02 | Auth    | Login with invalid password                   | PASS | 401 returned
+TC-03 | Vault   | Encrypt AWS access key                        | PASS | ciphertext stored
+TC-04 | Vault   | Decrypt credential during worker execution    | PASS | plaintext not logged
+TC-05 | API     | Reject malformed resource payload             | PASS | schema validation hit
+TC-06 | Queue   | Enqueue provisioning task                     | PASS | broker accepted message
+TC-07 | Queue   | Worker picks queued task                      | PASS | status moved to running
+TC-08 | IaC     | Terraform init for AWS module                 | PASS | providers resolved
+TC-09 | IaC     | Terraform apply for sample VM                 | PASS | resource active
+TC-10 | Sync    | Refresh AWS inventory                         | PASS | canonical records updated
+TC-11 | Sync    | Refresh Azure inventory                       | PASS | canonical records updated
+TC-12 | Sync    | Refresh GCP inventory                         | PASS | canonical records updated
+TC-13 | AI      | Detect AccessDenied signature                 | PASS | mapped to IAM category
+TC-14 | AI      | Detect quota exhaustion                       | PASS | quota remediation shown
+TC-15 | UI      | Show running status badge                     | PASS | badge transitions correct
+TC-16 | UI      | Stop polling after task completion            | PASS | timer cleared
+TC-17 | Audit   | Log delete action                             | PASS | activity row written
+TC-18 | Recovery| Retry transient cloud timeout                 | PASS | next retry scheduled
+\end{lstlisting}
+
 \section{Historical Bug Log and Resolutions}
 The following log tracks critical bugs identified during the integration testing phase and their subsequent fixes.
 
@@ -65,6 +119,16 @@ The following log tracks critical bugs identified during the integration testing
         \begin{itemize}
             \item \textit{Issue}: Dashboard counts did not update automatically after a resource was deleted from the cloud portal directly.
             \item \textit{Fix}: Implemented a periodic "background reconcile" task that triggers every 5 minutes to keep the database in sync with actual cloud state.
+        \end{itemize}
+    \item \textbf{Bug ID: B-411 (Task Retry Storm)}
+        \begin{itemize}
+            \item \textit{Issue}: Retryable provider errors caused too many workers to retry in parallel, amplifying queue depth.
+            \item \textit{Fix}: Added jitter to the exponential backoff calculation and reduced worker prefetch.
+        \end{itemize}
+    \item \textbf{Bug ID: B-507 (Unsafe Log Disclosure)}
+        \begin{itemize}
+            \item \textit{Issue}: Raw Terraform error output could include values that should not be forwarded to the AI analyzer.
+            \item \textit{Fix}: Added sanitization rules for secrets, access keys, endpoint tokens, and private IP patterns before analysis.
         \end{itemize}
 \end{itemize}
 
