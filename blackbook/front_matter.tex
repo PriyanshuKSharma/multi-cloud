@@ -16,7 +16,19 @@
     
     \vfill
     
-    \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
+    \IfFileExists{college_logo.pdf}{
+        \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
+    }{
+        \IfFileExists{college_logo.png}{
+            \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
+        }{
+            \IfFileExists{college_logo.jpg}{
+                \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
+            }{
+                \fbox{\parbox[c][3cm][c]{0.4\textwidth}{\centering College Logo Placeholder}} \\[1cm]
+            }
+        }
+    }
     
     {\Large \textbf{DEPARTMENT OF COMPUTER SCIENCE}} \\
     {\Large [COLLEGE NAME]} \\
