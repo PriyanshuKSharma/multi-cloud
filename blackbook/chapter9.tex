@@ -6,6 +6,32 @@ As the cloud computing landscape evolves, the "Unified Command Center" model est
 \section{Future Research and Enhancements}
 The following roadmap areas represent the most natural directions for extending the platform from a student-grade orchestration engine into a more production-oriented control plane.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=2.0cm, auto, scale=0.82, every node/.style={scale=0.82}]
+    \tikzstyle{core} = [rectangle, draw, rounded corners, fill=blue!10, text centered, minimum width=10em, minimum height=3em]
+    \tikzstyle{future} = [rectangle, draw, rounded corners, fill=orange!10, text centered, minimum width=9em, minimum height=2.8em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [core] (nebula) {Current Nebula Core};
+    \node [future, above left=of nebula] (serverless) {Serverless Control};
+    \node [future, above=of nebula] (dr) {Disaster Recovery};
+    \node [future, above right=of nebula] (finops) {AI Cost Optimization};
+    \node [future, below left=of nebula] (k8s) {Kubernetes Support};
+    \node [future, below=of nebula] (policy) {Policy as Code};
+    \node [future, below right=of nebula] (hybrid) {Hybrid / Edge Ops};
+
+    \draw [line] (nebula) -- (serverless);
+    \draw [line] (nebula) -- (dr);
+    \draw [line] (nebula) -- (finops);
+    \draw [line] (nebula) -- (k8s);
+    \draw [line] (nebula) -- (policy);
+    \draw [line] (nebula) -- (hybrid);
+\end{tikzpicture}
+\caption{Future Roadmap Dimensions for the Nebula Control Plane}
+\label{fig:future_roadmap}
+\end{figure}
+
 \subsection{Serverless Cross-Cloud Orchestration (SaaS-less)}
 While Nebula currently manages core infrastructure such as virtual machines, storage, and networking primitives, a major future expansion is unified management of serverless functions. A single "Nebula Function" could be expressed once and then translated into deployment artifacts for AWS Lambda, Azure Functions, and Google Cloud Functions. This capability would be especially valuable for teams that want regional resilience without maintaining multiple provider-specific deployment pipelines. A follow-up research problem here is how to normalize differences in trigger models, packaging constraints, timeout policies, and cold-start behavior across clouds without creating a misleading abstraction.
 
@@ -68,6 +94,25 @@ Nebula is best operated across multiple environments with controlled promotion b
 \end{itemize}
 
 Each environment should use separate databases, brokers, and encryption keys. This separation reduces accidental cross-contamination and makes rollback decisions safer.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=2.1cm, auto, scale=0.88, every node/.style={scale=0.88}]
+    \tikzstyle{env} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=8em, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [env] (local) {Local Dev};
+    \node [env, right=of local] (integration) {Shared Integration};
+    \node [env, right=of integration] (staging) {Staging};
+    \node [env, right=of staging] (production) {Production};
+
+    \draw [line] (local) -- node[above] {merge / validate} (integration);
+    \draw [line] (integration) -- node[above] {smoke tests} (staging);
+    \draw [line] (staging) -- node[above] {manual approval} (production);
+\end{tikzpicture}
+\caption{Recommended Environment Promotion Flow for Nebula Deployments}
+\label{fig:environment_promotion}
+\end{figure}
 
 \section{Release Pipeline}
 A robust release pipeline should ensure that both application code and infrastructure definitions move through quality gates before they reach operators. The recommended stages are:
