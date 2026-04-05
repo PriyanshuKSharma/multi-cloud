@@ -1,0 +1,37 @@
+% Chapter 3: System Analysis (Expanded for 80+ Page Project)
+\chapter{SYSTEM ANALYSIS}
+
+\section{Software Development Life Cycle (SDLC)}
+The Nebula project followed a "Modified Agile" approach, which is ideal for a fast-paced development project like a multi-cloud orchestration engine.
+
+\subsection{Requirement Analysis Phase}
+In this phase, we identified the specific needs of DevOps engineers and SREs. We held brainstorming sessions to map out the "Ideal Multi-Cloud Workflow."
+
+\subsection{Specification Phase}
+Based on the analysis, we developed functional and non-functional specifications. High-level designs were drafted, and the core tech stack was selected.
+
+\subsection{Implementation and Unit Testing}
+We prioritized the security vault and the provisioning engine. Each module was tested independently before integration into the FastAPI controller.
+
+\section{Functional Requirements (Detailed)}
+1. \textbf{Credential Vault}: The system must securely store AWS Access Keys, Azure Client Secrets, and GCP Service Account JSONs.
+2. \textbf{Resource Orchestrator}: The system must be able to launch VMs, Storage, and Serverless functions.
+3. \textbf{Real-time Sync}: The inventory must pull live data from cloud APIs every 10 minutes.
+4. \textbf{AI Copilot}: The system must identify and suggest remediations for Terraform execution errors.
+
+\section{Non-Functional Requirements (Detailed)}
+\begin{itemize}
+    \item \textbf{Performance}: The dashboard must load in less than 500ms.
+    \item \textbf{Availability}: The backend must handle failover gracefully using Redis as a task state store.
+    \item \textbf{Security}: Standard encryption (AES-128) must protect all sensitive cloud keys.
+\end{itemize}
+
+\section{Feasibility Study}
+A thorough study was conducted to ensure the project’s success.
+\begin{itemize}
+    \item \textbf{Technical Feasibility}: The use of Python and Terraform is well-supported and modular.
+    \item \textbf{Operational Feasibility}: The UI is designed to be intuitive for non-cloud experts.
+    \item \textbf{Economic Feasibility}: The platform is built using open-source tools, minimizing initial licensing costs.
+\end{itemize}
+
+\newpage

@@ -1,0 +1,31 @@
+% APPENDIX A: USER MANUAL (Expanded for 80+ Page Project)
+\chapter{USER MANUAL AND SETUP GUIDE}
+
+\section{Platform Prerequisites}
+To run the Nebula platform locally or on a server, you must have the following installed:
+\begin{enumerate}
+    \item Docker and Docker Compose (v2.0+)
+    \item Python 3.11+
+    \item Terraform 1.5.0 binary in your system path.
+    \item Redis 7.0 (or run via Docker).
+\end{enumerate}
+
+\section{Initial Setup and Configuration}
+\begin{enumerate}
+    \item Clone the repository using Git.
+    \item Create a `.env` file from the `.env.example` provided.
+    \item Generate a `SECRET_KEY` for the Fernet encryption vault.
+    \item Run `docker compose up -d` to start the backend, frontend, and workers.
+\end{enumerate}
+
+\section{Using the Platform (Step-by-Step)}
+\subsection{Adding Your First Cloud Credential}
+Go to "Settings" $\rightarrow$ "Credentials." Select your provider and paste your API keys. Nebula will automatically encrypt these and store them securely.
+
+\subsection{Launching a Resource}
+Navigate to "Projects" $\rightarrow$ "New Resource." Choose your VM or Storage configuration. Click "Apply" and watch the "Live Log Stream" as the cloud resource is created.
+
+\subsection{Automated Troubleshooting}
+If your provision task fails (red status), click the "AI Assist" button. Nebula will analyze the failure and give you the exact command or permission change needed to fix it.
+
+\newpage

@@ -1,0 +1,76 @@
+% Chapter 4: System Design (Expanded for 80+ Page Project)
+\chapter{SYSTEM DESIGN}
+
+\section{System Architecture Overview}
+The Nebula Multi-Cloud platform is designed using a multi-layered, asynchronous architecture. This design ensures that the platform remains responsive, even when performing long-running cloud provisioning tasks like spinning up a virtual machine or a large database.
+
+\subsection{Cloud-Centric Presentation Layer}
+The user interface is a "State-Driven React 19 Application." It communicates with the backend via a secure, RESTful API. The key requirement for the presentation layer was modern usability—it allows users to "Cockpit" their entire multi-cloud estate from a single screen.
+
+\subsection{Asynchronous Backend (FastAPI + Celery)}
+Traditional Web servers (like Flask or Django in sync mode) would time out during a Terraform "Apply" operation, which can take anywhere from 2 to 10 minutes. Nebula solves this by using **FastAPI** as the API controller and **Celery** as the background worker farm. When a user clicks "Provision," the API returns a "Task ID" immediately, and the Celery worker handles the actual infrastructure execution in the background.
+
+\section{Entity-Relationship (ER) Design and SQL Schemas}
+The database (PostgreSQL) is the "Brain" of the platform, storing cloud inventory, credentials, and user sessions.
+
+\subsection{Core Tables Description}
+\begin{enumerate}
+    \item \textbf{User Table}: Stores hashed passwords and authentication metadata.
+    \item \textbf{Cloud Credential Table}: Stores the encrypted (AES-128) JSON blobs for AWS, Azure, and GCP keys.
+    \item \textbf{Project Table}: Groups resources into logical business units.
+    \item \textbf{Resource Table}: Stores the state, provider IDs, and configuration for every provisioned cloud object.
+\end{enumerate}
+
+\section{Data Flow Diagrams (DFD)}
+System data flow was modeled at three levels of abstraction:
+\begin{itemize}
+    \item \textbf{Level 0 (Context)}: User provides "Cloud API Credentials" and receives "Infrastructure Status" and "Log Remediation."
+    \item \textbf{Level 1 (Orchestration)}: Internal flow between the API, the Security Vault, the Redis task queue, and the Cloud Providers.
+    \item \textbf{Level 2 (Deep Dive)}: Detailed flow of the "Provisioning Engine" during a Terraform Init-Plan-Apply cycle.
+\end{itemize}
+
+\newpage
+% Chapter 5: Implementation (Expanded for 80+ Page Project)
+\chapter{IMPLEMENTATION}
+
+\section{Technology Stack Deep-Dive}
+We chose a modern, cutting-edge stack to handle the complexities of multi-cloud management.
+
+\subsection{FastAPI: High-Performance Backend}
+FastAPI was chosen for its high-throughput (ASGI) capabilities and integrated support for Pydantic. Pydantic ensures that data received from the React frontend is strictly typed and validated before it reaches the "Provisioning Engine."
+
+\subsection{Terraform: The Universal Cloud Translator}
+Instead of writing millions of lines of code to call AWS and Azure SDKs, Nebula uses **Terraform** as its execution backend. Nebula dynamically generates a "Workspace" folder for each task, populates it with HCL (HashiCorp Configuration Language) files, and executes the provider-specific API calls.
+
+\section{Detailed Creation Steps for Cloud Resources}
+This section details exactly how a user creates resources on the Nebula platform. This workflow is consistent across storage, compute, and networking.
+
+\subsection{Steps for Provisioning Virtual Machines (AWS/Azure/GCP)}
+1. \textbf{Task Selection}: User selects "Create VM" and chooses the desired provider.
+2. \textbf{Configuration Form}: 
+    \begin{itemize}
+        \item \textit{Name}: Give the instance a unique identifier.
+        \item \textit{Image}: Select the OS (e.g., Ubuntu 22.04 LTS).
+        \item \textit{Instance Size}: Choose the vCPU and RAM (e.g., t3.medium).
+    \end{itemize}
+3. \textbf{Credential Verification}: The backend fetches the encrypted AWS/Azure key from the vault.
+4. \textbf{Provisioning Trigger}: Nebula starts the background Celery task.
+5. \textbf{Log Persistence}: As Terraform runs, Nebula streams the STDOUT/STDERR logs directly back to the user's screen in real-time.
+
+\subsection{Steps for Creating Storage Buckets}
+1. \textbf{S3/Blob/GCS Choice}: Select the object storage provider.
+2. \textbf{Bucket Naming}: Input a globally unique name (checked for errors locally).
+3. \textbf{Access Level}: Choose from "Private," "Public," or "Public-Read."
+4. \textbf{Lifecycle Rules}: (Optional) Define when data should be moved to "Cold Storage."
+5. \textbf{Apply}: Nebula initiates the bucket creation API through the state-manager.
+
+\section{Core Algorithm: The AI Copilot}
+The AI Copilot does not just "guess"—it uses a fine-tuned LLM model that was trained on thousands of Terraform "Apply" failures. 
+\begin{enumerate}
+    \item The system captures the "stderr" output from a failed task.
+    \item It strips out any sensitive identifiers like IP addresses or secret keys.
+    \item The scrubbed log is sent to the "Nebula AI Assistant."
+    \item The assistant interprets errors like "InsufficientPermissions" or "InvalidInstanceID" and provides a "1-Click Fix."
+\end{enumerate}
+
+\newpage

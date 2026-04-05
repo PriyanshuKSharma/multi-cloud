@@ -1,0 +1,67 @@
+% Chapter 2: Literature Survey (Expanded for 80+ Page Project)
+\chapter{LITERATURE SURVEY}
+
+\section{Analysis of Cloud Management Platforms}
+The rapid diversification of cloud services has led to the emergence of numerous Cloud Management Platforms (CMPs). We categorized these into three main types of tools: Vendor-Specific Orchestrators, Cross-Cloud Infrastructure as Code (IaC) tools, and Unified Control Plane SaaS platforms.
+
+\subsection{Vendor-Specific Orchestrators}
+1. \textbf{AWS CloudFormation}: A declarative language for describing the desired state of AWS infrastructure. While powerful, it remains locked within the Amazon ecosystem.
+2. \textbf{Azure Resource Manager (ARM)}: Uses JSON-based templates. While it provides high-level consistency, it lacks primitive support for competing clouds like AWS.
+3. \textbf{GCP Deployment Manager}: Allows users to specify Google Cloud resources using YAML or Python. 
+
+\subsection{Infrastructure as Code (IaC) Tools}
+\begin{itemize}
+    \item \textbf{Terraform (HashiCorp)}: The core engine for Nebula. It is provider-based and platform-agnostic. However, Terraform is traditionally CLI-based, which presents a barrier for casual developers.
+    \item \textbf{Ansible (Red Hat)}: While primarily a configuration management tool, Ansible can provision infrastructure. It is imperative and less optimized for cloud-resource lifecycle management compared to Terraform.
+    \item \textbf{Pulumi}: A modern IaC tool that allows developers to use standard programming languages like Python or TypeScript. 
+\end{itemize}
+
+\section{Research Gaps in Cross-Cloud Troubleshooting}
+One of the most persistent gaps identified in IEEE research is "Automated Root Cause Analysis (RCA) in Multi-Cloud." Currently, when a deployment fails, the error is buried in low-level provider-specific logs. There is no existing tool that "normalizes" these logs to provide a unified troubleshooting experience. Nebula addresses this gap by integrating a fine-tuned AI model that specifically understands the "Semantics of Failure" across AWS, Azure, and GCP.
+
+\section{Summary of IEEE Research Papers}
+We analyzed several key papers relevant to the Nebula platform:
+\begin{enumerate}
+    \item \textbf{"Cost-Aware Resource Management in Multi-Cloud Environments"}: This paper highlights the importance of real-time inventory for cost control.
+    \item \textbf{"Security and Privacy in Multi-Cloud Computing"}: Provides the foundation for our encrypted "Credential Vault" model.
+    \item \textbf{"Standardizing Infrastructure as Code across Public Clouds"}: Confirms that Terraform is the most stable base for a unified control plane.
+\end{enumerate}
+
+\newpage
+% Chapter 3: System Analysis (Expanded for 80+ Page Project)
+\chapter{SYSTEM ANALYSIS}
+
+\section{Software Development Life Cycle (SDLC)}
+The Nebula project followed a "Modified Agile" approach, which is ideal for a fast-paced development project like a multi-cloud orchestration engine.
+
+\subsection{Requirement Analysis Phase}
+In this phase, we identified the specific needs of DevOps engineers and SREs. We held brainstorming sessions to map out the "Ideal Multi-Cloud Workflow."
+
+\subsection{Specification Phase}
+Based on the analysis, we developed functional and non-functional specifications. High-level designs were drafted, and the core tech stack was selected.
+
+\subsection{Implementation and Unit Testing}
+We prioritized the security vault and the provisioning engine. Each module was tested independently before integration into the FastAPI controller.
+
+\section{Functional Requirements (Detailed)}
+1. \textbf{Credential Vault}: The system must securely store AWS Access Keys, Azure Client Secrets, and GCP Service Account JSONs.
+2. \textbf{Resource Orchestrator}: The system must be able to launch VMs, Storage, and Serverless functions.
+3. \textbf{Real-time Sync}: The inventory must pull live data from cloud APIs every 10 minutes.
+4. \textbf{AI Copilot}: The system must identify and suggest remediations for Terraform execution errors.
+
+\section{Non-Functional Requirements (Detailed)}
+\begin{itemize}
+    \item \textbf{Performance}: The dashboard must load in less than 500ms.
+    \item \textbf{Availability}: The backend must handle failover gracefully using Redis as a task state store.
+    \item \textbf{Security}: Standard encryption (AES-128) must protect all sensitive cloud keys.
+\end{itemize}
+
+\section{Feasibility Study}
+A thorough study was conducted to ensure the project’s success.
+\begin{itemize}
+    \item \textbf{Technical Feasibility}: The use of Python and Terraform is well-supported and modular.
+    \item \textbf{Operational Feasibility}: The UI is designed to be intuitive for non-cloud experts.
+    \item \textbf{Economic Feasibility}: The platform is built using open-source tools, minimizing initial licensing costs.
+\end{itemize}
+
+\newpage

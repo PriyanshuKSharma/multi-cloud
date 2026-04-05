@@ -1,0 +1,44 @@
+% APPENDIX B: CORE ENGINE CODE SNIPPETS (Expanded for 80+ Page Project)
+\chapter{CORE ENGINE CODE SNIPPETS}
+
+This appendix provides the architectural "blueprints" for the Nebula platform. Each snippet includes a technical description of its role in the multi-cloud orchestration engine.
+
+\section{Backend: The Provisioning Controller (FastAPI)}
+\begin{lstlisting}[language=Python, caption=Provisioning Task Initiation]
+@router.post("/resources/", response_model=ResourceSchema)
+def create_resource(request: ResourceCreate, db: Session = Depends(get_db)):
+    # 1. Create a "Pending" record in PostgreSQL
+    new_resource = Resource(
+        name=request.name,
+        provider=request.provider,
+        type=request.type,
+        status="pending",
+        configuration=request.variables
+    )
+    db.add(new_resource)
+    db.commit()
+    return new_resource
+\end{lstlisting}
+
+\section{Backend: The Terraform Execution Runtime}
+\begin{lstlisting}[language=Python, caption=Terraform Runner Service]
+class TerraformRunner:
+    def __init__(self, working_dir: str):
+        self.working_dir = working_dir
+
+    def init(self, env_vars: dict):
+        return run_command(["terraform", "init"], cwd=self.working_dir, env=env_vars)
+
+    def apply(self, env_vars: dict):
+        return run_command(["terraform", "apply", "-auto-approve"], cwd=self.working_dir, env=env_vars)
+\end{lstlisting}
+
+\section{Security: The Fernet Encrypted Vault}
+\begin{lstlisting}[language=Python, caption=Vault Decryption Logic]
+def decrypt_data(encrypted_str: str) -> str:
+    key = os.getenv("SECRET_KEY")
+    f = Fernet(key)
+    return f.decrypt(encrypted_str.encode()).decode()
+\end{lstlisting}
+
+\newpage

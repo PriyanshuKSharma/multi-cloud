@@ -1,0 +1,32 @@
+% Chapter 4: System Design (Expanded for 80+ Page Project)
+\chapter{SYSTEM DESIGN}
+
+\section{System Architecture Overview}
+The Nebula Multi-Cloud platform is designed using a multi-layered, asynchronous architecture. This design ensures that the platform remains responsive, even when performing long-running cloud provisioning tasks like spinning up a virtual machine or a large database.
+
+\subsection{Cloud-Centric Presentation Layer}
+The user interface is a "State-Driven React 19 Application." It communicates with the backend via a secure, RESTful API. The key requirement for the presentation layer was modern usability—it allows users to "Cockpit" their entire multi-cloud estate from a single screen.
+
+\subsection{Asynchronous Backend (FastAPI + Celery)}
+Traditional Web servers (like Flask or Django in sync mode) would time out during a Terraform "Apply" operation, which can take anywhere from 2 to 10 minutes. Nebula solves this by using **FastAPI** as the API controller and **Celery** as the background worker farm. When a user clicks "Provision," the API returns a "Task ID" immediately, and the Celery worker handles the actual infrastructure execution in the background.
+
+\section{Entity-Relationship (ER) Design and SQL Schemas}
+The database (PostgreSQL) is the "Brain" of the platform, storing cloud inventory, credentials, and user sessions.
+
+\subsection{Core Tables Description}
+\begin{enumerate}
+    \item \textbf{User Table}: Stores hashed passwords and authentication metadata.
+    \item \textbf{Cloud Credential Table}: Stores the encrypted (AES-128) JSON blobs for AWS, Azure, and GCP keys.
+    \item \textbf{Project Table}: Groups resources into logical business units.
+    \item \textbf{Resource Table}: Stores the state, provider IDs, and configuration for every provisioned cloud object.
+\end{enumerate}
+
+\section{Data Flow Diagrams (DFD)}
+System data flow was modeled at three levels of abstraction:
+\begin{itemize}
+    \item \textbf{Level 0 (Context)}: User provides "Cloud API Credentials" and receives "Infrastructure Status" and "Log Remediation."
+    \item \textbf{Level 1 (Orchestration)}: Internal flow between the API, the Security Vault, the Redis task queue, and the Cloud Providers.
+    \item \textbf{Level 2 (Deep Dive)}: Detailed flow of the "Provisioning Engine" during a Terraform Init-Plan-Apply cycle.
+\end{itemize}
+
+\newpage
