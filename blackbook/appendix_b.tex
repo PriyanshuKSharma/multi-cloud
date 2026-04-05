@@ -1,0 +1,288 @@
+% APPENDIX B: CORE ENGINE CODE SNIPPETS (Massive Expansion)
+\chapter{CORE ENGINE CODE SNIPPETS}
+
+This appendix provides the architectural "blueprints" for the Nebula platform. Each snippet includes a technical description of its role in the multi-cloud orchestration engine.
+
+\section{Backend: The Provisioning Controller (FastAPI)}
+\begin{lstlisting}[language=Python, caption=Full Provisioning Router]
+@router.post("/resources/", response_model=ResourceSchema)
+def create_resource(
+    request: ResourceCreate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_active_user)
+):
+    # 1. Identity Verification
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # 2. Persist Intent (Transactional)
+    new_resource = Resource(
+        user_id=current_user.id,
+        name=request.name,
+        provider=request.provider,
+        type=request.type,
+        status="pending",
+        configuration=request.variables
+    )
+    db.add(new_resource)
+    db.commit()
+    db.refresh(new_resource)
+
+    # 3. Queue Asynchronous Execution
+    provision_resource_task.delay(
+        resource_id=new_resource.id,
+        user_id=current_user.id,
+        provider=request.provider,
+        module=request.type,
+        vars=request.variables
+    )
+    
+    return new_resource
+\end{lstlisting}
+
+\section{Security: The Encryption Service}
+\begin{lstlisting}[language=Python, caption=AES-128 Fernet Implementation]
+from cryptography.fernet import Fernet
+import os
+
+def get_vault_engine():
+    key = os.getenv("SECRET_KEY")
+    if not key:
+        raise ValueError("SECRET_KEY not found in environment")
+    return Fernet(key)
+
+def encrypt_credential(plain_text: str) -> str:
+    f = get_vault_engine()
+    return f.encrypt(plain_text.encode()).decode()
+
+def decrypt_credential(cipher_text: str) -> str:
+    f = get_vault_engine()
+    return f.decrypt(cipher_text.encode()).decode()
+\end{lstlisting}
+
+\section{Backend: The Background Provisioning Worker}
+\begin{lstlisting}[language=Python, caption=Celery Worker Provisioning Flow]
+@celery.task(bind=True, max_retries=3, default_retry_delay=30)
+def provision_resource_task(self, resource_id: int, user_id: int, provider: str, module: str, vars: dict):
+    db = SessionLocal()
+    resource = db.query(Resource).filter(Resource.id == resource_id).first()
+
+    try:
+        resource.status = "running"
+        db.commit()
+
+        credential = load_credential_for_user(db, user_id, provider)
+        secrets = decrypt_provider_bundle(credential)
+        workspace = prepare_workspace(resource_id, provider, module, vars)
+
+        write_provider_files(workspace, provider, module, vars)
+        tf_env = build_terraform_env(secrets)
+
+        init_result = run_command(["terraform", "init"], cwd=workspace, env=tf_env)
+        if init_result.returncode != 0:
+            raise RuntimeError(init_result.stderr)
+
+        apply_result = run_command(
+            ["terraform", "apply", "-auto-approve"],
+            cwd=workspace,
+            env=tf_env,
+        )
+
+        resource.execution_log = apply_result.stdout + "\n" + apply_result.stderr
+        resource.status = "active" if apply_result.returncode == 0 else "failed"
+        db.commit()
+
+        if resource.status == "failed":
+            analyze_with_ai_copilot.delay(resource.id)
+    except RetryableCloudError as exc:
+        resource.status = "retry_scheduled"
+        db.commit()
+        raise self.retry(exc=exc)
+    except Exception as exc:
+        resource.status = "failed"
+        resource.execution_log = str(exc)
+        db.commit()
+        raise
+    finally:
+        db.close()
+\end{lstlisting}
+
+\section{Backend: Inventory Synchronization Task}
+\begin{lstlisting}[language=Python, caption=Periodic Multi-Cloud Sync Task]
+@celery.task
+def sync_all_resources():
+    db = SessionLocal()
+    credentials = db.query(CloudCredential).all()
+
+    for credential in credentials:
+        provider = credential.provider_type.lower()
+        decrypted = decrypt_provider_bundle(credential)
+
+        if provider == "aws":
+            resources = fetch_aws_inventory(decrypted)
+        elif provider == "azure":
+            resources = fetch_azure_inventory(decrypted)
+        elif provider == "gcp":
+            resources = fetch_gcp_inventory(decrypted)
+        else:
+            continue
+
+        for payload in resources:
+            canonical = normalize_resource(provider, payload)
+            upsert_resource_record(db, credential.user_id, canonical)
+
+    db.commit()
+    db.close()
+\end{lstlisting}
+
+\section{Frontend: Resource Status Polling Hook}
+\begin{lstlisting}[language=Python, caption=React Hook for Task Polling]
+export const useTaskPolling = (taskId?: string) => {
+  const [status, setStatus] = useState("idle");
+  const [log, setLog] = useState("");
+
+  useEffect(() => {
+    if (!taskId) return;
+
+    const timer = setInterval(async () => {
+      const response = await axios.get(`/api/tasks/${taskId}`);
+      setStatus(response.data.status);
+      setLog(response.data.execution_log ?? "");
+
+      if (["completed", "failed", "active"].includes(response.data.status)) {
+        clearInterval(timer);
+      }
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [taskId]);
+
+  return { status, log };
+};
+\end{lstlisting}
+
+\newpage
+% APPENDIX C: CONFIGURATION AND IAC SAMPLES
+\chapter{CONFIGURATION AND IAC SAMPLES}
+
+\section{System Orchestration: Docker-Compose}
+This file defines the entire multi-container ecosystem of Nebula.
+
+\begin{lstlisting}[language=XML, caption=docker-compose.yml with Worker Cluster]
+version: '3.8'
+
+services:
+  # 1. Peripheral Services
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: nebula_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # 2. Application Core
+  api:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/nebula_db
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build: ./backend
+    command: celery -A app.tasks worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/nebula_db
+    depends_on:
+      - redis
+\end{lstlisting}
+
+\section{IaC Layer: AWS EC2 Terraform Sample}
+\begin{lstlisting}[language=XML, caption=AWS VM Module (main.tf)]
+resource "aws_instance" "nebula_vm" {
+  ami           = var.ami_id
+  instance_type = var.instance_type
+  
+  tags = {
+    Name       = var.resource_name
+    ManagedBy  = "Nebula-Orchestrator"
+  }
+}
+
+variable "ami_id" { type = string }
+variable "instance_type" { default = "t3.micro" }
+variable "resource_name" { type = string }
+\end{lstlisting}
+
+\section{IaC Layer: Azure Network Sample}
+\begin{lstlisting}[language=XML, caption=Azure VNet Module (network.tf)]
+resource "azurerm_resource_group" "nebula" {
+  name     = var.resource_group_name
+  location = var.location
+}
+
+resource "azurerm_virtual_network" "nebula_vnet" {
+  name                = var.vnet_name
+  address_space       = ["10.10.0.0/16"]
+  location            = azurerm_resource_group.nebula.location
+  resource_group_name = azurerm_resource_group.nebula.name
+}
+
+resource "azurerm_subnet" "nebula_subnet" {
+  name                 = "default"
+  resource_group_name  = azurerm_resource_group.nebula.name
+  virtual_network_name = azurerm_virtual_network.nebula_vnet.name
+  address_prefixes     = ["10.10.1.0/24"]
+}
+\end{lstlisting}
+
+\section{IaC Layer: GCP Compute Sample}
+\begin{lstlisting}[language=XML, caption=GCP VM Module (main.tf)]
+resource "google_compute_instance" "nebula_vm" {
+  name         = var.instance_name
+  machine_type = var.machine_type
+  zone         = var.zone
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-12"
+    }
+  }
+
+  network_interface {
+    network = "default"
+    access_config {}
+  }
+
+  labels = {
+    managed_by = "nebula"
+    environment = var.environment
+  }
+}
+\end{lstlisting}
+
+\section{Worker Queue Configuration}
+\begin{lstlisting}[language=Python, caption=Celery Queue Tuning Sample]
+broker_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
+result_backend = broker_url
+task_serializer = "json"
+result_serializer = "json"
+accept_content = ["json"]
+timezone = "UTC"
+worker_prefetch_multiplier = 1
+task_acks_late = True
+task_time_limit = 1800
+broker_transport_options = {
+    "visibility_timeout": 3600,
+}
+\end{lstlisting}
+
+\newpage

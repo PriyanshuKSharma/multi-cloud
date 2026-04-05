@@ -1,4 +1,4 @@
-This section evaluates Cloud Simplify using implementation-level evidence from the AWS-backed deployment. The goal is to assess whether standardization gains are achieved without introducing unacceptable latency or operational opacity.
+This section evaluates Nebula using implementation-level evidence from the AWS-backed deployment. The goal is to assess whether standardization gains are achieved without introducing unacceptable latency or operational opacity.
 
 \subsection{Measurement Scope and Method}
 The evaluation focuses on control-plane behavior rather than raw cloud hardware performance. Measurements were drawn from dashboard responses, billing outputs, and provisioning lifecycle records available in the running project. The observed sample emphasizes practical operator-facing metrics:
@@ -15,7 +15,7 @@ Table \ref{tab:aws_real_values} consolidates the reported values.
 
 \begin{table}[h]
 \centering
-\caption{AWS Operational Results from Cloud Simplify Implementation}
+\caption{AWS Operational Results from Nebula Implementation}
 \label{tab:aws_real_values}
 \begin{tabular}{|p{3.3cm}|p{3.1cm}|p{4.9cm}|}
 \hline
@@ -36,7 +36,7 @@ Table \ref{tab:aws_real_values} indicates that the platform's primary performanc
 The cost row is especially relevant for governance. Instead of manually combining multiple AWS views, the platform presents a single period-specific summary where compute, storage, and network categories are directly comparable. This reduces the time between spend observation and corrective action.
 
 \subsection{Throughput and Responsiveness Discussion}
-Performance in orchestration systems should be interpreted as a two-layer model: control-plane responsiveness and execution-plane completion. Cloud Simplify intentionally optimizes control-plane responsiveness by acknowledging user requests quickly and delegating long-running work to Celery workers. This design aligns with published observations that queue and coordination overhead are typically smaller than provider-side provisioning latency \cite{terraform_performance_2023, wjarr2024}.
+Performance in orchestration systems should be interpreted as a two-layer model: control-plane responsiveness and execution-plane completion. Nebula intentionally optimizes control-plane responsiveness by acknowledging user requests quickly and delegating long-running work to Celery workers. This design aligns with published observations that queue and coordination overhead are typically smaller than provider-side provisioning latency \cite{aldhuraibi2018elasticity, brikman2019terraform}.
 
 \subsection{Reliability and Traceability Outcomes}
 Beyond speed, the evaluated behavior shows improved traceability. Lifecycle states (\texttt{pending}, \texttt{provisioning}, \texttt{active}) and captured logs provide a reproducible narrative for each operation. This is significant in production settings where debugging, auditability, and post-incident analysis are as important as raw completion time.

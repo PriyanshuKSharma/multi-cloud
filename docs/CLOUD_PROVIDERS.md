@@ -20,6 +20,8 @@ The platform integrates with **three major cloud providers**:
 - **Azure** (Microsoft Azure)
 - **GCP** (Google Cloud Platform)
 
+
+
 **Integration Capabilities:**
 
 - ✅ Resource discovery (VMs, Storage, Networks)

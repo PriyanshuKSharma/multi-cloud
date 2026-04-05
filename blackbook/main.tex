@@ -1,0 +1,111 @@
+% Multi-Cloud Project Blackbook (100+ Page Version)
+% Author: Priyanshu K Sharma
+% Project: Nebula: The Multi-Cloud Command Center
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% --- PACKAGES ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\geometry{a4paper, left=1.25in, right=1.0in, top=1.0in, bottom=1.0in}
+\usepackage{setspace}
+\onehalfspacing % Standard 1.5 line spacing for thesis
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning, arrows, shapes.geometric}
+
+% --- CUSTOMIZATION ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=black,      
+    urlcolor=blue,
+    citecolor=black,
+    pdftitle={Nebula: The Multi-Cloud Console},
+}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+% --- CODE SNIPPET STYLES ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% --- DOCUMENT CONTENT ---
+\begin{document}
+
+% 1. Front Matter
+\include{front_matter}
+
+% 2. Indices
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+% 3. Main Content (Arabic numbering)
+\pagenumbering{arabic}
+
+\include{chapter1}
+\include{chapter2}
+\include{chapter3}
+\include{chapter4}
+\include{chapter5}
+\include{chapter6}
+\include{chapter7}
+\include{chapter8}
+\include{chapter9}
+\include{chapter10}
+\include{chapter11}
+\include{chapter12}
+
+% 4. Appendices
+\appendix
+\include{appendix_a}
+\include{appendix_b}
+\include{appendix_c_d_e}
+\include{appendix_f_g}
+\include{appendix_h_i}
+\include{appendix_j_docs}
+
+% 5. Bibliography
+\include{bibliography}
+
+\end{document}

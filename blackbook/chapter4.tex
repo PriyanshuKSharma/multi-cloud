@@ -1,0 +1,206 @@
+% Chapter 4: System Design (Massive Expansion)
+\chapter{SYSTEM DESIGN}
+
+The system architecture of Nebula is designed to be highly modular, asynchronous, and secure. This chapter details the "Internal Workings" of the platform, focusing on the high-level ecosystem, database design, and the security model.
+
+\section{System Architecture Overview}
+The platform follows a three-tier architecture: Presentation, Application, and Persistence layers. Each layer is isolated using Docker-Compose to ensure a reproducible deployment environment.
+
+\subsection{High-Level Ecosystem (TikZ Diagram)}
+The following diagram illustrates the interaction between the user browser, the internal containerized network, and the external cloud provider APIs.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=2.2cm, auto, scale=0.8, every node/.style={scale=0.8}]
+    \tikzstyle{box} = [rectangle, draw, fill=blue!5, text width=7em, text centered, rounded corners, minimum height=2.5em]
+    \tikzstyle{sub} = [rectangle, draw, dashed, inner sep=10pt, fill=gray!5]
+    \tikzstyle{line} = [draw, -latex']
+
+    % Client
+    \node [box] (browser) {User Browser};
+    \node [above=0.2cm of browser, font=\bfseries] {Client};
+
+    % Network Cluster
+    \node [box, below=1.85cm of browser] (backend) {FastAPI Backend};
+    \node [box, left=0.5cm of backend] (frontend) {React (Nginx)};
+    \node [box, right=0.5cm of backend] (lb) {Reverse Proxy};
+    
+    \node [box, below=1.5cm of backend] (redis) {Redis Broker};
+    \node [box, left=0.5cm of redis] (db) {PostgreSQL};
+    \node [box, right=0.5cm of redis] (worker) {Celery Worker};
+
+    \draw [dashed] ([xshift=-0.5cm, yshift=0.5cm]frontend.north west) rectangle ([xshift=0.5cm, yshift=-0.5cm]worker.south east);
+    \node at ([yshift=0.8cm]backend.north) {\bfseries Docker Network Cluster};
+
+    % External Clouds
+    \node [box, below=2.5cm of redis] (azure) {Azure Cloud};
+    \node [box, left=0.5cm of azure] (aws) {AWS Cloud};
+    \node [box, right=0.5cm of azure] (gcp) {GCP Cloud};
+    
+    \node [below=0.2cm of azure, font=\bfseries] {Multi-Cloud APIs};
+
+    % Connections
+    \draw [line] (browser) -- node[left] {REST} (backend);
+    \draw [line] (browser) -- (frontend);
+    
+    \draw [line] (backend) -- (db);
+    \draw [line] (backend) -- (redis);
+    \draw [line] (worker) -- (redis);
+    \draw [line] (worker) -| (db);
+    
+    \draw [line] (worker) -- (aws);
+    \draw [line] (worker) -- (azure);
+    \draw [line] (worker) -- (gcp);
+
+\end{tikzpicture}
+\caption{Nebula: Unified Multi-Cloud Infrastructure Ecosystem}
+\label{fig:ecosystem}
+\end{figure}
+
+\section{Entity-Relationship (ER) Design}
+The database (PostgreSQL) is the "Global State Manager" of the platform. It tracks the inventory of three cloud providers in a single normalized schema.
+
+\subsection{ER Diagram (TikZ)}
+The following diagram defines the primary entities and their relationships. Unlike a high-level conceptual sketch, this ER model is aligned with the persistence schema described later in the appendix. It includes the operational tables that matter most to the platform: users, encrypted cloud credentials, provisioned resources, task history, and activity logs.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=2.6cm, auto, scale=0.78, every node/.style={scale=0.78}]
+    \tikzstyle{entity} = [rectangle, draw, rounded corners, fill=green!8, inner sep=5pt]
+    \tikzstyle{rel} = [draw, thick]
+
+    \node [entity] (users) {
+        \begin{tabular}{l}
+        \textbf{USERS} \\
+        \hline
+        \textbf{PK} id \\
+        username \\
+        email \\
+        hashed\_password \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, right=3.0cm of users] (creds) {
+        \begin{tabular}{l}
+        \textbf{CLOUD\_CREDENTIALS} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} user\_id \\
+        provider\_type \\
+        access\_key\_enc \\
+        secret\_key\_enc \\
+        tenant\_id\_enc \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, below=2.4cm of users] (resources) {
+        \begin{tabular}{l}
+        \textbf{RESOURCES} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} user\_id \\
+        provider \\
+        resource\_type \\
+        status \\
+        provider\_id \\
+        metadata \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, right=3.0cm of resources] (tasks) {
+        \begin{tabular}{l}
+        \textbf{TASKS} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} resource\_id \\
+        task\_uuid \\
+        status \\
+        execution\_log \\
+        started\_at \\
+        completed\_at \\
+        created\_at
+        \end{tabular}
+    };
+
+    \node [entity, below=2.5cm of resources] (activity) {
+        \begin{tabular}{l}
+        \textbf{ACTIVITY\_LOGS} \\
+        \hline
+        \textbf{PK} id \\
+        \textbf{FK} user\_id \\
+        action \\
+        provider \\
+        target\_id \\
+        details \\
+        created\_at
+        \end{tabular}
+    };
+
+    \draw [rel] (users) -- node[above] {1:N} (creds);
+    \draw [rel] (users) -- node[left] {1:N} (resources);
+    \draw [rel] (users.south) |- node[left, pos=0.25] {1:N} (activity.west);
+    \draw [rel] (resources) -- node[above] {1:N} (tasks);
+    \draw [rel, dashed] (creds.south) |- node[right, pos=0.28] {used for provisioning} (resources.north);
+\end{tikzpicture}
+\caption{Nebula Database Entity Relationship Diagram Aligned with the Implemented Schema}
+\label{fig:erd}
+\end{figure}
+
+This ER diagram shows that the \texttt{users} table is the root ownership entity. Each user can register multiple cloud credentials, provision multiple resources, and generate multiple activity log entries. Each provisioned resource can in turn generate multiple background task records as the worker system performs create, sync, update, or delete operations. The dashed association between \texttt{cloud\_credentials} and \texttt{resources} indicates an operational dependency: resources are provisioned by using a credential record, even though that linkage may be enforced at the application layer rather than through a direct foreign key column in the simplified schema.
+
+\section{Network Architecture and Cloud Connectivity}
+Provisioning resources in the cloud requires more than just API keys; it requires a structured networking foundation. Nebula manages this through VPC Peering and Security Group automation.
+
+\subsection{Virtual Private Cloud (VPC) Design}
+For every project launched in Nebula, a dedicated VPC is created. This ensures:
+\begin{itemize}
+    \item \textbf{Isolation}: Resources from one project cannot talk to another project's resources by default.
+    \item \textbf{Secure Subnetting}: Public subnets for Load Balancers and private subnets for Database/Worker nodes.
+    \item \textbf{Internet Gateway (IGW)}: For resources requiring external connectivity.
+\end{itemize}
+
+\section{Security Architecture Details}
+Nebula implements a "Defense in Depth" strategy to protect user data and cloud access keys.
+
+\subsection{Identity Layer (JWT Flow)}
+User authentication is handled via JSON Web Tokens (JWT). When a user logs in:
+1. The backend verifies credentials against PostgreSQL.
+2. A signed JWT (RS256) is issued to the browser.
+3. Every subsequent API call must include this token in the header as: \texttt{Authorization: Bearer <TOKEN>}.
+
+\subsection{Credential Security (AES-128 Fernet)}
+Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Fernet implementation which provides symmetric encryption with:
+\begin{itemize}
+    \item \textbf{Confidentiality}: Messages cannot be read without the key.
+    \item \textbf{Integrity}: Messages cannot be altered without detection.
+    \item \textbf{Freshness}: Messages cannot be replayed without detection.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=4.5cm, auto]
+    \tikzstyle{actor} = [rectangle, draw, fill=orange!10, minimum width=3em, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex]
+
+    \node [actor] (user) {User Browser};
+    \node [actor, right of=user] (api) {FastAPI};
+    \node [actor, right of=api] (db) {PostgreSQL};
+
+    \draw [line] (user) -- node {POST credentials} (api);
+    \draw [line] (api) -- node {Encrypt(Key)} (db);
+    \draw [line, dashed] (db) -- node {Ciphertext} (api);
+\end{tikzpicture}
+\caption{Credential Encryption Workflow}
+\label{fig:encryption_workflow}
+\end{figure}
+
+\section{Component Interaction (TikZ Sequence)}
+The interaction between the API, Redis, and workers is the core performance driver. When a user requests a sync:
+1. API issues a \texttt{sync\_all.delay()} call.
+2. Redis stores the job.
+3. The worker fetches the job, iterates through all registered cloud accounts, and updates PostgreSQL.
+
+\newpage
