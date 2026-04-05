@@ -1,0 +1,58 @@
+% Chapter 8: Algorithm and Mathematical Model (New Technical Depth)
+\chapter{ALGORITHM AND MATHEMATICAL MODEL}
+
+To achieve high operational determinism and security, the Nebula platform implements specific algorithms for its two most critical subsystems: the AI Troubleshooting Copilot and the Credential security vault. This chapter formalizes these models through pseudo-code and mathematical notation.
+
+\section{The AI Copilot: Adaptive Log Remediation Algorithm}
+The AI Copilot is designed to solve the "Semantic Mismatch" problem in multi-cloud error logs. When a Terraform task fails, the logs are often thousands of lines long and provider-specific. The Adaptive Log Remediation (ALR) algorithm handles this as follows:
+
+\subsection{Pseudo-code for the ALR Algorithm}
+\begin{lstlisting}[language=Python, caption=AI Copilot Remediation Logic]
+def execute_remediation_pipeline(raw_log):
+    # Stage 1: Scrubbing and Anonymization
+    scrubbed_log = regex_remove_ips_and_secrets(raw_log)
+    
+    # Stage 2: Context Injection
+    # We fetch the specific resource type that was being created
+    resource_context = get_db_context(task_id)
+    
+    # Stage 3: LLM Inference
+    # The prompt is constructed with the failure log and context
+    prompt = f"Analyze this {resource_context} failure: {scrubbed_log}"
+    analysis = llm.query(prompt, model="nebula-specialized-cloud-v1")
+    
+    # Stage 4: Deterministic Mapping
+    # If the LLM identifies a known error (e.g., IAM, Quota),
+    # map it to a deterministic "1-Click Fix."
+    if "AccessDenied" in analysis:
+        return {"remedy": "Add 'AdministratorAccess' to IAM user", "auto_fix": True}
+    
+    return {"remedy": analysis, "auto_fix": False}
+\end{lstlisting}
+
+\section{Mathematical Model for Credential Security}
+The security vault protects sensitive cloud secrets using a symmetric encryption model. We formalize this using standard cryptographic notation.
+
+\subsection{Encryption Foundation}
+Let $K$ be the unique, 128-bit master secret key stored as an environment variable.
+Let $M$ be the plain-text cloud credential (e.g., Azure Client Secret).
+Let $IV$ be a randomly generated Initial Vector (to prevent identical messages from having identical ciphertexts).
+
+The encryption process $E$ can be defined as:
+\[ C = E(K, M, IV) \]
+where $C$ is the resulting ciphertext. In the Nebula vault, we use AES-128 in Cipher-Block Chaining (CBC) mode with PKCS7 padding.
+
+\subsection{Decryption at Runtime (Worker Scope)}
+When a Celery worker picks up a task, it must materialize the credential $M$ to execute the Terraform plan. The decryption process $D$ is:
+\[ M = D(K, C, IV) \]
+The security property ensured here is that even if the database is compromised, the cloud accounts remain safe because $K$ is never stored in the database.
+
+\section{Complexity Analysis of Resource Syncing}
+Nebula must periodically sync every user's resource inventory across multiple clouds. 
+Let $N$ be the number of integrated cloud providers (AWS, Azure, GCP).
+Let $R_i$ be the number of resources in the $i$-th cloud provider.
+Let $T$ be the polling interval.
+
+The total computational complexity of a full sync cycle is $O(\sum_{i=1}^{N} R_i)$. Since we use an asynchronous task queue, the perceived latency for the user is $O(1)$ relative to the sync operation itself.
+
+\newpage

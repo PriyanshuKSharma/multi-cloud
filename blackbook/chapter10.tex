@@ -1,0 +1,72 @@
+% Chapter 10: In-Depth Cloud Provider Feature Comparison
+\chapter{IN-DEPTH CLOUD PROVIDER COMPARISON}
+
+To build a truly multi-cloud platform, it is essential to understand the technical nuances and service mappings of the three major public cloud providers: Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP).
+
+\section{Compute Resource Mapping (Virtual Machines)}
+Cloud compute services are categorized based on their instance families (General Purpose, Compute Optimized, Memory Optimized). Nebula abstracts these into a unified sizing model.
+
+\subsection{Standard Instance Type Comparison}
+\begin{table}[H]
+\centering
+\caption{Cross-Cloud Compute Resource Mapping}
+\label{tab:compute_mapping}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Nebula Tier} & \textbf{vCPU/RAM} & \textbf{AWS Instance} & \textbf{Azure VM} & \textbf{GCP Machine} \\ \hline
+Micro & 1 vCPU, 1GB & t3.micro & Standard\_B1s & e2-micro \\ \hline
+Small & 2 vCPU, 2GB & t3.small & Standard\_B2s & e2-small \\ \hline
+Medium & 2 vCPU, 4GB & t3.medium & Standard\_B2ms & e2-medium \\ \hline
+Large & 4 vCPU, 8GB & t3.large & Standard\_B4ms & e2-standard-4 \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Hypervisor and Architecture Differences}
+\begin{itemize}
+    \item \textbf{AWS Nitro System}: AWS uses a customized Nitro hypervisor that offloads networking and storage tasks to dedicated hardware, giving the instances higher performance consistency.
+    \item \textbf{Azure Hyper-V}: Microsoft leverages its mature Hyper-V virtualization stack, integrated deeply with the Windows ecosystem for enterprise workloads.
+    \item \textbf{GCP KVM}: Google Cloud uses a hardened version of the open-source KVM hypervisor, optimized for containerized workloads and fast-booting instances.
+\end{itemize}
+
+\section{Object Storage Performance and SLAs}
+Every provider offers an object storage service (S3, Blob, GCS) with different durability and availability guarantees.
+
+\subsection{Object Storage Durability Table}
+\begin{table}[H]
+\centering
+\caption{Cross-Cloud Object Storage Durability and Availability}
+\label{tab:storage_sla}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Feature} & \textbf{AWS S3} & \textbf{Azure Blob} & \textbf{Google GCS} \\ \hline
+Durability & 99.999999999\% & 99.999999999\% & 99.999999999\% \\ \hline
+SLA (Availability) & 99.9\% & 99.99\% & 99.95\% \\ \hline
+Versioning Support & Yes & Yes & Yes \\ \hline
+Lifecycle Policies & Yes & Yes & Yes \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Network Topology and Addressing}
+While the terminology differs, the fundamental networking concepts are similar across providers. Nebula's "VPC" abstraction maps to:
+
+\subsection{Terminology Translation Matrix}
+\begin{itemize}
+    \item \textbf{VPC (AWS)}: Virtual Private Cloud.
+    \item \textbf{VNet (Azure)}: Virtual Network.
+    \item \textbf{VPC Network (GCP)}: A global resource in Google Cloud.
+\end{itemize}
+
+\subsection{Routing and Peering Mechanisms}
+1. \textbf{AWS VPC Peering}: Allows connecting two VPCs using private IP addresses. It is region-specific unless specifically configured for inter-region peering.
+2. \textbf{Azure VNet Peering}: Seamlessly connects two virtual networks. It uses the Azure backbone for high-speed, low-latency traffic.
+3. \textbf{GCP VPC Peering}: Google Cloud's networking is global by default, which simplifies cross-region deployments compared to AWS or Azure.
+
+\section{Multi-Cloud Strategic Vendor Benchmarking}
+Nebula provides users with a "Cloud Scorecard" based on the following criteria:
+\begin{itemize}
+    \item \textbf{Service Breadth}: AWS leads with 200+ native services.
+    \item \textbf{Enterprise Integration}: Azure is the dominant choice for Active Directory and MS-Office 365 environments.
+    \item \textbf{Big Data/AI Performance}: GCP is widely regarded as the leader in machine learning and scalable data analytics.
+\end{itemize}
+
+\newpage

@@ -1,4 +1,4 @@
-% Multi-Cloud Project Blackbook (80+ Page Version)
+% Multi-Cloud Project Blackbook (100+ Page Version)
 % Author: Priyanshu K Sharma
 % Project: Nebula: The Multi-Cloud Command Center
 
@@ -7,6 +7,7 @@
 % --- PACKAGES ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[english]{babel}
 \usepackage{geometry}
 \geometry{a4paper, left=1.25in, right=1.0in, top=1.0in, bottom=1.0in}
 \usepackage{setspace}
@@ -20,6 +21,10 @@
 \usepackage{color}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning, arrows, shapes.geometric}
 
 % --- CUSTOMIZATION ---
 \hypersetup{
@@ -85,11 +90,19 @@
 \include{chapter5}
 \include{chapter6}
 \include{chapter7}
+\include{chapter8}
+\include{chapter9}
+\include{chapter10}
 
+% 4. Appendices
 \appendix
 \include{appendix_a}
 \include{appendix_b}
+\include{appendix_c_d_e}
+\include{appendix_f_g}
+\include{appendix_h_i}
 
+% 5. Bibliography
 \include{bibliography}
 
 \end{document}

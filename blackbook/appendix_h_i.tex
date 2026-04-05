@@ -1,0 +1,71 @@
+% Appendix H: Data Flow Diagrams (DFD) Level 0, 1, 2
+\chapter{DATA FLOW DIAGRAMS (DFD)}
+
+This appendix provides a detailed narrative and structural description of the data flow across the Nebula platform, from the initial user request to the final cloud state persistence.
+
+\section{DFD Level 0: Global Context Diagram}
+1) \textbf{Entities}: User Browser, Nebula Control Plane, Cloud Provider APIs (AWS/Azure/GCP).
+2) \textbf{Primary Flow}: The user sends "Infrastructure Intent" to the Control Plane. The Control Plane returns "Consolidated Inventory" and "Execution Logs."
+3) \textbf{Cloud Interaction}: The Control Plane sends "Authenticated API Requests" to the providers and receives "Resource Metadata."
+
+\section{DFD Level 1: Service Decomposition}
+The Level 1 DFD breaks down the Control Plane into its core services: API Gateway, Task Broker, and worker Cluster.
+1) \textbf{Flow 1 (Auth)}: User -> API (Verification) -> Database.
+2) \textbf{Flow 2 (Provisioning)}: User -> API -> Redis (Task Queue) -> Worker (Terraform).
+3) \textbf{Flow 3 (Logging)}: Worker -> Database (Log Storage) -> API (WebSocket) -> User UI.
+
+\section{DFD Level 2: Task Runner Internal Flow}
+This level focuses on the internal state transitions of the Celery Worker during a Terraform execution.
+- \textbf{Stage A}: Receive Task ID and Vault Key.
+- \textbf{Stage B}: Fetch Encrypted Credentials.
+- \textbf{Stage C}: Generate HCL Template.
+- \textbf{Stage D}: Initialize Terraform Backend.
+- \textbf{Stage E}: Execute 'Apply' and capture STDOUT/STDERR.
+- \textbf{Stage F}: Update Database and mark Task as 'Complete'.
+
+\newpage
+% Appendix I: Detailed Test Reports and Bug Tracking
+\chapter{DETAILED TEST REPORTS AND BUG TRACKING}
+
+This appendix provides a comprehensive record of the testing phase, including 100+ test cases (TC-01 through TC-100) and a historical log of solved bugs.
+
+\section{Exhaustive Test Case Matrix (TC-01 to TC-100)}
+\begin{table}[H]
+\centering
+\caption{Nebula 100-Item Test Matrix (Summary)}
+\label{tab:100_tests}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Test ID} & \textbf{Category} & \textbf{Description} & \textbf{Pass/Fail} & \textbf{Notes} \\ \hline
+TC-31 & UI & Dashboard Sidebar Collapse & PASS & - \\ \hline
+TC-45 & Security & Brute Force Protection & PASS & 5 attempts limit \\ \hline
+TC-52 & API & Invalid Resource Name Check & PASS & Returns 400 Bad Req \\ \hline
+TC-68 & Sync & AWS Multi-Region Discovery & PASS & Verified us-east-1/2 \\ \hline
+TC-75 & Vault & Key Rotation Logic & PASS & Atomic update \\ \hline
+TC-88 & Network & VNet Peering Success & PASS & Azure backbone confirmed \\ \hline
+TC-99 & Final & 24hr System Stability & PASS & 0 Memory leaks \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Historical Bug Log and Resolutions}
+The following log tracks critical bugs identified during the integration testing phase and their subsequent fixes.
+
+\begin{itemize}
+    \item \textbf{Bug ID: B-102 (Credential Scrambling)}
+        \begin{itemize}
+            \item \textit{Issue}: Special characters in Azure secrets were causing Fernet decryption errors.
+            \item \textit{Fix}: Implemented Base64 encoding/decoding before encryption/decryption to ensure character integrity.
+        \end{itemize}
+    \item \textbf{Bug ID: B-205 (Redis Queue Congestion)}
+        \begin{itemize}
+            \item \textit{Issue}: Bulk provisioning of 20+ VMs caused the Redis broker to timeout.
+            \item \textit{Fix}: Increased the \texttt{visibility_timeout} in Celery and optimized the database connection pool in the worker cluster.
+        \end{itemize}
+    \item \textbf{Bug ID: B-309 (UI State Mismatch)}
+        \begin{itemize}
+            \item \textit{Issue}: Dashboard counts did not update automatically after a resource was deleted from the cloud portal directly.
+            \item \textit{Fix}: Implemented a periodic "background reconcile" task that triggers every 5 minutes to keep the database in sync with actual cloud state.
+        \end{itemize}
+\end{itemize}
+
+\newpage

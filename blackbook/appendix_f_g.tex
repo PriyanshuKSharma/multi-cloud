@@ -1,0 +1,66 @@
+% Appendix F: API Data Schemas
+\chapter{API DATA SCHEMAS}
+
+This appendix provides the formal Pydantic (Python) models and TypeScript (React) interfaces used for data validation across the platform.
+
+\section{Generic Resource Schema (Python)}
+\begin{lstlisting}[language=Python]
+class ResourceBase(BaseModel):
+    name: str = Field(..., max_length=100)
+    provider: ProviderEnum
+    resource_type: str
+    region: Optional[str] = "us-east-1"
+    variables: dict = {}
+
+class ResourceCreate(ResourceBase):
+    pass
+
+class ResourceSchema(ResourceBase):
+    id: int
+    status: str
+    provider_id: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+\end{lstlisting}
+
+\section{Security Schema (TypeScript)}
+\begin{lstlisting}[language=SQL]
+interface AuthToken {
+    access_token: string;
+    token_type: string;
+}
+
+interface UserProfile {
+    id: number;
+    username: string;
+    email: string;
+    is_active: boolean;
+}
+\end{lstlisting}
+
+\newpage
+% Appendix G: Project Glossary
+\chapter{PROJECT GLOSSARY}
+
+\section{Cloud Terms}
+\begin{itemize}
+    \item \textbf{AWS (Amazon Web Services)}: A subsidiary of Amazon providing on-demand cloud computing platforms and APIs.
+    \item \textbf{Azure}: A cloud computing service created by Microsoft for building, testing, deploying, and managing applications.
+    \item \textbf{GCP (Google Cloud Platform)}: A suite of cloud computing services that runs on the same infrastructure that Google uses internally.
+    \item \textbf{Multi-Cloud}: The use of multiple cloud computing and storage services in a single heterogeneous architecture.
+    \item \textbf{Vendor Lock-in}: A situation in which a customer is dependent on a vendor for products and services and cannot switch to another vendor without substantial costs.
+\end{itemize}
+
+\section{Technical Terms}
+\begin{itemize}
+    \item \textbf{FastAPI}: A modern, high-performance web framework for building APIs with Python 3.7+ based on standard Python type hints.
+    \item \textbf{Terraform}: An open-source infrastructure as code software tool created by HashiCorp.
+    \item \textbf{Celery}: An asynchronous task queue/job queue based on distributed message passing.
+    \item \textbf{Redis}: An in-memory data structure store used as a distributed, in-memory key-value database, cache, and message broker.
+    \item \textbf{JWT (JSON Web Token)}: An open standard that defines a compact and self-contained way for securely transmitting information between parties as a JSON object.
+    \item \textbf{AES-128}: Advanced Encryption Standard with a 128-bit key length, used for securing cloud credentials in the Nebula vault.
+\end{itemize}
+
+\newpage

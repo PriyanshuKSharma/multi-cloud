@@ -1,32 +1,138 @@
-% Chapter 4: System Design (Expanded for 80+ Page Project)
+% Chapter 4: System Design (Massive Expansion)
 \chapter{SYSTEM DESIGN}
 
+The system architecture of Nebula is designed to be highly modular, asynchronous, and secure. This chapter details the "Internal Workings" of the platform, focusing on the high-level ecosystem, database design, and the security model.
+
 \section{System Architecture Overview}
-The Nebula Multi-Cloud platform is designed using a multi-layered, asynchronous architecture. This design ensures that the platform remains responsive, even when performing long-running cloud provisioning tasks like spinning up a virtual machine or a large database.
+The platform follows a three-tier architecture: Presentation, Application, and Persistence layers. Each layer is isolated using Docker-Compose to ensure a reproducible deployment environment.
 
-\subsection{Cloud-Centric Presentation Layer}
-The user interface is a "State-Driven React 19 Application." It communicates with the backend via a secure, RESTful API. The key requirement for the presentation layer was modern usability—it allows users to "Cockpit" their entire multi-cloud estate from a single screen.
+\subsection{High-Level Ecosystem (TikZ Diagram)}
+The following diagram illustrates the interaction between the user browser, the internal containerized network, and the external cloud provider APIs.
 
-\subsection{Asynchronous Backend (FastAPI + Celery)}
-Traditional Web servers (like Flask or Django in sync mode) would time out during a Terraform "Apply" operation, which can take anywhere from 2 to 10 minutes. Nebula solves this by using **FastAPI** as the API controller and **Celery** as the background worker farm. When a user clicks "Provision," the API returns a "Task ID" immediately, and the Celery worker handles the actual infrastructure execution in the background.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=2.2cm, auto, scale=0.8, every node/.style={scale=0.8}]
+    \tikzstyle{box} = [rectangle, draw, fill=blue!5, text width=7em, text centered, rounded corners, minimum height=2.5em]
+    \tikzstyle{sub} = [rectangle, draw, dashed, inner sep=10pt, fill=gray!5]
+    \tikzstyle{line} = [draw, -latex']
 
-\section{Entity-Relationship (ER) Design and SQL Schemas}
-The database (PostgreSQL) is the "Brain" of the platform, storing cloud inventory, credentials, and user sessions.
+    % Client
+    \node [box] (browser) {User Browser};
+    \node [above=0.2cm of browser, font=\bfseries] {Client};
 
-\subsection{Core Tables Description}
-\begin{enumerate}
-    \item \textbf{User Table}: Stores hashed passwords and authentication metadata.
-    \item \textbf{Cloud Credential Table}: Stores the encrypted (AES-128) JSON blobs for AWS, Azure, and GCP keys.
-    \item \textbf{Project Table}: Groups resources into logical business units.
-    \item \textbf{Resource Table}: Stores the state, provider IDs, and configuration for every provisioned cloud object.
-\end{enumerate}
+    % Network Cluster
+    \node [box, below=1.85cm of browser] (backend) {FastAPI Backend};
+    \node [box, left=0.5cm of backend] (frontend) {React (Nginx)};
+    \node [box, right=0.5cm of backend] (lb) {Reverse Proxy};
+    
+    \node [box, below=1.5cm of backend] (redis) {Redis Broker};
+    \node [box, left=0.5cm of redis] (db) {PostgreSQL};
+    \node [box, right=0.5cm of redis] (worker) {Celery Worker};
 
-\section{Data Flow Diagrams (DFD)}
-System data flow was modeled at three levels of abstraction:
+    \draw [dashed] ([xshift=-0.5cm, yshift=0.5cm]frontend.north west) rectangle ([xshift=0.5cm, yshift=-0.5cm]worker.south east);
+    \node at ([yshift=0.8cm]backend.north) {\bfseries Docker Network Cluster};
+
+    % External Clouds
+    \node [box, below=2.5cm of redis] (azure) {Azure Cloud};
+    \node [box, left=0.5cm of azure] (aws) {AWS Cloud};
+    \node [box, right=0.5cm of azure] (gcp) {GCP Cloud};
+    
+    \node [below=0.2cm of azure, font=\bfseries] {Multi-Cloud APIs};
+
+    % Connections
+    \draw [line] (browser) -- node[left] {REST} (backend);
+    \draw [line] (browser) -- (frontend);
+    
+    \draw [line] (backend) -- (db);
+    \draw [line] (backend) -- (redis);
+    \draw [line] (worker) -- (redis);
+    \draw [line] (worker) -| (db);
+    
+    \draw [line] (worker) -- (aws);
+    \draw [line] (worker) -- (azure);
+    \draw [line] (worker) -- (gcp);
+
+\end{tikzpicture}
+\caption{Nebula: Unified Multi-Cloud Infrastructure Ecosystem}
+\label{fig:ecosystem}
+\end{figure}
+
+\section{Entity-Relationship (ER) Design}
+The database (PostgreSQL) is the "Global State Manager" of the platform. It tracks the inventory of three cloud providers in a single normalized schema.
+
+\subsection{ER Diagram (TikZ)}
+The following diagram defines the primary entities and their relationships.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=3cm, auto, scale=0.8, every node/.style={scale=0.8}]
+    \tikzstyle{entity} = [rectangle, draw, fill=green!10, text width=8em, text centered, minimum height=3em]
+    \tikzstyle{rel} = [draw, -latex, thick]
+
+    \node [entity] (user) {User};
+    \node [entity, right=1.5cm of user] (creds) {Cloud Credentials};
+    \node [entity, below=1.5cm of user] (proj) {Project};
+    \node [entity, below=1.5cm of creds] (res) {Resources};
+
+    \draw [rel] (user) -- node {1:N} (creds);
+    \draw [rel] (user) -- node {1:N} (proj);
+    \draw [rel] (proj) -- node {1:N} (res);
+    \draw [rel] (creds) -- node {1:1} (res);
+\end{tikzpicture}
+\caption{Nebula Database Entity Relationship Diagram}
+\label{fig:erd}
+\end{figure}
+
+\section{Network Architecture and Cloud Connectivity}
+Provisioning resources in the cloud requires more than just API keys; it requires a structured networking foundation. Nebula manages this through VPC Peering and Security Group automation.
+
+\subsection{Virtual Private Cloud (VPC) Design}
+For every project launched in Nebula, a dedicated VPC is created. This ensures:
 \begin{itemize}
-    \item \textbf{Level 0 (Context)}: User provides "Cloud API Credentials" and receives "Infrastructure Status" and "Log Remediation."
-    \item \textbf{Level 1 (Orchestration)}: Internal flow between the API, the Security Vault, the Redis task queue, and the Cloud Providers.
-    \item \textbf{Level 2 (Deep Dive)}: Detailed flow of the "Provisioning Engine" during a Terraform Init-Plan-Apply cycle.
+    \item \textbf{Isolation}: Resources from one project cannot talk to another project's resources by default.
+    \item \textbf{Secure Subnetting}: Public subnets for Load Balancers and private subnets for Database/Worker nodes.
+    \item \textbf{Internet Gateway (IGW)}: For resources requiring external connectivity.
 \end{itemize}
+
+\section{Security Architecture Details}
+Nebula implements a "Defense in Depth" strategy to protect user data and cloud access keys.
+
+\subsection{Identity Layer (JWT Flow)}
+User authentication is handled via JSON Web Tokens (JWT). When a user logs in:
+1. The backend verifies credentials against PostgreSQL.
+2. A signed JWT (RS256) is issued to the browser.
+3. Every subsequent API call must include this token in the header as: \texttt{Authorization: Bearer <TOKEN>}.
+
+\subsection{Credential Security (AES-128 Fernet)}
+Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Fernet implementation which provides symmetric encryption with:
+\begin{itemize}
+    \item \textbf{Confidentiality}: Messages cannot be read without the key.
+    \item \textbf{Integrity}: Messages cannot be altered without detection.
+    \item \textbf{Freshness}: Messages cannot be replayed without detection.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=4.5cm, auto]
+    \tikzstyle{actor} = [rectangle, draw, fill=orange!10, minimum width=3em, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex]
+
+    \node [actor] (user) {User Browser};
+    \node [actor, right of=user] (api) {FastAPI};
+    \node [actor, right of=api] (db) {PostgreSQL};
+
+    \draw [line] (user) -- node {POST credentials} (api);
+    \draw [line] (api) -- node {Encrypt(Key)} (db);
+    \draw [line, dashed] (db) -- node {Ciphertext} (api);
+\end{tikzpicture}
+\caption{Credential Encryption Workflow}
+\label{fig:encryption_workflow}
+\end{figure}
+
+\section{Component Interaction (TikZ Sequence)}
+The interaction between the API, Redis, and workers is the core performance driver. When a user requests a sync:
+1. API issues a \texttt{sync_all.delay()} call.
+2. Redis stores the job.
+3. The worker fetches the job, iterates through all registered cloud accounts, and updates PostgreSQL.
 
 \newpage
