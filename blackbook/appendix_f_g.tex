@@ -40,6 +40,49 @@ interface UserProfile {
 }
 \end{lstlisting}
 
+\section{Task and Analysis Schemas (Python)}
+\begin{lstlisting}[language=Python]
+class TaskSummary(BaseModel):
+    task_id: str
+    resource_id: int
+    status: str
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
+
+class AIAnalysisSchema(BaseModel):
+    task_id: str
+    category: str
+    summary: str
+    remedy: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    auto_fix: bool = False
+\end{lstlisting}
+
+\section{Frontend Resource Types (TypeScript)}
+\begin{lstlisting}[language=SQL]
+interface CloudResource {
+    id: number;
+    name: string;
+    provider: "AWS" | "Azure" | "GCP";
+    resource_type: string;
+    region: string;
+    status: "pending" | "running" | "active" | "failed";
+    provider_id?: string;
+}
+
+interface TaskStatusResponse {
+    task_id: string;
+    status: string;
+    execution_log?: string;
+    analysis?: {
+        category: string;
+        summary: string;
+        remedy: string;
+        confidence: number;
+    };
+}
+\end{lstlisting}
+
 \newpage
 % Appendix G: Project Glossary
 \chapter{PROJECT GLOSSARY}
@@ -62,5 +105,34 @@ interface UserProfile {
     \item \textbf{JWT (JSON Web Token)}: An open standard that defines a compact and self-contained way for securely transmitting information between parties as a JSON object.
     \item \textbf{AES-128}: Advanced Encryption Standard with a 128-bit key length, used for securing cloud credentials in the Nebula vault.
 \end{itemize}
+
+\section{Operational Terms}
+\begin{itemize}
+    \item \textbf{Inventory Drift}: The mismatch between the state stored in Nebula and the actual state in a cloud provider.
+    \item \textbf{Control Plane}: The logical layer responsible for coordination, automation, and management decisions.
+    \item \textbf{Worker}: The asynchronous execution process that performs long-running cloud actions.
+    \item \textbf{Canonical Model}: A normalized internal representation used to hide provider-specific payload differences.
+    \item \textbf{Runbook}: A documented set of actions used to respond to an operational issue.
+\end{itemize}
+
+\section{Acronyms Used in the Blackbook}
+\begin{table}[H]
+\centering
+\caption{Common Acronyms and Their Meanings}
+\label{tab:appendix_acronyms}
+\begin{tabular}{|l|p{8.0cm}|}
+\hline
+\textbf{Acronym} & \textbf{Expanded Form} \\ \hline
+API & Application Programming Interface \\ \hline
+IaC & Infrastructure as Code \\ \hline
+JWT & JSON Web Token \\ \hline
+VPC & Virtual Private Cloud \\ \hline
+VNet & Virtual Network \\ \hline
+DFD & Data Flow Diagram \\ \hline
+RTM & Requirement Traceability Matrix \\ \hline
+SLO & Service Level Objective \\ \hline
+DR & Disaster Recovery \\ \hline
+\end{tabular}
+\end{table}
 
 \newpage
