@@ -59,6 +59,33 @@ def execute_remediation_pipeline(task_id: int, raw_log: str) -> dict:
     }
 \end{lstlisting}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=1.7cm, auto, scale=0.85, every node/.style={scale=0.85}]
+    \tikzstyle{block} = [rectangle, draw, rounded corners, fill=blue!8, text width=7em, text centered, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [block] (raw) {Raw Terraform Log};
+    \node [block, right=of raw] (scrub) {Secret Scrubbing};
+    \node [block, right=of scrub] (context) {Context Injection};
+    \node [block, right=of context] (llm) {LLM Inference};
+    \node [block, below=1.6cm of context] (classify) {Category Mapping};
+    \node [block, left=of classify] (confidence) {Confidence Scoring};
+    \node [block, right=of classify] (remedy) {Structured Remedy};
+
+    \draw [line] (raw) -- (scrub);
+    \draw [line] (scrub) -- (context);
+    \draw [line] (context) -- (llm);
+    \draw [line] (llm) -- (remedy);
+    \draw [line] (context) -- (classify);
+    \draw [line] (llm) -- (classify);
+    \draw [line] (classify) -- (confidence);
+    \draw [line] (classify) -- (remedy);
+\end{tikzpicture}
+\caption{Adaptive Log Remediation Pipeline in the Nebula AI Copilot}
+\label{fig:alr_pipeline}
+\end{figure}
+
 \subsection{Confidence Scoring Model}
 The confidence score should not be a vague heuristic. Nebula models the final confidence value as a weighted combination of three signals:
 \[
@@ -144,6 +171,29 @@ retry\_scheduled & backoff timer elapsed & running \\ \hline
 failed & user submits corrected payload & queued \\ \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=2.0cm, auto, scale=0.9, every node/.style={scale=0.9}]
+    \tikzstyle{state} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=7em, minimum height=2.6em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [state] (queued) {Queued};
+    \node [state, right=of queued] (running) {Running};
+    \node [state, right=of running] (completed) {Completed};
+    \node [state, below=of running] (retry) {Retry Scheduled};
+    \node [state, below=of completed] (failed) {Failed};
+
+    \draw [line] (queued) -- (running);
+    \draw [line] (running) -- (completed);
+    \draw [line] (running) -- node[right] {retryable error} (retry);
+    \draw [line] (retry.west) -| node[left] {backoff elapsed} (running.south);
+    \draw [line] (running) -- node[right] {hard failure} (failed);
+    \draw [line] (failed.west) -| node[below] {corrected request} (queued.south);
+\end{tikzpicture}
+\caption{Lifecycle of a Nebula Background Task}
+\label{fig:task_lifecycle_diagram}
+\end{figure}
 
 The state model above ensures that the user interface can communicate meaningful progress. A resource is not simply "stuck"; it can be reported as queued, running, retry scheduled, completed, or failed. This matters for operational clarity because infrastructure tasks can span several minutes and users need trustworthy feedback during that period.
 
