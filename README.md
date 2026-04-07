@@ -1,188 +1,124 @@
 # 🌌 Nebula: The Multi-Cloud Command Center
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="AWS logo" height="44" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg" alt="Microsoft Azure logo" height="44" />
-  <img src="https://cdn.simpleicons.org/googlecloud/4285F4" alt="Google Cloud logo" height="44" />
-  <img src="https://cdn.simpleicons.org/docker/2496ED" alt="Docker logo" height="44" />
-  <img src="https://cdn.simpleicons.org/terraform/844FBA" alt="Terraform logo" height="44" />
-  <img src="https://cdn.simpleicons.org/fastapi/009688" alt="FastAPI logo" height="44" />
-  <img src="https://cdn.simpleicons.org/react/61DAFB" alt="React logo" height="44" />
-  <img src="https://cdn.simpleicons.org/postgresql/4169E1" alt="PostgreSQL logo" height="44" />
-  <img src="https://cdn.simpleicons.org/redis/DC382D" alt="Redis logo" height="44" />
-  <img src="https://cdn.simpleicons.org/celery/37814A" alt="Celery logo" height="44" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=28&duration=2000&pause=1000&color=22D3EE&center=true&vCenter=true&width=1000&lines=%E2%98%81%EF%B8%8F+Multi-Cloud+Orchestration+%E2%9A%99%EF%B8%8F;%F0%9F%9F%A7+Amazon+Web+Services+(AWS);%F0%9F%9F%A6+Microsoft+Azure;%F0%9F%9F%A9+Google+Cloud+Platform+(GCP);%F0%9F%90%8B+Docker+%26+Containerization;%F0%9F%8F%97%EF%B8%8F+HashiCorp+Terraform;%E2%9A%A1+FastAPI+%26+Async+Python;%E2%9A%9B%EF%B8%8F+React+19+%26+Vite;%F0%9F%90%98+PostgreSQL+%26+Redis;%E2%9A%99%EF%B8%8F+Celery+Background+Workers" alt="Typing animation" />
+</p>
+
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=aws,azure,gcp,docker,terraform,fastapi,python,react,ts,postgres,redis,linux&theme=dark" alt="Nebula Tech Stack" />
+  <img src="https://cdn.simpleicons.org/celery/37814A" alt="Celery" height="50" style="vertical-align: top; margin-left: -5px;" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+ badge" />
-  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI backend badge" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=0A0A0A" alt="React 19 badge" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5 badge" />
-  <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 15 badge" />
-  <img src="https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis 7 badge" />
-  <img src="https://img.shields.io/badge/Terraform-1.5+-844FBA?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform 1.5+ badge" />
-  <img src="https://img.shields.io/badge/License-Proprietary-555555?style=for-the-badge" alt="Proprietary license badge" />
-  
+  <img src="https://img.shields.io/badge/Status-Mainframe_Online-00F0FF?style=for-the-badge&logo=opsgenie&logoColor=white" alt="Status" />
+  <img src="https://img.shields.io/badge/Security-AES_256_Encrypted-FF0055?style=for-the-badge&logo=dependabot&logoColor=white" alt="Security" />
+  <img src="https://img.shields.io/badge/Engine-Terraform_1.5+-844FBA?style=for-the-badge&logo=terraform&logoColor=white" alt="Engine" />
 </p>
 
-Nebula is a high-performance, API-first orchestration engine designed to unify the fragmented multi-cloud landscape. It abstracts **AWS, Azure, and GCP** into a single control plane, enabling developers to provision, monitor, and troubleshoot infrastructure without leaving their cockpit.
+<p align="center">
+  <img src="docs/images/nebula_3d_banner.svg" alt="Nebula 3D Isometric Banner" width="100%" />
+</p>
+---
+
+### 📡 **Terminal Connection Established...**
+
+> **Nebula** is a high-performance orchestration engine designed to unify the fragmented multi-cloud landscape. It abstracts **AWS, Azure, and GCP** into a single control plane, enabling developers to provision, monitor, and troubleshoot infrastructure without leaving their cockpit.
 
 ---
 
-## 🚀 Innovative Features for Modern Devs
+## 🚀 Innovative Features
 
-### 🤖 Nebula AI Copilot (Built-in)
+| 🤖 AI Copilot                                                               | 🛡️ Secure Vault                                                            | ⚡ Async Engine                                                          |
+| :-------------------------------------------------------------------------- | :------------------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| Real-time troubleshooting using integrated LLMs for deterministic findings. | Fernet-encrypted credentials. Keys never touch the database in plain text. | Background execution via Celery + Redis with live-polling state updates. |
 
-Troubleshoot deployment failures in real-time. Our integrated AI analyzes Terraform logs and provider errors to provide deterministic findings and one-click remediation steps.
+<details>
+<summary><b>View Advanced Technical Specs</b></summary>
 
 - **Auto-Root Cause Analysis**: Scans `stderr` for IAM, Quota, and Credential issues.
 - **Provider-Agnostic Intelligence**: Supports OpenAI, Gemini, Claude, and Custom LLM wrappers.
-
-### 🛡️ Hardened Security Architecture
-
-- **Fernet-Encrypted Vault**: Cloud credentials never touch the DB in plain text. We use AES-128 in CBC mode with HMAC for military-grade protection.
 - **OAuth 2.0 & JWT**: Secure session management with role-based access control.
+- **Encrypted Storage**: AES-128 in CBC mode with HMAC for military-grade protection.
 
-### ⚡ Async Provisioning Engine
-
-Leveraging **Celery + Redis**, Nebula executes resource-intensive Terraform workflows in the background, providing live streaming status updates to the UI via a polling-optimized state machine.
+</details>
 
 ---
 
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph "The Cockpit (Frontend)"
+graph TD
+    subgraph "🌌 NEBULA COCKPIT"
         UI["React 19 + Vite"]
-        Store["Context-Driven State"]
+        Store["State Machine"]
     end
 
-    subgraph "The Engine (Backend)"
-        API["FastAPI App (ASGI)"]
-        Guard["JWT / Fernet Security"]
-        Copilot["Nebula AI Assistant"]
+    subgraph "⚙️ ORCHESTRATION ENGINE"
+        API["FastAPI (ASGI)"]
+        Guard["Fernet Guard"]
+        AI["AI Copilot"]
     end
 
-    subgraph "The Factory (Workers)"
-        Redis["Redis (Broker)"]
-        Queue["Celery Worker Farm"]
-        Logic["Provisioning Logic"]
-    end
-
-    subgraph "Cloud Providers"
-        AWS["AWS Provider"]
-        AZ["Azure Provider"]
-        GCP["GCP Provider"]
-    end
-
-    subgraph "Infrastructure"
+    subgraph "🏭 WORKER FARM"
+        Redis(("Redis Broker"))
+        Worker["Celery Node"]
         TF["Terraform Binary"]
-        State["State Manager"]
     end
 
     UI <--> API
     API <--> Guard
-    API <--> Copilot
+    API <--> AI
     API --> Redis
-    Redis --> Queue
-    Queue --> Logic
-    Logic --> TF
-    TF --> State
-    State <--> AWS & AZ & GCP
+    Redis --> Worker
+    Worker --> TF
+
+    TF --- AWS["AWS Cloud"]
+    TF --- AZ["Azure Cloud"]
+    TF --- GCP["GCP Cloud"]
+
+    style UI fill:#1a1a2e,stroke:#00f0ff,stroke-width:2px,color:#fff
+    style API fill:#1a1a2e,stroke:#7000ff,stroke-width:2px,color:#fff
+    style Worker fill:#1a1a2e,stroke:#ff0055,stroke-width:2px,color:#fff
+    style Redis fill:#00f0ff,stroke:#fff,stroke-width:2px,color:#000
 ```
-
-```mermaid
-flowchart LR
-    UI[React + Vite Frontend] --> API[FastAPI API]
-    API --> PG[(PostgreSQL)]
-    API --> REDIS[(Redis)]
-    API --> CW[Celery Worker]
-    CW --> AWS[AWS APIs]
-    CW --> AZ[Azure APIs]
-    CW --> GCP[GCP APIs]
-    CW --> TF[Terraform Modules]
-```
-
-Core backend routers:
-
-- `auth`, `credentials`, `dashboard`, `inventory`, `billing`
-- `resources`, `projects`, `deployments`, `blueprints`
-
 
 ---
 
-## 🛠️ Developer Interface (API Core)
-
-Nebula is API-first. Every UI action is backed by a RESTful endpoint.
-
-| Capability    | Method | Endpoint                  | Use Case                                 |
-| :------------ | :----- | :------------------------ | :--------------------------------------- |
-| **Cognition** | `POST` | `/assistant/query`        | Ask AI to troubleshoot a resource        |
-| **Sync**      | `POST` | `/dashboard/sync/trigger` | Force cloud inventory refresh            |
-| **Provision** | `POST` | `/resources/`             | Initiate Terraform workflow              |
-| **Inventory** | `GET`  | `/inventory/vms`          | List cross-cloud virtual machines        |
-| **Health**    | `GET`  | `/health`                 | Check service & background worker status |
-
----
-
-## 🏎️ Rapid Deployment
-
-### Initial Launch
+## 🏁 Execution Protocol (Launch)
 
 ```bash
+# Initialize the Mainframe
 git clone https://github.com/PriyanshuKSharma/multi-cloud.git
 cp .env.example .env
+
+# Deploy via Docker Swarm/Compose
 docker compose up -d --build
-```
 
-### Smoke Test
-
-Validate your installation instantly:
-
-```bash
+# Run Deep Health Diagnostics
 ./scripts/test_apis.sh
 ```
 
 ---
 
-## 📂 Engineering Layout
-
-## Repository Layout
+## 🗂️ Engineering Layout
 
 ```text
 multi-cloud/
-|-- backend/
-|   |-- app/
-|   |   |-- api/endpoints/
-|   |   |-- core/
-|   |   |-- db/
-|   |   |-- models/
-|   |   |-- schemas/
-|   |   |-- services/
-|   |   `-- tasks/
-|   |-- main.py
-|   `-- requirements.txt
-|-- frontend/
-|   |-- src/
-|   |   |-- components/
-|   |   |-- context/
-|   |   |-- pages/
-|   |   `-- api/
-|   `-- package.json
-|-- terraform/modules/
-|-- docs/
-|-- scripts/
-|-- docker-compose.yml
-`-- docker-compose.prod.yml
+├── 🧠 backend/         # FastAPI, Celery, AI Logic
+├── 🎨 frontend/        # React 19, Tailwind, Context
+├── 🏗️ terraform/       # Provider Modules
+├── 📜 docs/            # Technical Specifications
+└── 🛠️ scripts/          # Automation & Diagnostics
 ```
+
 ---
 
-## 🗺️ Roadmap & Beyond
+## 🗺️ Future Protocol (Roadmap)
 
-- [ ] Support for **Kubernetes Cluster Provisioning**.
-- [ ] **AI Forecasting**: Predictive cost analysis based on usage patterns.
-- [ ] **Drift Detection**: Automatic remediation of manual cloud changes.
+- [ ] **K8s Nexus**: Automated Kubernetes Cluster Provisioning.
+- [ ] **Cost Forecasting**: Predictive analysis based on usage patterns.
+- [ ] **Dynamic Drift Detection**: Automatic remediation of manual cloud changes.
 
 ---
 
@@ -190,3 +126,7 @@ multi-cloud/
 
 Distributed under a **Proprietary All-Rights-Reserved License**. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 AWS, Azure, GCP, and other third-party marks are the property of their respective owners.
+
+<p align="right">
+  <i>Maintained by the Nebula Core Team</i>
+</p>
