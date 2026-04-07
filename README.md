@@ -4,6 +4,8 @@
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=28&duration=2000&pause=1000&color=22D3EE&center=true&vCenter=true&width=1000&lines=%E2%98%81%EF%B8%8F+Multi-Cloud+Orchestration+%E2%9A%99%EF%B8%8F;%F0%9F%9F%A7+Amazon+Web+Services+(AWS);%F0%9F%9F%A6+Microsoft+Azure;%F0%9F%9F%A9+Google+Cloud+Platform+(GCP);%F0%9F%90%8B+Docker+%26+Containerization;%F0%9F%8F%97%EF%B8%8F+HashiCorp+Terraform;%E2%9A%A1+FastAPI+%26+Async+Python;%E2%9A%9B%EF%B8%8F+React+19+%26+Vite;%F0%9F%90%98+PostgreSQL+%26+Redis;%E2%9A%99%EF%B8%8F+Celery+Background+Workers" alt="Typing animation" />
 </p>
 
+
+
 <p align="center">
   <img src="https://skillicons.dev/icons?i=aws,azure,gcp,docker,terraform,fastapi,python,react,ts,postgres,redis,linux&theme=dark" alt="Nebula Tech Stack" />
   <img src="https://cdn.simpleicons.org/celery/37814A" alt="Celery" height="50" style="vertical-align: top; margin-left: -5px;" />
@@ -20,7 +22,7 @@
 ## 📖 Project Manifesto
 
 ### **The Multi-Cloud Challenge**
-As enterprises scale, infrastructure becomes fragmented across AWS, Azure, and GCP. Managing different consoles, creditial types, and billing models leads to **operational drift**, **security gaps**, and **cost transparency issues**.
+As enterprises scale, infrastructure becomes fragmented across AWS, Azure, and GCP. Managing different consoles, credential types, and billing models leads to **operational drift**, **security gaps**, and **cost transparency issues**.
 
 ### **The Nebula Solution**
 Nebula is a research-driven, high-performance orchestration engine designed to democratize cloud operations. It provides a **Unified Control Plane** that abstracts complex provider APIs into a deterministic, single-pane-of-glass interface. 
@@ -29,8 +31,27 @@ Nebula is a research-driven, high-performance orchestration engine designed to d
   <img src="docs/images/nebula_3d_banner.svg" alt="Nebula 3D Isometric Banner" width="100%" />
 </p>
 
-
 > *Nebula isn't just a dashboard—it's a mission-critical cockpit for the modern cloud architect.*
+
+![Landing Page Screenshot](image/README/1775589756746.png)
+> **Figure 1: Nebula Command Center Interface**
+
+---
+
+## 👥 Engineering Team
+
+Nebula is built and maintained by a dedicated engineering group from **Ajeenkya D Y Patil University**.
+
+<div align="center">
+
+| **Priyanshu Kumar Sharma** | **Vaishnavi Jadhav** | **Vaibhav Gulge** |
+| :---: | :---: | :---: |
+| ![Lead](https://img.shields.io/badge/Role-Product_Lead-22D3EE?style=flat-square) | ![Frontend](https://img.shields.io/badge/Role-Frontend_Engineer-6D28D9?style=flat-square) | ![Frontend](https://img.shields.io/badge/Role-UX_Engineer-6D28D9?style=flat-square) |
+| **Product, Platform & Infra Lead** | **Frontend & UX Engineer** | **Frontend & UX Engineer** |
+| Platform architecture, cloud systems, & provisioning automation. | Interface systems, workflow design, & operator experience. | Interface systems, workflow design, & operator experience. |
+| [GitHub](https://github.com/PriyanshuKSharma) • [LinkedIn](https://www.linkedin.com/in/priyanshu-kumar-sharma-333800251/) • [Portfolio](https://priyanshuksharma.github.io/portfolio_priyanshuksharma/) | [GitHub](https://github.com/vaish105) • [LinkedIn](https://www.linkedin.com/in/vaishnavi-jadhav-92bb6635b) | [GitHub](https://github.com/VaibhavGulge) • [LinkedIn](https://www.linkedin.com/in/vaibhav-gulge) |
+
+</div>
 
 ---
 
@@ -63,32 +84,28 @@ Leveraging a **Distributed Task Farm (Celery + Redis)**, Nebula manages resource
 
 </div>
 
-### **Deep-Dive: The Nebula Tech Arsenal (Technical Details)**
+### **Deep-Dive: Technical Reference**
 
 #### **🎨 Frontend: The Cockpit**
-- **⚛️ React 19 & Vite**: nebula leverages **React 19's concurrent rendering** capabilities to maintain a responsive UI during heavy data synchronization. **Vite** is utilized for its Lightning-fast Hot Module Replacement (HMR) and optimized build pipeline, ensuring a frictionless developer experience.
-- **💅 Tailwind CSS & Framer Motion**: Provides a highly-customizable design system with **glassmorphism** aesthetics. We use Framer Motion for micro-animations that signal state changes from the multi-cloud backend.
+- **React 19 & Vite**: nebula leverages **React 19's concurrent rendering** capabilities to maintain a responsive UI during heavy data synchronization. **Vite** is utilized for its Lightning-fast Hot Module Replacement (HMR) and optimized build pipeline.
+- **Tailwind CSS & Framer Motion**: Provides a highly-customizable design system with **glassmorphism** aesthetics and micro-animations for live backend state changes.
 
 #### **⚙️ Backend: The Orchestration Engine**
-- **⚡ FastAPI (Python 3.11+)**: Chosen for its native **async/await** support and Pydantic-driven data validation. It acts as the ASGI entry point, providing high-concurrency handling for cloud resource management and AI interactions.
-- **🧠 AI Copilot Core**: A specialized module that interfaces with LLMs (OpenAI/Gemini) to perform **log-semantic analysis**. It translates cryptic Terraform or Cloud Provider errors into human-understandable remediation paths.
+- **FastAPI (Python 3.11+)**: Chosen for its native **async/await** support and Pydantic-driven data validation. It acts as the ASGI entry point, providing high-concurrency handling for cloud resource management.
+- **🧠 AI Copilot Core**: A specialized module that interfaces with LLMs to perform **log-semantic analysis**, translating cryptic Terraform or Cloud Provider errors into human-understandable remediation paths.
 
 #### **🏭 Async & Background Logic**
-- **⚙️ Celery & Redis**: Nebula implements a **distributed task worker architecture**. Redis serves as a high-speed message broker, while Celery handles periodic cloud inventory synchronization (via Celery Beat) and idempotent infrastructure provisioning tasks.
-- **🚄 Real-time State Polling**: Instead of static loads, the frontend implements an **optimized polling state machine** that communicates with the Backend to reflect the live status of background provisioning.
+- **Celery & Redis**: Nebula implements a **distributed task worker architecture**. Redis serves as a high-speed message broker, while Celery handles periodic cloud inventory synchronization and idempotent infrastructure provisioning tasks.
 
 #### **🐘 Persistence & Security**
-- **📊 PostgreSQL 15**: The primary relational engine. It stores complex cloud resource topologies, deployment history, and user metadata with optimized indexing for cross-cloud inventory searches.
-- **🛡️ Fernet AES-128 Guard**: A security-first implementation where cloud provider credentials (API Keys, Secrets) are **encrypted at the application layer** before storage. We utilize salted CBC mode with HMAC for integrity verification.
-
-#### **🏗️ Infrastructure & DevOps**
-- **🏗️ Terraform (v1.5+)**: The core IaC engine. Nebula dynamically generates Terraform configuration files, manages **tfstate** files within a secured backend, and streams execution logs directly to the UI.
-- **🐋 Docker & Compose**: Ensures environment parity across "Dev, Stage, and Prod". The entire stack is containerized, facilitating rapid deployment and consistent behavior across different host environments.
+- **PostgreSQL 15**: The primary relational engine, storing complex cloud resource topologies and deployment history with optimized indexing.
+- **🛡️ Fernet AES-128 Guard**: Cloud provider credentials are **encrypted at the application layer** using salted CBC mode with HMAC for integrity verification.
 
 ---
 
 ## 🏗️ Technical Architecture
 
+### **Data Flow Model**
 ```mermaid
 graph TD
     subgraph "🌌 NEBULA COCKPIT (Frontend)"
@@ -125,7 +142,7 @@ graph TD
     style Redis fill:#00f0ff,stroke:#fff,stroke-width:2px,color:#000
 ```
 
-
+### **Service Interaction**
 ```mermaid
 flowchart LR
     UI[React + Vite Frontend] --> API[FastAPI API]
@@ -137,11 +154,6 @@ flowchart LR
     CW --> GCP[GCP APIs]
     CW --> TF[Terraform Modules]
 ```
-
-Core backend routers:
-
-- `auth`, `credentials`, `dashboard`, `inventory`, `billing`
-- `resources`, `projects`, `deployments`, `blueprints`
 
 ---
 
