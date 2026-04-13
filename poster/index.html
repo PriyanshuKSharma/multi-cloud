@@ -5,8 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nebula Poster</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 </head>
 <body>
+    <div class="export-toolbar">
+        <div class="export-copy">
+            <strong>Poster Tools</strong>
+            <span>Download PNG, export PDF, or open print preview.</span>
+        </div>
+        <div class="export-actions">
+            <button type="button" class="tool-button" id="downloadPng">Download PNG</button>
+            <button type="button" class="tool-button" id="downloadPdf">Download PDF</button>
+            <button type="button" class="tool-button tool-button-secondary" id="printPoster">Print / Save PDF</button>
+        </div>
+    </div>
+
     <article class="poster-page" id="poster">
         <div class="poster-noise" aria-hidden="true"></div>
         <div class="poster-orb poster-orb-a" aria-hidden="true"></div>
