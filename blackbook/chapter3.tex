@@ -4,7 +4,7 @@
 The success of any multi-cloud project depends on a rigorous analysis of the "Problem Space" before entering the "Solution Space." This chapter details the technical requirements, constraints, and the strategic planning involved in the Nebula platform.
 
 \section{Software Requirements Specification (SRS)}
-According to the IEEE-830 standard, we organized our requirements based on functional and non-functional goals.
+According to the IEEE-830 standard \cite{ieee830}, we organized our requirements based on functional and non-functional goals.
 
 \subsection{Actor Definitions}
 1. \textbf{Cloud Administrator}: Responsible for adding cloud credentials and managing organizational access.
@@ -18,7 +18,7 @@ Detailed use cases define how actors interact with the system to achieve specifi
     \item \textbf{Use Case 1: Secure Credential Registration}
         \begin{enumerate}
             \item User selects "Register Provider" and provides an Access Key and Secret Key.
-            \item The system validates the format using Pydantic schemas.
+            \item The system validates the format using Pydantic schemas \cite{pydantic_docs}.
             \item The backend encrypts keys using AES-128 and stores them in PostgreSQL.
             \item The user is redirected to the "Settings" dashboard.
         \end{enumerate}

@@ -200,7 +200,7 @@ Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Ferne
 \section{Component Interaction (TikZ Sequence)}
 The interaction between the API, Redis, and workers is the core performance driver. When a user requests a sync:
 1. API issues a \texttt{sync\_all.delay()} call.
-2. Redis stores the job.
-3. The worker fetches the job, iterates through all registered cloud accounts, and updates PostgreSQL.
+2. Redis \cite{redis_docs_2026} stores the job.
+3. The worker fetches the job using Celery \cite{celery_docs_2024}, iterates through all registered cloud accounts, and updates PostgreSQL.
 
 \newpage
