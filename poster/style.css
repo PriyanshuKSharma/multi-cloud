@@ -96,6 +96,19 @@ body {
     color: #92400e;
 }
 
+.export-sandbox {
+    position: fixed;
+    left: -200vw;
+    top: 0;
+    pointer-events: none;
+    z-index: -1;
+    background: #f3f7fb;
+}
+
+.poster-export-clone {
+    margin: 0;
+}
+
 .tool-button {
     border: none;
     border-radius: 999px;
