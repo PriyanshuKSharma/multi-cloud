@@ -51,6 +51,7 @@ body {
     border: 1px solid rgba(16, 33, 61, 0.1);
     box-shadow: 0 14px 40px rgba(18, 53, 100, 0.09);
     backdrop-filter: blur(18px);
+    flex-wrap: wrap;
 }
 
 .export-copy {
@@ -74,6 +75,25 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.export-status {
+    width: 100%;
+    min-height: 1.3rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+}
+
+.export-status[data-type="success"] {
+    color: #166534;
+}
+
+.export-status[data-type="error"] {
+    color: #b91c1c;
+}
+
+.export-status[data-type="warning"] {
+    color: #92400e;
 }
 
 .tool-button {
@@ -205,6 +225,32 @@ body {
     font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 0.04em;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.logo-box:hover,
+.logo-box:focus-visible {
+    border-color: var(--sky);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.logo-box.has-logo {
+    background: #ffffff;
+    border-style: solid;
+}
+
+.logo-box span {
+    pointer-events: none;
+}
+
+.logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 .eyebrow {
@@ -536,6 +582,15 @@ body {
     font-size: 0.9rem;
     line-height: 1.45;
     color: var(--muted);
+}
+
+.ui-shot-fallback {
+    min-height: 180px;
+    display: flex;
+    align-items: end;
+    background:
+        linear-gradient(135deg, rgba(18, 53, 100, 0.08), rgba(43, 108, 176, 0.06)),
+        repeating-linear-gradient(135deg, rgba(18, 53, 100, 0.04) 0, rgba(18, 53, 100, 0.04) 18px, transparent 18px, transparent 36px);
 }
 
 .metric-grid {

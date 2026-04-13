@@ -12,14 +12,18 @@
     <div class="export-toolbar">
         <div class="export-copy">
             <strong>Poster Tools</strong>
-            <span>Download PNG, export PDF, or open print preview.</span>
+            <span>Upload the college logo, download PNG/PDF, or open print preview.</span>
         </div>
         <div class="export-actions">
+            <button type="button" class="tool-button tool-button-secondary" id="uploadLogoButton">Upload Logo</button>
+            <button type="button" class="tool-button tool-button-secondary" id="clearLogoButton">Reset Logo</button>
             <button type="button" class="tool-button" id="downloadPng">Download PNG</button>
             <button type="button" class="tool-button" id="downloadPdf">Download PDF</button>
             <button type="button" class="tool-button tool-button-secondary" id="printPoster">Print / Save PDF</button>
         </div>
+        <p class="export-status" id="exportStatus" aria-live="polite"></p>
     </div>
+    <input type="file" id="logoUpload" accept="image/*" hidden>
 
     <article class="poster-page" id="poster">
         <div class="poster-noise" aria-hidden="true"></div>
@@ -28,8 +32,9 @@
 
         <header class="poster-header">
             <div class="title-block">
-                <div class="logo-box" aria-label="College logo placeholder">
-                    <span>College Logo</span>
+                <div class="logo-box" id="logoBox" aria-label="College logo placeholder" role="button" tabindex="0" title="Click to upload college logo">
+                    <img id="collegeLogoImage" class="logo-image" alt="College logo preview" hidden>
+                    <span id="logoPlaceholder">Click to upload college logo</span>
                 </div>
                 <div class="title-copy">
                     <p class="eyebrow">Final Year B.Tech Project Poster</p>
@@ -224,7 +229,7 @@
                     </article>
                 </div>
                 <figure class="ui-shot">
-                    <img src="../image/README/1775589756746.png" alt="Nebula command center screenshot">
+                    <img src="../image/README/1775589756746.png" alt="Nebula command center screenshot" onerror="this.closest('figure').classList.add('ui-shot-fallback'); this.remove();">
                     <figcaption>Nebula command center interface used for operator-facing orchestration workflows.</figcaption>
                 </figure>
             </section>
@@ -414,6 +419,14 @@
         </footer>
     </article>
     <script>
+        const exportStatus = document.getElementById('exportStatus');
+
+        const setStatus = (message, type = 'info') => {
+            if (!exportStatus) return;
+            exportStatus.textContent = message;
+            exportStatus.dataset.type = type;
+        };
+
         const setBusyState = (button, busy, busyLabel) => {
             if (!button) return;
             if (!button.dataset.defaultLabel) {
@@ -421,6 +434,64 @@
             }
             button.disabled = busy;
             button.textContent = busy ? busyLabel : button.dataset.defaultLabel;
+        };
+
+        const downloadBlob = (blob, filename) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+
+        const canvasToBlob = (canvas) => new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    resolve(blob);
+                    return;
+                }
+                reject(new Error('Canvas conversion failed.'));
+            }, 'image/png');
+        });
+
+        const logoInput = document.getElementById('logoUpload');
+        const logoBox = document.getElementById('logoBox');
+        const logoImage = document.getElementById('collegeLogoImage');
+        const logoPlaceholder = document.getElementById('logoPlaceholder');
+        const uploadLogoButton = document.getElementById('uploadLogoButton');
+        const clearLogoButton = document.getElementById('clearLogoButton');
+
+        const applyLogo = (src) => {
+            if (!logoImage || !logoPlaceholder || !logoBox) return;
+
+            if (src) {
+                logoImage.src = src;
+                logoImage.hidden = false;
+                logoPlaceholder.hidden = true;
+                logoBox.classList.add('has-logo');
+                try {
+                    localStorage.setItem('nebulaPosterLogo', src);
+                } catch (error) {
+                    console.warn('Unable to save logo locally.', error);
+                }
+                return;
+            }
+
+            logoImage.hidden = true;
+            logoImage.removeAttribute('src');
+            logoPlaceholder.hidden = false;
+            logoBox.classList.remove('has-logo');
+            if (logoInput) {
+                logoInput.value = '';
+            }
+            try {
+                localStorage.removeItem('nebulaPosterLogo');
+            } catch (error) {
+                console.warn('Unable to clear saved logo.', error);
+            }
         };
 
         const arrangePosterColumns = () => {
@@ -471,30 +542,65 @@
             arrangePosterColumns();
         }
 
+        try {
+            const savedLogo = localStorage.getItem('nebulaPosterLogo');
+            if (savedLogo) {
+                applyLogo(savedLogo);
+            }
+        } catch (error) {
+            console.warn('Unable to read saved logo.', error);
+        }
+
         window.addEventListener('beforeprint', arrangePosterColumns);
+
+        uploadLogoButton?.addEventListener('click', () => logoInput?.click());
+        logoBox?.addEventListener('click', () => logoInput?.click());
+        logoBox?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                logoInput?.click();
+            }
+        });
+        clearLogoButton?.addEventListener('click', () => applyLogo(''));
+        logoInput?.addEventListener('change', () => {
+            const file = logoInput.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => applyLogo(typeof reader.result === 'string' ? reader.result : '');
+            reader.readAsDataURL(file);
+        });
 
         const exportPosterAsPng = async () => {
             arrangePosterColumns();
             const poster = document.getElementById('poster');
             const button = document.getElementById('downloadPng');
-            if (!poster || !window.html2canvas) return;
+            if (!poster) return;
+
+            if (!window.html2canvas) {
+                setStatus('PNG export library did not load. Refresh once with internet access and try again.', 'error');
+                return;
+            }
 
             try {
+                setStatus('Preparing PNG export...', 'info');
                 setBusyState(button, true, 'Rendering PNG...');
                 const canvas = await window.html2canvas(poster, {
                     backgroundColor: '#f3f7fb',
-                    scale: 2,
+                    scale: 1.75,
                     useCORS: true,
                     windowWidth: poster.scrollWidth,
                     windowHeight: poster.scrollHeight,
                     scrollX: 0,
                     scrollY: 0,
+                    imageTimeout: 15000,
                 });
-
-                const link = document.createElement('a');
-                link.download = 'nebula-poster-a0.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const blob = await canvasToBlob(canvas);
+                downloadBlob(blob, 'nebula-poster-a0.png');
+                setStatus('PNG downloaded successfully.', 'success');
+            } catch (error) {
+                console.error(error);
+                setStatus('PNG export failed. Try again after the page fully loads.', 'error');
             } finally {
                 setBusyState(button, false);
             }
@@ -504,27 +610,39 @@
             arrangePosterColumns();
             const poster = document.getElementById('poster');
             const button = document.getElementById('downloadPdf');
-            if (!poster || !window.html2pdf) return;
+            if (!poster) return;
+
+            if (!window.html2pdf) {
+                setStatus('PDF library did not load. Opening print dialog instead.', 'warning');
+                window.print();
+                return;
+            }
 
             try {
+                setStatus('Preparing PDF export...', 'info');
                 setBusyState(button, true, 'Rendering PDF...');
                 await window.html2pdf().set({
                     margin: 0,
                     filename: 'nebula-poster-a0.pdf',
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: {
-                        scale: 2,
+                        scale: 1.4,
                         useCORS: true,
                         backgroundColor: '#f3f7fb',
                         windowWidth: poster.scrollWidth,
                         windowHeight: poster.scrollHeight,
+                        imageTimeout: 15000,
                     },
                     jsPDF: {
                         unit: 'mm',
-                        format: [841, 1189],
+                        format: 'a0',
                         orientation: 'portrait'
                     }
                 }).from(poster).save();
+                setStatus('PDF downloaded successfully.', 'success');
+            } catch (error) {
+                console.error(error);
+                setStatus('PDF export failed. Try Print / Save PDF as a fallback.', 'error');
             } finally {
                 setBusyState(button, false);
             }
@@ -534,6 +652,7 @@
         document.getElementById('downloadPdf')?.addEventListener('click', exportPosterAsPdf);
         document.getElementById('printPoster')?.addEventListener('click', () => {
             arrangePosterColumns();
+            setStatus('Opening print dialog...', 'info');
             window.print();
         });
     </script>
