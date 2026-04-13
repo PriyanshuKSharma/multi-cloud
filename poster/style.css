@@ -38,6 +38,74 @@ body {
     font-family: "Aptos", "Segoe UI Variable Text", "Segoe UI", sans-serif;
 }
 
+.export-toolbar {
+    width: min(1500px, calc(100vw - 48px));
+    margin: 0 auto 16px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(16, 33, 61, 0.1);
+    box-shadow: 0 14px 40px rgba(18, 53, 100, 0.09);
+    backdrop-filter: blur(18px);
+}
+
+.export-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.export-copy strong {
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+}
+
+.export-copy span {
+    font-size: 0.92rem;
+    color: var(--muted);
+}
+
+.export-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tool-button {
+    border: none;
+    border-radius: 999px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, var(--navy), var(--sky));
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(18, 53, 100, 0.18);
+}
+
+.tool-button:hover {
+    transform: translateY(-1px);
+}
+
+.tool-button:disabled {
+    opacity: 0.7;
+    cursor: wait;
+    transform: none;
+}
+
+.tool-button-secondary {
+    background: rgba(18, 53, 100, 0.08);
+    color: var(--navy);
+    box-shadow: none;
+    border: 1px solid rgba(18, 53, 100, 0.14);
+}
+
 .poster-page {
     width: min(1500px, calc(100vw - 48px));
     margin: 0 auto;
@@ -556,6 +624,16 @@ body {
         padding: 12px;
     }
 
+    .export-toolbar {
+        width: calc(100vw - 24px);
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .export-actions {
+        width: 100%;
+    }
+
     .poster-page {
         width: calc(100vw - 24px);
         padding: 20px;
@@ -590,6 +668,10 @@ body {
         overflow: visible;
         break-inside: avoid;
         page-break-inside: avoid;
+    }
+
+    .export-toolbar {
+        display: none;
     }
 
     .poster-header,

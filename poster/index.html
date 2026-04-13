@@ -414,6 +414,15 @@
         </footer>
     </article>
     <script>
+        const setBusyState = (button, busy, busyLabel) => {
+            if (!button) return;
+            if (!button.dataset.defaultLabel) {
+                button.dataset.defaultLabel = button.textContent;
+            }
+            button.disabled = busy;
+            button.textContent = busy ? busyLabel : button.dataset.defaultLabel;
+        };
+
         const arrangePosterColumns = () => {
             const main = document.querySelector('.poster-grid');
             const bottom = document.querySelector('.bottom-grid');
@@ -463,6 +472,70 @@
         }
 
         window.addEventListener('beforeprint', arrangePosterColumns);
+
+        const exportPosterAsPng = async () => {
+            arrangePosterColumns();
+            const poster = document.getElementById('poster');
+            const button = document.getElementById('downloadPng');
+            if (!poster || !window.html2canvas) return;
+
+            try {
+                setBusyState(button, true, 'Rendering PNG...');
+                const canvas = await window.html2canvas(poster, {
+                    backgroundColor: '#f3f7fb',
+                    scale: 2,
+                    useCORS: true,
+                    windowWidth: poster.scrollWidth,
+                    windowHeight: poster.scrollHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                });
+
+                const link = document.createElement('a');
+                link.download = 'nebula-poster-a0.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } finally {
+                setBusyState(button, false);
+            }
+        };
+
+        const exportPosterAsPdf = async () => {
+            arrangePosterColumns();
+            const poster = document.getElementById('poster');
+            const button = document.getElementById('downloadPdf');
+            if (!poster || !window.html2pdf) return;
+
+            try {
+                setBusyState(button, true, 'Rendering PDF...');
+                await window.html2pdf().set({
+                    margin: 0,
+                    filename: 'nebula-poster-a0.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#f3f7fb',
+                        windowWidth: poster.scrollWidth,
+                        windowHeight: poster.scrollHeight,
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: [841, 1189],
+                        orientation: 'portrait'
+                    }
+                }).from(poster).save();
+            } finally {
+                setBusyState(button, false);
+            }
+        };
+
+        document.getElementById('downloadPng')?.addEventListener('click', exportPosterAsPng);
+        document.getElementById('downloadPdf')?.addEventListener('click', exportPosterAsPdf);
+        document.getElementById('printPoster')?.addEventListener('click', () => {
+            arrangePosterColumns();
+            window.print();
+        });
     </script>
 </body>
 </html>
