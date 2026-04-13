@@ -401,10 +401,11 @@
         </footer>
     </article>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const arrangePosterColumns = () => {
             const main = document.querySelector('.poster-grid');
             const bottom = document.querySelector('.bottom-grid');
             if (!main || !bottom) return;
+            if (main.querySelector('.poster-columns')) return;
 
             const layout = document.createElement('div');
             layout.className = 'poster-columns';
@@ -440,7 +441,15 @@
 
             main.replaceChildren(layout);
             bottom.remove();
-        });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', arrangePosterColumns);
+        } else {
+            arrangePosterColumns();
+        }
+
+        window.addEventListener('beforeprint', arrangePosterColumns);
     </script>
 </body>
 </html>
