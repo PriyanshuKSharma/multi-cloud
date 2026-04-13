@@ -1,0 +1,715 @@
+:root {
+    --paper: #f3f7fb;
+    --surface: rgba(255, 255, 255, 0.9);
+    --ink: #10213d;
+    --muted: #52627c;
+    --line: rgba(16, 33, 61, 0.12);
+    --navy: #123564;
+    --sky: #2b6cb0;
+    --teal: #0f9d94;
+    --aws: #f97316;
+    --azure: #2563eb;
+    --gcp: #16a34a;
+    --shadow: 0 22px 60px rgba(17, 34, 68, 0.14);
+    --radius-xl: 30px;
+    --radius-lg: 22px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+html {
+    background: #dfe8f4;
+}
+
+body {
+    min-height: 100vh;
+    padding: 24px;
+    background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(15, 157, 148, 0.14), transparent 28%),
+        linear-gradient(180deg, #eef3f9 0%, #dfe8f4 100%);
+    color: var(--ink);
+    font-family: "Aptos", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+}
+
+.poster-page {
+    width: min(1500px, calc(100vw - 48px));
+    margin: 0 auto;
+    padding: 34px;
+    border-radius: 36px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.96)),
+        var(--paper);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.poster-noise {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(18, 53, 100, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(18, 53, 100, 0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.42;
+    pointer-events: none;
+}
+
+.poster-orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(14px);
+    pointer-events: none;
+}
+
+.poster-orb-a {
+    width: 280px;
+    height: 280px;
+    top: -90px;
+    right: -80px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.18), transparent 72%);
+}
+
+.poster-orb-b {
+    width: 260px;
+    height: 260px;
+    bottom: -80px;
+    left: -60px;
+    background: radial-gradient(circle, rgba(15, 157, 148, 0.16), transparent 72%);
+}
+
+.poster-header,
+.summary-band,
+.poster-grid,
+.bottom-grid,
+.poster-footer {
+    position: relative;
+    z-index: 1;
+}
+
+.poster-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr);
+    gap: 22px;
+    margin-bottom: 20px;
+}
+
+.title-block,
+.meta-panel,
+.summary-card,
+.panel,
+.poster-footer {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 10px 28px rgba(18, 53, 100, 0.06);
+}
+
+.title-block {
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 164px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.logo-box {
+    min-height: 164px;
+    border-radius: 26px;
+    border: 2px dashed rgba(18, 53, 100, 0.28);
+    background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 157, 148, 0.08)),
+        #f8fbff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    color: var(--navy);
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    border-radius: 999px;
+    background: rgba(18, 53, 100, 0.08);
+    color: var(--navy);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.title-copy h1 {
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-size: clamp(2.4rem, 2.1vw + 1.7rem, 4.35rem);
+    line-height: 0.95;
+    letter-spacing: 0.015em;
+    color: var(--ink);
+}
+
+.subtitle {
+    margin-top: 12px;
+    font-size: clamp(1.15rem, 0.75vw + 0.9rem, 1.8rem);
+    font-weight: 700;
+    color: var(--sky);
+}
+
+.thesis {
+    margin-top: 16px;
+    max-width: 62ch;
+    font-size: 1.03rem;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+.meta-panel {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.meta-item {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(18, 53, 100, 0.04);
+    border: 1px solid rgba(18, 53, 100, 0.08);
+}
+
+.meta-item-wide {
+    grid-column: 1 / -1;
+}
+
+.meta-item span {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.meta-item strong {
+    display: block;
+    font-size: 1rem;
+    line-height: 1.45;
+    color: var(--ink);
+}
+
+[contenteditable="true"] {
+    outline: none;
+    border-bottom: 2px dashed rgba(18, 53, 100, 0.16);
+    padding-bottom: 2px;
+}
+
+[contenteditable="true"]:focus {
+    border-bottom-color: var(--sky);
+}
+
+.provider-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.provider-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    border: 1px solid transparent;
+}
+
+.provider-aws {
+    background: rgba(249, 115, 22, 0.12);
+    color: #9a3412;
+    border-color: rgba(249, 115, 22, 0.25);
+}
+
+.provider-azure {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    border-color: rgba(37, 99, 235, 0.25);
+}
+
+.provider-gcp {
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+    border-color: rgba(22, 163, 74, 0.25);
+}
+
+.provider-core {
+    background: rgba(18, 53, 100, 0.08);
+    color: var(--navy);
+    border-color: rgba(18, 53, 100, 0.14);
+}
+
+.summary-band {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    padding: 18px 20px;
+}
+
+.summary-label {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: var(--teal);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.summary-card p,
+.panel-intro,
+.workflow-note,
+.results-note,
+.conclusion-text,
+.poster-footer p {
+    font-size: 0.98rem;
+    line-height: 1.62;
+    color: var(--muted);
+}
+
+.poster-grid {
+    display: block;
+}
+
+.poster-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.poster-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.panel {
+    padding: 22px;
+}
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.panel-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--navy), var(--sky));
+    color: #ffffff;
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.panel-heading h2 {
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-size: 1.42rem;
+    letter-spacing: 0.01em;
+}
+
+.feature-list,
+.compact-list {
+    display: grid;
+    gap: 12px;
+    list-style: none;
+}
+
+.feature-list li,
+.compact-list li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 1rem;
+    line-height: 1.56;
+    color: var(--muted);
+}
+
+.feature-list li::before,
+.compact-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--teal), var(--sky));
+}
+
+.significance-note {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(15, 157, 148, 0.08), rgba(37, 99, 235, 0.08));
+    border: 1px solid rgba(15, 157, 148, 0.15);
+    font-size: 1rem;
+    line-height: 1.58;
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 12px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(238, 244, 255, 0.6), rgba(255, 255, 255, 0.9));
+    border: 1px solid rgba(18, 53, 100, 0.08);
+}
+
+.tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.tag-row span {
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--navy);
+    background: rgba(18, 53, 100, 0.08);
+}
+
+.module-grid,
+.application-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.module-card,
+.application-card {
+    padding: 14px 15px;
+    border-radius: 18px;
+    background: rgba(18, 53, 100, 0.04);
+    border: 1px solid rgba(18, 53, 100, 0.09);
+}
+
+.module-card h3,
+.application-card h3,
+.interpretability-box h3 {
+    margin-bottom: 8px;
+    font-size: 1.02rem;
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+}
+
+.module-card p,
+.application-card p,
+.roadmap-item p {
+    font-size: 0.93rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.ui-shot {
+    margin-top: 16px;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(18, 53, 100, 0.08);
+    background: #ffffff;
+}
+
+.ui-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.ui-shot figcaption {
+    padding: 12px 14px 14px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--muted);
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.metric-card {
+    padding: 16px 14px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(18, 53, 100, 0.95), rgba(43, 108, 176, 0.95));
+    color: #ffffff;
+}
+
+.metric-value {
+    display: block;
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.metric-label {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.interpretability-box {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 20px;
+    background: rgba(15, 157, 148, 0.07);
+    border: 1px solid rgba(15, 157, 148, 0.15);
+}
+
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1.4fr;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.roadmap {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.roadmap-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(18, 53, 100, 0.04);
+    border: 1px solid rgba(18, 53, 100, 0.09);
+}
+
+.roadmap-item span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--teal), var(--sky));
+    color: #ffffff;
+    font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+    font-weight: 800;
+}
+
+.poster-footer {
+    margin-top: 18px;
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+@media (max-width: 1200px) {
+    body {
+        padding: 12px;
+    }
+
+    .poster-page {
+        width: calc(100vw - 24px);
+        padding: 20px;
+        border-radius: 24px;
+    }
+}
+
+@media print {
+    @page {
+        size: A0 portrait;
+        margin: 0;
+    }
+
+    html,
+    body {
+        background: #ffffff;
+        width: 841mm;
+        min-height: 1189mm;
+        padding: 0;
+        margin: 0;
+        overflow: visible;
+    }
+
+    .poster-page {
+        width: 100%;
+        min-height: 100%;
+        height: auto;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 8mm;
+        overflow: visible;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .poster-header,
+    .summary-band,
+    .poster-columns,
+    .poster-column,
+    .bottom-grid {
+        gap: 5mm;
+    }
+
+    .poster-header,
+    .summary-band,
+    .bottom-grid,
+    .poster-footer {
+        margin-bottom: 5mm;
+    }
+
+    .panel,
+    .title-block,
+    .meta-panel,
+    .summary-card,
+    .poster-footer {
+        box-shadow: none;
+    }
+
+    .panel {
+        padding: 4mm;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .title-block {
+        padding: 5mm;
+    }
+
+    .meta-panel,
+    .summary-card {
+        padding: 4mm;
+    }
+
+    .poster-footer {
+        padding: 3mm 4mm;
+        margin-top: 5mm;
+    }
+
+    .title-copy h1 {
+        font-size: 41mm;
+        line-height: 0.95;
+    }
+
+    .subtitle {
+        font-size: 12mm;
+    }
+
+    .thesis,
+    .summary-card p,
+    .panel-intro,
+    .workflow-note,
+    .results-note,
+    .conclusion-text,
+    .poster-footer p,
+    .feature-list li,
+    .compact-list li,
+    .module-card p,
+    .application-card p,
+    .roadmap-item p {
+        font-size: 5.1mm;
+        line-height: 1.38;
+    }
+
+    .panel-heading h2 {
+        font-size: 8.2mm;
+    }
+
+    .panel-number {
+        width: 13mm;
+        height: 13mm;
+        min-width: 13mm;
+        font-size: 4.8mm;
+    }
+
+    .metric-value {
+        font-size: 10mm;
+    }
+
+    .metric-label {
+        font-size: 4.3mm;
+    }
+
+    .diagram {
+        margin-top: 3mm;
+    }
+
+    .ui-shot {
+        margin-top: 3mm;
+    }
+
+    .logo-box {
+        min-height: 42mm;
+        font-size: 5mm;
+    }
+
+    .eyebrow,
+    .summary-label,
+    .tag-row span,
+    .provider-chip {
+        font-size: 3.8mm;
+    }
+
+    .module-card h3,
+    .application-card h3,
+    .interpretability-box h3 {
+        font-size: 5.3mm;
+    }
+
+    .metric-card,
+    .module-card,
+    .application-card,
+    .roadmap-item,
+    .meta-item {
+        padding: 3.5mm;
+    }
+}
