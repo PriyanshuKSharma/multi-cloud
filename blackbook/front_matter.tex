@@ -1,94 +1,60 @@
-% Front Matter for Multi-Cloud Project Blackbook
-% \begin{titlepage}
-%     \centering
-%     \vspace*{1cm}
-    
-%     {\Huge \textbf{NEBULA: THE MULTI-CLOUD COMMAND CENTER}} \\[0.5cm]
-%     {\Large \textit{A Unified Orchestration Engine for AWS, Azure, and Google Cloud Platform}} \\[2cm]
-    
-%     {\Large A Project Report Submitted to [UNIVERSITY NAME]} \\[0.5cm]
-%     {\Large In Partial Fulfilment of the Requirements for the Degree of} \\[0.5cm]
-%     {\Large \textbf{BACHELOR OF TECHNOLOGY}} \\[0.5cm]
-%     {\Large IN COMPUTER SCIENCE AND ENGINEERING} \\[2cm]
-    
-%     {\Large \textbf{By: Priyanshu K Sharma}} \\[0.5cm]
-%     {\Large [UNIVERSITY ROLL NO.]} \\[2cm]
-    
-%     \vfill
-    
-%     \IfFileExists{college_logo.pdf}{
-%         \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
-%     }{
-%         \IfFileExists{college_logo.png}{
-%             \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
-%         }{
-%             \IfFileExists{college_logo.jpg}{
-%                 \includegraphics[width=0.4\textwidth]{adypu-logo.png} \\[1cm]
-%             }{
-%                 \fbox{\parbox[c][3cm][c]{0.4\textwidth}{\centering College Logo Placeholder}} \\[1cm]
-%             }
-%         }
-%     }
-
-    
-%     {\Large \textbf{DEPARTMENT OF COMPUTER SCIENCE}} \\
-%     {\Large [COLLEGE NAME]} \\
-%     {\Large [YEAR]}
-% \end{titlepage}
-
+% --- Title Page ---
 \begin{titlepage}
+    \thispagestyle{empty}
     \centering
-
-    % University Logo
-    \includegraphics[width=6cm]{images/university_logo.png}\\[1.5cm]
-
-    % Title
-    {\LARGE \bfseries Zero Trust Policy Architecture: Detection prevention and Mitigation from Digital attacks\par}
-    \vspace{1cm}
-
-    % Author Info
-    {\large \textbf{Submitted By:} \par}
-    \vspace{0.2cm}
-    {\Large Aayush Bhute
- \\ URN: 2022-B-21052005
- \par}
-    {\large B.Tech – IT (CTIS) \par}
-    {\large Year: 3 |\quad Sem.: 6  |\quad Sec.: A \par}
-    \vspace{1cm}
-
-    % Guide Info
-    {\large \textbf{Under the Guidance of:} \par}
-    \vspace{0.2cm}
-    {\large Prof. Ravi Khatri \par}
-    \vspace{0.3cm}
-
-    {\scshape\LARGE Ajeenkya D Y Patil University \par}
-    \vspace{0.3cm}
-
-    % Department or School
-    {\Large School of Engineering \par}
-    \vspace{1cm}
-
-
-    % Date
-    {\large \today \par}
-
+    \vspace*{1cm}
+    
+    {\Huge \textbf{CONTAMINATION-AWARE WASTE CLASSIFICATION SYSTEM}} \\[1.5cm]
+    
+    {\Large Thesis submitted in partial fulfilment of the requirements of the degree of} \\[0.5cm]
+    {\Large \textbf{Bachelor of Technology}} \\[0.5cm]
+    {\Large in} \\[0.5cm]
+    {\Large \textbf{Information Technology and Data Science}} \\[1.5cm]
+    
+    {\Large by} \\[0.5cm]
+    {\Large \textbf{Sumit Rathi (2022-B-23102004A)}} \\
+    {\Large \textbf{Sanjana Arun (2022-B-11052004)}} \\
+    {\Large \textbf{Seanna Martin (2022-B-08112004C)}} \\[1.5cm]
+    
+    {\Large Under the Supervision of} \\[0.5cm]
+    {\Large \textbf{Dr. Sandeep Kulkarni}} \\
+    
+    \vfill
+    
+    \includegraphics[width=6cm]{adypu-logo.png} \\[1cm]
+    
+    {\Large School of Engineering} \\
+    {\scshape Ajeenkya DY Patil University, Pune} \\[0.5cm]
+    {\Large April 2025}
+    
 \end{titlepage}
+
+\newpage
+% --- Set Header with Centered Logo for Certificates and Declaration ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\includegraphics[height=0.8cm]{adypu-logo.png}} % CENTERED LOGO
+\fancyhead[R]{} % Clear any right header text
+\fancyfoot[C]{\thepage}
 
 % ---------------- CERTIFICATE ----------------
 \chapter*{Certificate}
 \addcontentsline{toc}{chapter}{Certificate}
 
-This is to certify that the dissertation entitled \textbf{“Nebula: The Multi-Cloud Command Center”} is a bonafide work submitted in partial fulfilment of the requirements for the award of the degree of Bachelor of Technology.
+\begin{flushright}
+Date: April 25, 2025
+\end{flushright}
 
-\vspace{2cm}
+This is to certify that the dissertation entitled \textbf{``Contamination-Aware Waste Classification System''} is a bonafide work of \textbf{``Sumit Rathi (2022-B-23102004A), Sanjana Arun (2022-B-11052004) \& Seanna Martin (2022-B-08112004C)''} submitted to the School of Engineering, Ajeenkya DY Patil University, Pune in partial fulfilment of the requirement for the award of the degree of \textbf{``Bachelor of Technology in Information Technology and Data Science''}.
+
+\vspace{3cm}
 
 \begin{flushleft}
-Dr. (Dean Name) \hfill Dr. (Guide Name)\\
+\textbf{Dr. (Dean Name)} \hfill \textbf{Dr. Sandeep Kulkarni}\\
 Dean \hfill Supervisor
 \end{flushleft}
 
-\vspace{2cm}
+\vspace{3cm}
 
 \begin{flushleft}
 Internal Examiner \hfill External Examiner
@@ -97,81 +63,60 @@ Internal Examiner \hfill External Examiner
 \newpage
 
 % ---------------- SUPERVISOR CERTIFICATE ----------------
-\chapter*{Supervisor’s Certificate}
-\addcontentsline{toc}{chapter}{Supervisor’s Certificate}
-
-This is to certify that the dissertation entitled \textbf{“Nebula: The Multi-Cloud Command Center”} is a record of original work carried out by Priyanshu K Sharma under my supervision and guidance.
-
-\vspace{3cm}
+\chapter*{Supervisor's Certificate}
+\addcontentsline{toc}{chapter}{Supervisor's Certificate}
 
 \begin{flushright}
-Dr. (Guide Name)\\
+Date: April 25, 2025
+\end{flushright}
+
+This is to certify that the dissertation entitled \textbf{``Contamination-Aware Waste Classification System''} submitted by \textbf{Sumit Rathi (2022-B-23102004A), Sanjana Arun (2022-B-11052004) \& Seanna Martin (2022-B-08112004C)}, is a record of original work carried out by them under my supervision and guidance in partial fulfilment of the requirements of the degree \textbf{Bachelor of Technology in Information Technology and Data Science} at School of Engineering, Ajeenkya DY Patil University, Pune, Maharashtra-412105. 
+
+Neither this dissertation nor any part of it has been submitted earlier for any degree or diploma to any institute or university in India or abroad.
+
+\vspace{4cm}
+
+\begin{flushright}
+\textbf{Dr. Sandeep Kulkarni}\\
 Supervisor
 \end{flushright}
 
 \newpage
 
-% ---------------- DECLARATION ----------------
+% ---------------- DECLARATION OF ORIGINALITY ----------------
 \chapter*{Declaration of Originality}
-\addcontentsline{toc}{chapter}{Declaration}
+\addcontentsline{toc}{chapter}{Declaration of Originality}
 
-I hereby declare that this dissertation entitled \textbf{“Nebula: The Multi-Cloud Command Center”} is my original work.
+We, \textbf{Sumit Rathi (2022-B-23102004A), Sanjana Arun (2022-B-11052004) \& Seanna Martin (2022-B-08112004C)}, hereby declare that this dissertation entitled \textbf{``Contamination-Aware Waste Classification System''} presents our original work carried out as bachelor students of School of Engineering, Ajeenkya D Y Patil University, Pune, Maharashtra.
+
+To the best of our knowledge, this dissertation contains no material previously published or written by another person, nor any material presented by us for the award of any degree or diploma of Ajeenkya DY Patil University, Pune or any other institution. We also declare that we have adhered to all principles of academic honesty and integrity and have not misrepresented or fabricated or falsified any idea/data/fact/source in our submission.
 
 \vspace{2cm}
 
-Date: \\
-Place: Pune
+\begin{flushleft}
+Date: 25 April, 2025 \\
+Place: Lohegaon, Pune
+\end{flushleft}
 
 \vspace{2cm}
 
 \begin{flushright}
-Priyanshu K Sharma
+Sumit Rathi \\ Sanjana Arun \\ Seanna Martin
 \end{flushright}
 
+% --- REMOVE LOGO FROM HERE ONWARDS ---
 \newpage
+\fancyhead[C]{} % Clear the center logo
+\fancyhead[R]{} % Ensure right header is also empty
 
 % ---------------- ACKNOWLEDGEMENT ----------------
 \chapter*{Acknowledgement}
 \addcontentsline{toc}{chapter}{Acknowledgement}
 
-I would like to express my sincere gratitude to my guide for continuous support and guidance. I also thank my peers and faculty members for their valuable suggestions.
+We would like to express our sincere gratitude to all those who have contributed to the successful completion of this thesis. First and foremost, we are deeply grateful to our supervisor, \textbf{Dr. Sandeep Kulkarni}, for his invaluable guidance, continuous support, and encouragement throughout this research work. His expertise and insight have been instrumental in shaping this project. 
 
-\newpage
+\vspace{3cm}
 
-% ---------------- ABSTRACT ----------------
-\chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
-
-Nebula is a unified multi-cloud orchestration platform designed to simplify infrastructure management across AWS, Azure, and hybrid cloud environments. It addresses challenges such as vendor lock-in, fragmented governance, and inconsistent automation practices.
-
-The system provides centralized control, standardized workflows, and scalable deployment strategies, enabling organizations to efficiently manage distributed cloud resources.
-
-\newpage
-
-% ---------------- ABBREVIATIONS ----------------
-\chapter*{List of Abbreviations}
-\addcontentsline{toc}{chapter}{List of Abbreviations}
-
-\begin{tabular}{ll}
-AI & Artificial Intelligence \\
-API & Application Programming Interface \\
-AWS & Amazon Web Services \\
-CPU & Central Processing Unit \\
-GPU & Graphics Processing Unit \\
-IAM & Identity and Access Management \\
-JSON & JavaScript Object Notation \\
-ML & Machine Learning \\
-SaaS & Software as a Service \\
-UML & Unified Modeling Language \\
-\end{tabular}
-
-\newpage
-
-\newpage
-\begin{abstract}
-The transition from traditional on-premise infrastructure to cloud computing has been revolutionary, providing unparalleled scalability and cost-efficiency. However, as orga- nizations grow, the reliance on a single cloud vendor often leads to "vendor lock-in," escalating costs, and single-point-of-failure risks. This has prompted a strategic shift toward Multi-Cloud architectures. While Multi-Cloud offers redundancy and strategic flexibility, it introduces significant operational complexity, fragmented management interfaces, and a steep learning curve for developers.
-
-This project introduces Nebula: The Multi-Cloud Command Center, a high- performance orchestration engine designed to unify the management of infrastructure across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula abstracts these providers into a single control plane, leveraging Infrastructure as Code (IaC) through Terraform \cite{brikman2019terraform} and an asynchronous execution engine powered by FastAPI \cite{fastapi_docs_2026} and Celery \cite{celery_docs_2024}. 
-
-Key innovations include an \textbf{AI-driven Troubleshooting Copilot} that parses Terraform execution logs to provide deterministic remediation steps, a \textbf{Security Vault} for encrypted credential management, and \textbf{Real-time Inventory Syncing}. The resulting platform empowers developers to provision, monitor, and troubleshoot resources across different clouds without switching between disparate consoles.
-\end{abstract}
+\begin{flushright}
+Sumit Rathi \\ Sanjana Arun \\ Seanna Martin
+\end{flushright}
