@@ -1,10 +1,8 @@
 \documentclass[12pt,a4paper,oneside]{report}
 
 % ---------------- PACKAGES ----------------
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
 \usepackage{geometry}
-\geometry{a4paper, left=1.2in, right=0.9in, top=1.2in, bottom=0.9in}
+\geometry{a4paper, left=1.1811in, right=0.86in, top=1.1811in, bottom=0.86in}
 
 \usepackage{setspace}
 \onehalfspacing
@@ -26,15 +24,12 @@
 \pagestyle{fancy}
 \fancyhf{}
 
-% SAFE HEADER (avoid crash)
-\fancyhead[L]{\includegraphics[height=0.7cm]{logo.png}}
-\fancyhead[R]{\nouppercase{\leftmark}}
-
+% DEFAULT HEADER (No logo, No right text)
+\fancyhead[R]{}
 \fancyfoot[C]{\thepage}
-
 \renewcommand{\headrulewidth}{0.4pt}
 
-% Fix chapter style bug
+% Fix chapter style to show header/footer on first page
 \usepackage{etoolbox}
 \patchcmd{\chapter}{\thispagestyle{plain}}{\thispagestyle{fancy}}{}{}
 
@@ -54,9 +49,9 @@
 
 % -------- FRONT MATTER (ROMAN) --------
 \pagenumbering{roman}
-
 \include{front_matter}
 
+% -------- INDICES --------
 \tableofcontents
 \newpage
 \listoffigures
