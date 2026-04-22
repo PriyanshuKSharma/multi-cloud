@@ -64,7 +64,7 @@ def execute_remediation_pipeline(task_id: int, raw_log: str) -> dict:
     }
 \end{lstlisting}
 
-\begin{figure}[H]
+\begin{figure}[h]
 \centering
 \begin{tikzpicture}[node distance=1.7cm, auto, scale=0.85, every node/.style={scale=0.85}]
     \tikzstyle{block} = [rectangle, draw, rounded corners, fill=blue!8, text width=7em, text centered, minimum height=3em]
@@ -161,7 +161,7 @@ t_{j,r+1} = t_{j,r} + b \cdot 2^r + \epsilon
 where $b$ is the base delay and $\epsilon$ is a jitter term used to avoid synchronized retries across many tasks.
 
 \subsection{Retry State Transition Table}
-\begin{table}[H]
+\begin{table}[h]
 \centering
 \caption{Task State Machine for the Nebula Worker}
 \label{tab:task_state_machine}
@@ -177,29 +177,47 @@ failed & user submits corrected payload & queued \\ \hline
 \end{tabular}
 \end{table}
 
-\begin{figure}[H]
+This particular state model guarantees that the user interface is able to convey meaningful status. The resource is not just stuck; it might be queuing, in progress, in retry schedule, done, or failed. It is necessary in order to give the users reliable feedback while their task runs on the infrastructure that could take a few minutes to complete.
+\begin{figure}[h]
 \centering
-\begin{tikzpicture}[node distance=3.5cm, auto, scale=2.9, every node/.style={scale=0.9}]
-    \tikzstyle{state} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=7em, minimum height=2.6em]
-    \tikzstyle{line} = [draw, -latex']
+\begin{tikzpicture}[
+    node distance=2.5cm,
+    state/.style={
+        rectangle,
+        draw,
+        rounded corners,
+        fill=green!10,
+        minimum width=2.8cm,
+        minimum height=1cm,
+        align=center
+    },
+    arrow/.style={->, thick}
+]
 
-    \node [state] (queued) {Queued};
-    \node [state, right=of queued] (running) {Running};
-    \node [state, right=of running] (completed) {Completed};
-    \node [state, below=of running] (retry) {Retry Scheduled};
-    \node [state, below=of completed] (failed) {Failed};
+% Nodes
+\node[state] (queued) {Queued};
+\node[state, right=of queued] (running) {Running};
+\node[state, right=of running] (completed) {Completed};
 
-    \draw [line] (queued) -- (running);
-    \draw [line] (running) -- (completed);
-    \draw [line] (running) -- node[right] {retryable error} (retry);
-    \draw [line] (retry.south) -| node[below] {backoff elapsed} (running.south);
-    \draw [line] (running) -- node[right] {hard failure} (failed);
-    \draw [line] (failed.west) -| node[below] {corrected request} (queued.south);
+\node[state, below=of running] (retry) {Retry};
+\node[state, below=of completed] (failed) {Failed};
+
+% Main flow
+\draw[arrow] (queued) -- (running);
+\draw[arrow] (running) -- (completed);
+
+% Retry path
+\draw[arrow] (running) -- (retry);
+\draw[arrow] (retry) -- (running);
+
+% Failure path
+\draw[arrow] (running) -- (failed);
+\draw[arrow] (failed) -- (queued);
+
 \end{tikzpicture}
 \caption{Lifecycle of a Nebula Background Task}
 \label{fig:task_lifecycle_diagram}
 \end{figure}
-
 This particular state model guarantees that the user interface is able to convey meaningful status. The resource is not just stuck; it might be queuing, in progress, in retry schedule, done, or failed. It is necessary in order to give the users reliable feedback while their task runs on the infrastructure that could take a few minutes to complete.
 
 \section{Mathematical Model for Credential Security}
