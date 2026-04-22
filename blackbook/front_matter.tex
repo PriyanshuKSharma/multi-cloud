@@ -126,17 +126,16 @@ Priyanshu Kumar Sharma \\ Vaishnavi Jadhav \\ Vaibhav Gulge
 
 % ---------------- ABSTRACT ----------------
 \chapter*{Abstract}
+\thispagestyle{plain}
 \addcontentsline{toc}{chapter}{Abstract}
 
-The transition from traditional on-premise infrastructure to cloud computing has been revolutionary, providing unparalleled scalability and cost-efficiency. However, as organizations grow, the reliance on a single cloud vendor often leads to ``vendor lock-in,'' escalating costs, and single-point-of-failure risks. This has prompted a strategic shift toward Multi-Cloud architectures.
+The transition from traditional on-premise infrastructure to cloud computing has significantly transformed how organizations design, deploy, and scale applications by offering enhanced flexibility, scalability, and cost efficiency. However, reliance on a single cloud provider introduces challenges such as vendor lock-in, increased costs, limited interoperability, and risks of service outages. These limitations have driven the adoption of multi-cloud architectures, where workloads are distributed across multiple platforms to improve resilience and performance. Despite its benefits, multi-cloud environments introduce complexities in infrastructure management, monitoring, security, and operational consistency due to differences in provider-specific interfaces and APIs. This project presents Nebula: The Multi-Cloud Command Center, a unified orchestration platform designed to simplify the management of resources across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula provides a centralized control plane that abstracts cloud-specific complexities, enabling seamless provisioning and management through Infrastructure as Code (IaC) using Terraform. The platform integrates an asynchronous execution framework powered by FastAPI and Celery for efficient and responsive operations. A key feature is an AI-driven Troubleshooting Copilot, which analyzes execution logs to provide accurate remediation suggestions, reducing debugging time and operational effort. Additionally, Nebula includes a Security Vault for secure credential management and a real-time inventory syncing system to maintain an updated view of resources across clouds. The system is designed to be scalable, modular, and extensible, making it suitable for both enterprise and research applications. Overall, Nebula enhances operational efficiency and reduces complexity by enabling users to provision, monitor, and troubleshoot multi-cloud resources through a unified interface, eliminating the need to navigate multiple cloud consoles.
 
-This project introduces \textbf{Nebula: The Multi-Cloud Command Center}, a high-performance orchestration engine designed to unify infrastructure management across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula abstracts these providers into a single control plane, leveraging Infrastructure as Code (IaC) through Terraform and an asynchronous execution engine powered by FastAPI and Celery. 
 
-Key innovations include an \textbf{AI-driven Troubleshooting Copilot} that parses Terraform execution logs to provide deterministic remediation steps, a \textbf{Security Vault} for encrypted credential management, and \textbf{Real-time Inventory Syncing}. The resulting platform empowers developers to provision, monitor, and troubleshoot resources across different clouds without switching between disparate consoles.
 
+% ---------------- ABBREVIATIONS ----------------
 \newpage
-
-\newpage
+% --- List of Abbreviations (Continued) ---
 \begin{center}
     {\Huge \textbf{List of Abbreviations}}
 \end{center}
@@ -170,7 +169,7 @@ JSON & JavaScript Object Notation \\
 
 \newpage
 \begin{center}
-    {\Huge \textbf{List of Abbreviations (Continued)}}
+    {\Huge \textbf{List of Abbreviations}}
 \end{center}
 \vspace{1.5cm}
 
