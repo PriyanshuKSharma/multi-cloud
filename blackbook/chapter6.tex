@@ -1,13 +1,14 @@
 % Chapter 6: Results and Discussion (Massive Expansion)
 \chapter{RESULTS AND DISCUSSION}
 
-The objective of our testing phase was to validate the "Orchestration Determinism" and the "Security Vault" of the Nebula platform. We conducted both functional verification and performance benchmarking.
+
+Validation of Orchestration Determinism and Security Vault were the goals of our testing phase.We performed performance benchmarking and functionality testing of the "asynchronous" design.
 
 \section{System Performance Benchmarking}
-We measured the performance of our asynchronous architecture across multiple cloud providers. 
+Performance benchmarking was done on the performance of our "asynchronous" design on different clouds.Performance benchmarking was done on the performance of our "asynchronous" design on different clouds.
 
 \subsection{Cloud Synchronization Latency (TikZ Chart)}
-We tested how long it takes to fetch and normalize infrastructure data from AWS, Azure, and GCP. 
+Testing of time taken for retrieval and normalization of infrastructure data from AWS, Azure, and GCP.
 
 \begin{figure}[h]
 \centering
@@ -34,7 +35,7 @@ We tested how long it takes to fetch and normalize infrastructure data from AWS,
 These results confirm that our FastAPI background tasks are highly efficient, maintaining a "Unified View" of resources with minimal overhead.
 
 \section{Testing Strategy and Results}
-Nebula underwent rigorous testing using a "Shift-Left" approach, where unit tests were conducted iteratively throughout the development lifecycle.
+The Nebula has been tested thoroughly using the "Shift-Left" method, whereby the unit test was performed iteratively throughout the development cycle.
 
 \subsection{Massive Functional Test Execution Summary (50+ Items)}
 The following table summarizes 50 critical test cases covering the entire platform.
@@ -81,12 +82,12 @@ TC-30 & UI & 1-Click Repair Execution & PASS \\ \hline
 \end{table}
 
 \section{Failure Analysis Case Studies (AI Engine)}
-A critical metric for Nebula is the accuracy of its failure analysis engine. We documented three specific cases.
+One of the important things to note about Nebula is the accuracy of the failure analysis engine. Here are three examples.
 
 \subsection{Case Study 1: Missing IAM Permissions}
-When attempting to provision an S3 bucket in a restricted region, Terraform returned an "Access Denied" error. The AI Copilot scrubbed the log and correctly identified that the IAM user lacked the \texttt{s3:CreateBucket} permission in the specified VPC.
+While trying to deploy the S3 bucket within the constrained region using Terraform, it was shown as “Access Denied.” The AI Copilot checked the logs and correctly figured out that the IAM user didn't have the required S3:CreateBucket permission in the particular VPC.
 
 \subsection{Case Study 2: Provider Quota Limits}
-During a bulk provisioning test (TC-12), Azure returned a "Quota Exceeded" status for VM cores. The AI engine interpreted this correctly and suggested that the user request a quota increase from the Azure portal, providing a direct link to the support page.
+In another case, while testing the bulk provisioning (TC-12), Azure showed "Quota Exceeded." The AI successfully understood the problem and suggested increasing the quota in the Azure portal. 
 
 \newpage

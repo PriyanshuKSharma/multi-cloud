@@ -1,13 +1,13 @@
 % Chapter 4: System Design (Massive Expansion)
 \chapter{SYSTEM DESIGN}
 
-The system architecture of Nebula is designed to be highly modular, asynchronous, and secure. This chapter details the "Internal Workings" of the platform, focusing on the high-level ecosystem, database design, and the security model.
+As mentioned earlier, the system architecture for Nebula is built with high modularity, async nature, and strong security capabilities. Chapter 3 focuses on the internal workings of the platform and its components such as the overall high-level ecosystem, database design, and the security model.
 
 \section{System Architecture Overview}
-The platform follows a three-tier architecture: Presentation, Application, and Persistence layers. Each layer is isolated using Docker-Compose to ensure a reproducible deployment environment.
+Following the standard three-tier architecture, the platform has separate tiers, Presentation, Application, and Persistence layers. All layers are isolated via the use of Docker-Compose.
 
 \subsection{High-Level Ecosystem (TikZ Diagram)}
-The following diagram illustrates the interaction between the user browser, the internal containerized network, and the external cloud provider APIs.
+Refer to the following figure that shows interactions among the user browser, internal containerized network, and external cloud provider APIs.
 
 \begin{figure}[h]
 \centering
@@ -58,14 +58,16 @@ The following diagram illustrates the interaction between the user browser, the 
 \end{figure}
 
 \section{Entity-Relationship (ER) Design}
-The database (PostgreSQL) is the "Global State Manager" of the platform. It tracks the inventory of three cloud providers in a single normalized schema.
+The database (PostgreSQL) is considered the "Global State Manager" within the platform. The inventory of all three cloud providers is stored in one normalized database schema.
 
 \subsection{ER Diagram (TikZ)}
-The following diagram defines the primary entities and their relationships. Unlike a high-level conceptual sketch, this ER model is aligned with the persistence schema described later in the appendix. It includes the operational tables that matter most to the platform: users, encrypted cloud credentials, provisioned resources, task history, and activity logs.
+Referring to the following diagram below, we can see the primary entities and the relationships. Contrary to a high-level ER diagram, this one is consistent with the persistence schema outlined later in the appendix. The operational tables that make sense from the platform point of view include users, cloud credentials, provisioned resources, tasks, and activity log entries.
 
+
+The following ER diagram shows that the \texttt{users} table is the root ownership entity. Each user can register multiple cloud credentials, provision multiple resources, and generate multiple activity log entries. Each provisioned resource can in turn generate multiple background task records as the worker system performs create, sync, update, or delete operations. The dashed association between \texttt{cloud\_credentials} and \texttt{resources} indicates an operational dependency: resources are provisioned by using a credential record, even though that linkage may be enforced at the application layer rather than through a direct foreign key column in the simplified schema.
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=2.6cm, auto, scale=0.78, every node/.style={scale=0.78}]
+\begin{tikzpicture}[node distance=1.6cm, auto, scale=0.58, every node/.style={scale=0.78}]
     \tikzstyle{entity} = [rectangle, draw, rounded corners, fill=green!8, inner sep=5pt]
     \tikzstyle{rel} = [draw, thick]
 
@@ -110,6 +112,7 @@ The following diagram defines the primary entities and their relationships. Unli
         \end{tabular}
     };
 
+
     \node [entity, right=3.0cm of resources] (tasks) {
         \begin{tabular}{l}
         \textbf{TASKS} \\
@@ -149,27 +152,26 @@ The following diagram defines the primary entities and their relationships. Unli
 \label{fig:erd}
 \end{figure}
 
-This ER diagram shows that the \texttt{users} table is the root ownership entity. Each user can register multiple cloud credentials, provision multiple resources, and generate multiple activity log entries. Each provisioned resource can in turn generate multiple background task records as the worker system performs create, sync, update, or delete operations. The dashed association between \texttt{cloud\_credentials} and \texttt{resources} indicates an operational dependency: resources are provisioned by using a credential record, even though that linkage may be enforced at the application layer rather than through a direct foreign key column in the simplified schema.
+
 
 \section{Network Architecture and Cloud Connectivity}
-Provisioning resources in the cloud requires more than just API keys; it requires a structured networking foundation. Nebula manages this through VPC Peering and Security Group automation.
+Resources provisioning to the cloud needs not only an API key but also the existence of a well-defined network structure. VPC Peering and Security Groups are automated by Nebula.
 
 \subsection{Virtual Private Cloud (VPC) Design}
 For every project launched in Nebula, a dedicated VPC is created. This ensures:
 \begin{itemize}
-    \item \textbf{Isolation}: Resources from one project cannot talk to another project's resources by default.
+    \item \textbf{Isolation}: Resources in a project can’t communicate to another project's resources by default.
     \item \textbf{Secure Subnetting}: Public subnets for Load Balancers and private subnets for Database/Worker nodes.
-    \item \textbf{Internet Gateway (IGW)}: For resources requiring external connectivity.
+    \item \textbf{Internet Gateway (IGW)}:If required for resources.
 \end{itemize}
 
 \section{Security Architecture Details}
-Nebula implements a "Defense in Depth" strategy to protect user data and cloud access keys.
+Nebula adopts the approach of defense in depth for protecting user data and access to cloud APIs.
 
 \subsection{Identity Layer (JWT Flow)}
 User authentication is handled via JSON Web Tokens (JWT). When a user logs in:
-1. The backend verifies credentials against PostgreSQL.
-2. A signed JWT (RS256) is issued to the browser.
-3. Every subsequent API call must include this token in the header as: \texttt{Authorization: Bearer <TOKEN>}.
+1.  The back end validates credentials against PostgreSQL. 2. The browser receives an authorized JWT (using RS256). 3. All subsequent API calls need this token as Authorization: Bearer <TOKEN>.
+\texttt{Authorization: Bearer <TOKEN>}.
 
 \subsection{Credential Security (AES-128 Fernet)}
 Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Fernet implementation which provides symmetric encryption with:
@@ -181,7 +183,7 @@ Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Ferne
 
 \begin{figure}[h]
 \centering
-\begin{tikzpicture}[node distance=4.5cm, auto]
+\begin{tikzpicture}[node distance=5.7cm, auto]
     \tikzstyle{actor} = [rectangle, draw, fill=orange!10, minimum width=3em, minimum height=3em]
     \tikzstyle{line} = [draw, -latex]
 
@@ -197,10 +199,5 @@ Cloud secrets (AWS Secret Keys) are never stored in plain text. We use the Ferne
 \label{fig:encryption_workflow}
 \end{figure}
 
-\section{Component Interaction (TikZ Sequence)}
-The interaction between the API, Redis, and workers is the core performance driver. When a user requests a sync:
-1. API issues a \texttt{sync\_all.delay()} call.
-2. Redis \cite{redis_docs_2026} stores the job.
-3. The worker fetches the job using Celery \cite{celery_docs_2024}, iterates through all registered cloud accounts, and updates PostgreSQL.
 
 \newpage

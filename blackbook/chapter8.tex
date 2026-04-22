@@ -1,12 +1,17 @@
 % Chapter 8: Algorithm and Mathematical Model (New Technical Depth)
-\chapter{ALGORITHM AND MATHEMATICAL MODEL}
+\chapter{ALGORITHM / MATHEMATICAL MODEL}
 
-To achieve high operational determinism and security, the Nebula platform implements specific algorithms for its most critical subsystems: the AI Troubleshooting Copilot, the resource normalization layer, the task retry scheduler, and the credential security vault. This chapter formalizes those models through pseudo-code, state descriptions, and mathematical notation. The purpose of the chapter is not to claim theoretical novelty in every component, but to show that the control plane can be reasoned about rigorously rather than described only at a high level.
+For maximizing operational determinism and security, the Nebula platform utilizes specialized algorithms for some of its core components such as the AI Troubleshooting Copilot, the normalization layer of resources, the scheduling algorithm for retries, and the security vault for credentials. These models will be presented formally using pseudo-code, descriptions of states, and mathematical notation in this chapter. This chapter is not concerned with demonstrating theoretical novelty in all components; rather, it seeks to demonstrate that the control plane can be discussed from a theoretical perspective instead of only being described at a high-level.
 
 \section{The AI Copilot: Adaptive Log Remediation Algorithm}
-The AI Copilot is designed to solve the "semantic mismatch" problem in multi-cloud error logs. When a Terraform task fails, the logs are often lengthy, noisy, and highly provider-specific. The Adaptive Log Remediation (ALR) algorithm reduces this noise by combining deterministic preprocessing with targeted inference.
+The AI Copilot was created specifically to address the semantic mismatch issue in multi-cloud error logs. In case of a Terraform task failure, the log becomes extremely long and provider-specific. ALR minimizes noise with deterministic preprocessing and adaptive inference techniques.
+ 
+ 
+Assume the log from Terraform execution consists of token sequence
 
-Let a raw execution log be represented by the token sequence
+
+that could include provider-specific data, time stamps, stacks, resource IDs, and other confidential information. The objective of ALR is to transform this input into tuple
+
 \[
 L = \{l_1, l_2, \ldots, l_n\}
 \]
@@ -87,18 +92,18 @@ def execute_remediation_pipeline(task_id: int, raw_log: str) -> dict:
 \end{figure}
 
 \subsection{Confidence Scoring Model}
-The confidence score should not be a vague heuristic. Nebula models the final confidence value as a weighted combination of three signals:
+The confidence measure must not be a fuzzy guideline. Nebula calculates the confidence measure using the following formula:
 \[
 \gamma = \alpha p + \beta m + \delta h
 \]
-where $p$ is the classifier probability, $m$ is the pattern match strength against known error signatures, and $h$ is the historical success rate of the suggested remediation for similar failures. The weights satisfy
+where $p$ refers to the probability provided by the classifier, $m$ is the match weight of the log pattern with known error patterns, and $h$ represents the historical success ratio of the recommended remediation action for similar faults. These weights adhere to the following constraint:
 \[
 \alpha + \beta + \delta = 1
 \]
-with $\alpha > \beta > \delta$ in the default configuration because current log evidence is prioritized over historical similarity.
+with $\alpha > \beta > \delta$ holds true under the default setting since present evidence is more important than past similarities.
 
 \section{Unified Resource Normalization Algorithm}
-One of the central platform challenges is converting provider-specific metadata into a canonical model that the frontend and database can understand consistently. Let the provider-specific resource response be denoted by $X_p$, where $p \in \{\text{AWS}, \text{Azure}, \text{GCP}\}$. The normalization function
+A critical issue in the platform architecture lies in mapping the provider-specific meta-data into a normalized schema that both the frontend and the database can understand uniformly. Let the provider-specific resource response be denoted by Xp where $X_p$, where $p \in \{\text{AWS}, \text{Azure}, \text{GCP}\}$. The normalization function
 \[
 f_p(X_p) = Y
 \]
@@ -144,10 +149,10 @@ def normalize_resource(provider: str, payload: dict) -> dict:
     raise ValueError("Unsupported provider")
 \end{lstlisting}
 
-This normalization layer is strategically important because it creates a stable boundary for the rest of the platform. Once a resource has been canonicalized, the frontend does not need to know whether the original cloud payload contained fields such as \texttt{provisioningState}, \texttt{InstanceState}, or \texttt{status}. That difference becomes a backend concern.
+It is essential to introduce this normalization layer because it sets up the necessary boundary condition for the rest of the platform. In cases where canonicalization has already taken place, it does not matter anymore what kind of field was present in the cloud payload; it could have been something like \texttt{provisioningState}, \texttt{InstanceState}, or status.
 
 \section{Task Scheduling and Retry Model}
-Cloud execution is unreliable in the short term even when the requested action is valid. APIs throttle, locks occur, capacity becomes temporarily unavailable, and dependent services may take time to reach a ready state. Nebula addresses this through a bounded retry model.
+The cloud environment, on its own, is not a reliable one in the short term, although the desired operation might be legitimate. The API can throttle, there will always be some kind of lock, capacity might be temporarily unavailable, and other services could still be initializing. This problem is solved using a bounded-retry approach within the Nebula framework.
 
 Let a task $T_j$ have an initial submission time $t_0$ and retry counter $r_j$. For retryable failures, the next scheduled attempt is defined by exponential backoff:
 \[
@@ -174,7 +179,7 @@ failed & user submits corrected payload & queued \\ \hline
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=2.0cm, auto, scale=0.9, every node/.style={scale=0.9}]
+\begin{tikzpicture}[node distance=3.5cm, auto, scale=2.9, every node/.style={scale=0.9}]
     \tikzstyle{state} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=7em, minimum height=2.6em]
     \tikzstyle{line} = [draw, -latex']
 
@@ -187,7 +192,7 @@ failed & user submits corrected payload & queued \\ \hline
     \draw [line] (queued) -- (running);
     \draw [line] (running) -- (completed);
     \draw [line] (running) -- node[right] {retryable error} (retry);
-    \draw [line] (retry.west) -| node[left] {backoff elapsed} (running.south);
+    \draw [line] (retry.south) -| node[below] {backoff elapsed} (running.south);
     \draw [line] (running) -- node[right] {hard failure} (failed);
     \draw [line] (failed.west) -| node[below] {corrected request} (queued.south);
 \end{tikzpicture}
@@ -195,10 +200,11 @@ failed & user submits corrected payload & queued \\ \hline
 \label{fig:task_lifecycle_diagram}
 \end{figure}
 
-The state model above ensures that the user interface can communicate meaningful progress. A resource is not simply "stuck"; it can be reported as queued, running, retry scheduled, completed, or failed. This matters for operational clarity because infrastructure tasks can span several minutes and users need trustworthy feedback during that period.
+This particular state model guarantees that the user interface is able to convey meaningful status. The resource is not just stuck; it might be queuing, in progress, in retry schedule, done, or failed. It is necessary in order to give the users reliable feedback while their task runs on the infrastructure that could take a few minutes to complete.
 
 \section{Mathematical Model for Credential Security}
-The security vault protects sensitive cloud secrets using a symmetric encryption model. We formalize this using standard cryptographic notation.
+The security vault encrypts sensitive cloud credentials based on a symmetric approach. Here is how this could be represented in terms of cryptography notation.
+
 
 \subsection{Encryption Foundation}
 Let $K$ be the unique, 128-bit master secret key stored as an environment variable.
@@ -207,7 +213,9 @@ Let $IV$ be a randomly generated Initial Vector (to prevent identical messages f
 
 The encryption process $E$ can be defined as:
 \[ C = E(K, M, IV) \]
-where $C$ is the resulting ciphertext. In the Nebula vault, we use a symmetric construction exposed through the Fernet interface, which combines confidentiality and message authentication. The essential property needed by the platform is that the database stores only ciphertext and associated metadata, never the original secret.
+where $C$ is the output ciphertext. Our Nebula vault uses a symmetric construction wrapped around the Fernet interface. The main characteristic that our application requires from this system is storing only the ciphertext along with metadata in the database.
+For two identical credentials M1 = M2 being encrypted separately, randomized encryption guarantees
+
 
 If two identical credentials $M_1 = M_2$ are encrypted independently, randomized encryption ensures
 \[
@@ -216,25 +224,32 @@ E(K, M_1, IV_1) \neq E(K, M_2, IV_2)
 whenever $IV_1 \neq IV_2$. This prevents direct equality inference from stored ciphertext values.
 
 \subsection{Decryption at Runtime (Worker Scope)}
-When a Celery worker picks up a task, it must materialize the credential $M$ to execute the Terraform plan. The decryption process $D$ is:
+For Celery to be able to run the Terraform plan, it requires to unseal the credential $M$. The algorithm $D$ looks as follows
+
 \[ M = D(K, C, IV) \]
-The security property ensured here is that even if the database is compromised, the cloud accounts remain better protected because $K$ is never stored in the database. More precisely, the compromise of storage alone does not imply compromise of the original credential. The attacker must also obtain the application-layer key material from the runtime environment.
+This security property means that in the event of data theft by an attacker, the security of cloud accounts is much better protected since the key $K$ will never be persisted in the database.
 
 \subsection{Operational Security Assumptions}
-The mathematical description is only meaningful when combined with operational assumptions. Nebula assumes:
+To be more precise, compromising the storage system by itself does not mean compromising the secret itself since the attacker should also steal application-layer key material used to perform decryption.
 \begin{enumerate}
-    \item the key $K$ is injected through a secure runtime channel rather than hard-coded in source,
-    \item worker memory is treated as trusted only for the duration of the task,
-    \item execution logs never print decrypted secret values,
-    \item key rotation invalidates old encryptions in a controlled migration path.
+    \item the key $K$  will never be hard-coded in the source code but delivered in a secure fashion via the runtime,
+    \item memory space used by a worker process can be considered trusted only within the scope of a particular job execution,
+    \item Decrypted secrets should never appear in execution logs,
+    \item Rotation of keys should invalidate previous encryptions.
 \end{enumerate}
 These assumptions are what connect the notation to a secure implementation practice.
 
 \section{Complexity Analysis of Resource Syncing}
-Nebula must periodically sync every user's resource inventory across multiple clouds.
-Let $N$ be the number of integrated cloud providers (AWS, Azure, GCP).
-Let $R_i$ be the number of resources in the $i$-th cloud provider.
-Let $T$ be the polling interval.
+Nebula needs to synchronize all users’ resource inventories periodically in many clouds. 
+
+$N$ is the number of cloud providers (AWS, Azure, and GCP), and Ri is the number of resources within the ith cloud provider. 
+
+$T$ is the polling period.
+
+
+The computation cost of a full synchronization cycle is $O$(ΣNi Ri). Because of the asynchronous task queue implementation, the delay from the user point of view is $O(1)$ compared to the synchronization process.
+In case the workload is distributed among $W$worker processes, the estimated synchronization time of a full cycle will be
+
 
 The total computational complexity of a full sync cycle is $O(\sum_{i=1}^{N} R_i)$. Since we use an asynchronous task queue, the perceived latency for the user is $O(1)$ relative to the sync operation itself.
 
@@ -244,8 +259,11 @@ If the sync work is parallelized across $W$ worker slots, the idealized processi
 \]
 subject to provider API rate limits and serialization points such as database writes. In practice, the observed time is bounded below by the slowest provider batch and bounded above by the total sequential scan.
 
+It depends on the API rate limiting of providers and serialization points like writing to databases. Practically speaking, the time taken will be bound from below by the longest provider batch and from above by the total sequential scan.
+
+
 \section{Decision Function for Cloud Selection}
-Although the current platform allows the user to choose the target provider directly, the architecture also supports an advisory provider-selection model. For a candidate provider $p$, Nebula can compute a suitability score
+While the existing system lets the user manually pick the desired provider, there is also support for an advisory-based selection process in which the system computes a score for a potential provider $p$
 \[
 S(p) = w_c C(p) + w_l L(p) + w_r R(p) + w_s Sec(p) + w_a A(p)
 \]
@@ -257,9 +275,10 @@ where:
     \item $Sec(p)$ is the security-policy compatibility score,
     \item $A(p)$ is the availability and capacity score.
 \end{itemize}
-The weight vector can be tuned based on workload class. For a regulated workload, $w_r$ and $w_s$ may dominate. For an experimentation workload, $w_c$ and $L(p)$ may carry more influence. This formulation is useful because it turns future automation features into explicit optimization problems instead of ad hoc heuristics.
+
+The weights used for this expression can depend on the type of workload. For a regulated workload, the $w_r$ and $w_s$ might dominate while, for experimentation, $w_c$ and $L(p)$ might hold more sway. It is useful in the sense that all the future automation capabilities translate to an optimization problem.
 
 \section{Discussion}
-The mathematical models in this chapter clarify the behavior of Nebula's core engine. The AI copilot is framed as a bounded classification-and-mapping problem, the resource inventory layer is expressed as a canonicalization function, retry behavior is described through a stateful backoff schedule, and credential protection is represented as controlled encryption and decryption over a secret key boundary. These formal views make the system easier to test, reason about, and extend. They also provide a strong bridge between the academic goals of the blackbook and the practical decisions embodied in the implementation chapters.
+The models presented in this chapter make the workings of the Nebula core engine clearer. The AI copilot is cast as a bounded classification and mapping task, the resource inventory layer is formulated as a canonicalization function, retrying is modeled as a stateful backoff schedule, and credential management is depicted as controlled encryption and decryption across a secret key boundary. Formal models like these improve the testability, analysis, and extensibility of the system, while at the same time making a clear connection between the objectives of the blackbook and the implementation chapters.
 
 \newpage

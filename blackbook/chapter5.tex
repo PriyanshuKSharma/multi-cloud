@@ -1,12 +1,12 @@
 % Chapter 5: Implementation (Extraordinary Expansion)
 \chapter{IMPLEMENTATION}
 
-The implementation layer is where the "Nebula Engine" resides. This chapter provides a deep-dive into the "Code and Workflows" that power the Nebula Multi-Cloud platform.
+The implementation layer is where the "Nebula Engine" resides. This chapter pro- vides a deep-dive into the "Code and Workflows" that power the Nebula Multi-Cloud platform.
 
 \section{Implementation Design Principles}
-1. \textbf{Separation of Concerns}: The user interface, API, and worker are isolated services.
-2. \textbf{Asynchronous Execution}: All expensive "Cloud Actions" are shifted to workers to preserve responsiveness.
-3. \textbf{Explicit State Transitions}: Every resource moves from "pending" to "active" or "failed."
+1. \textbf{Separation of Concerns}:  The API, worker and the user interface are separate services. \\
+2. \textbf{Asynchronous Execution}: All costly "Cloud Actions" are offloaded to workers to maintain responsiveness.. \\
+3. \textbf{Explicit State Transitions}: Each resource is either in the pending state or the active state or the failed state. \\
 4. \textbf{Security-by-Default}: Credentials remain encrypted at rest and are only materialized in memory during task execution.
 
 \section{Core Implementation Workflows (TikZ Diagrams)}
@@ -138,12 +138,13 @@ const Cockpit = () => {
 \end{lstlisting}
 
 \section{State Management Logic and Lifecycle}
-Nebula uses a combination of React Context and custom hooks to manage the infrastructure state across different cloud providers.
+The Nebula project utilizes both React Context as well as its own hooks for the management of infrastructure state on different cloud platforms.
 
 \begin{itemize}
     \item \textbf{Context Provisioning}: The \texttt{CloudProviderContext} stores the registration status of AWS, Azure, and GCP accounts globally.
-    \item \textbf{Effect Lifecycles}: When a resource status changes (e.g., from 'pending' to 'active'), a side-effect is triggered to refresh the local inventory without a full page reload.
-    \item \textbf{Memoization}: Large inventory tables are memoized using \texttt{useMemo} to ensure high performance even with 100+ resources.
+    \item \textbf{Effect Lifecycles}: If the state of the particular resource changes (for example, from 'pending' to 'active'), an effect is produced to update the local inventory without reloading the whole page.
+    \item \textbf{Memoization}: To keep the inventory lists with many rows performant, their memoization is implemented through.
+
 \end{itemize}
 
 \newpage

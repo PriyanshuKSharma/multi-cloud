@@ -1,42 +1,49 @@
 % Chapter 11: DevOps Pipeline and Release Engineering
 \chapter{DEVOPS PIPELINE AND RELEASE ENGINEERING}
+\thispagestyle{plain}
 
-Nebula is not only a software product but also a deployment system. For that reason, the surrounding DevOps pipeline is part of the technical contribution of the project. A control plane that manages infrastructure across clouds must itself be delivered through a repeatable, auditable, and low-risk release process. This chapter describes the release engineering practices that support that goal.
+In addition to being a piece of software, Nebula also constitutes a way of deploying the software. As such, the surrounding DevOps pipeline falls within the technical scope of the project. The infrastructure manager that governs multiple clouds also needs to be deployed through a reliable, reproducible, and low-risk release cycle. This chapter discusses the release engineering principles behind that endeavor.
 
 \section{Source Control and Branching Strategy}
-The codebase is best maintained through a branch strategy that separates active development from release-ready code. A simple and effective structure includes:
+Code management benefits greatly from a branching policy that distinguishes development and release activities. An efficient structure consists of:
+
 \begin{itemize}
-    \item \textbf{main}: production-ready branch with protected merges,
-    \item \textbf{develop}: integration branch for completed features,
-    \item \textbf{feature/*}: isolated task branches,
-    \item \textbf{hotfix/*}: urgent corrections to production-impacting issues.
+    \item \textbf{main}: branch for production releases with merge protection,
+    \item \textbf{develop}: branch for integrating finished features,
+    \item \textbf{feature/*}: task-specific branches,
+    \item \textbf{hotfix/*}: emergency fixes for critical production problems.
 \end{itemize}
 
-This model reduces release uncertainty because infrastructure changes, frontend changes, and backend changes can be reviewed together before they reach a shared environment. It also supports traceability: every release can be tied back to a known set of commits, pull requests, and approvals.
+
+The strategy minimizes risk during the release cycle by making it possible to review infrastructure changes, frontend changes, and backend changes simultaneously prior to deploying into a shared environment. Traceability is ensured since each release can be traced to its source code, pull requests, and approvals.
 
 \section{Build Artifacts and Versioning}
-Nebula produces several deployable artifacts:
+Nebula creates several artifacts ready for deployment:
+
 \begin{enumerate}
-    \item frontend static assets,
-    \item backend API container image,
+    \item frontend static resources,
+    \item backend API service image,
     \item worker container image,
-    \item Terraform module templates and shared configuration bundles,
+    \item Terraform module template and shared configuration bundle, 
+    \items database migrations scripts.
     \item database migration scripts.
 \end{enumerate}
 
-All artifacts should be versioned consistently using a release tag such as \texttt{v1.4.0}. The critical idea is that the API image, worker image, and schema migration state should correspond to the same release identity. Without that discipline, a debugging session becomes unnecessarily difficult because different parts of the system may be running incompatible assumptions.
+All these elements need to be released under consistent versioning using a specific tag, such as \texttt{v1.4.0}. The important point here is to align the versions of the API service image, worker service image, and the database migration status against the same release. Otherwise, the debugging process will become unnecessarily complex because various elements may be based on conflicting assumptions.
 
 \section{Continuous Integration Stages}
-The continuous integration pipeline acts as the first quality gate. At minimum, it should perform:
+The CI process serves as the first filter for ensuring software quality. In its minimal implementation, the continuous integration tool should run:
+
 \begin{itemize}
     \item backend static analysis and unit testing,
     \item frontend linting and build verification,
-    \item Terraform syntax validation for bundled templates,
-    \item schema migration validation,
-    \item API contract or smoke-style integration tests.
+    \item syntax validation of Terraform templates,
+    \item migration schema validation,
+    \item API contract or smoke test.
 \end{itemize}
 
-An important design decision is to treat Terraform templates as first-class code artifacts. Even if the backend and frontend pass their tests, a malformed module template can still break the actual business function of the platform. Therefore, the IaC layer should be validated alongside the application layer.
+
+The interesting aspect of this approach is that Terraform templates are considered as code artifacts. Although both the backend services and front end applications have passed all necessary tests, incorrectly structured Terraform template can make the entire platform unusable. Thus, the IaC layer must be tested along with the application layer.
 
 \subsection{Illustrative Pipeline Definition}
 \begin{lstlisting}[language=Python, caption=Representative CI Pipeline Skeleton]
@@ -75,59 +82,75 @@ package_worker:
 \end{lstlisting}
 
 \section{Environment Promotion Workflow}
-Releases should move progressively from lower-risk to higher-risk environments. A common pattern is:
+Releases must advance from environments that are less risky to more risky. The typical approach is to:
+
+It is critical that releases advance like this because it is possible for multi-cloud control plane releases to have issues that regular unit tests will not discover. This is because when deploying, problems may arise during the following scenarios:
+
 \begin{enumerate}
     \item merge reviewed code into the integration branch,
-    \item deploy automatically to a shared test environment,
-    \item execute smoke tests for login, queueing, and provider connectivity,
-    \item promote the same versioned artifact to staging,
-    \item require approval for production deployment,
-    \item monitor early production metrics closely after rollout.
+    \item automatically deploy to a shared test environment,
+    \item run smoke tests on login, queuing, and provider connection,
+    \item deploy the same artifact to the staging environment,
+    \item approving deployment to production,
+    \item closely watch early metrics after deploying to production.
 \end{enumerate}
 
 This progression matters because a multi-cloud control plane can fail in subtle ways that ordinary unit tests do not catch. A release may look healthy until it attempts provider authentication, state reconciliation, or asynchronous task execution with live infrastructure APIs. Promotion through increasingly realistic environments is therefore a core risk-reduction strategy.
 
 \section{Secrets and Configuration Management}
+The release pipeline should know how to separate code from environment-dependent sensitive data. The following list contains items that should never be kept in source control:
+
+
 The release pipeline must distinguish between code and environment-specific secret material. The following items should never be embedded in source control:
 \begin{itemize}
     \item master encryption keys,
     \item production database credentials,
-    \item provider service principal secrets,
-    \item external AI or API tokens.
+    \item service principal password,
+    \item third-party API tokens.
 \end{itemize}
 
-Configuration should instead be injected at runtime through environment variables, secret stores, or orchestrator-native secret mechanisms. This approach supports safer rotation, reduces accidental leakage, and keeps the codebase portable between environments.
+
+These configuration parameters should be injected at runtime via environmen- tal variables or secret management systems. This will help with secure rotation, minimize risk of leakage and maintain portability of the codebase across environments.
 
 \section{Containerization Strategy}
-Containerization is valuable for Nebula because it stabilizes execution across environments. The API, worker, database, and broker can be composed predictably, making it easier for developers to reproduce production-adjacent behavior on local systems. The main benefits are:
+Containerization will bring value to the Nebula application since it will guaran- tee consistent execution environment. API, workers, databases, and brokers are composable components that can be reproduced by developers on their local environments. Benefits include:
+
 \begin{itemize}
     \item consistent runtime dependencies,
-    \item simpler onboarding,
-    \item versioned deployment artifacts,
-    \item clear service boundaries,
-    \item easier rollback to known-good images.
+    \item easy onboarding process,
+    \item versioned artifact deployments,
+    \item defined boundaries of services,
+    \item rollback mechanism to known good versions.
 \end{itemize}
 
-However, containerization alone does not guarantee operational quality. Images still need vulnerability review, startup probes, health endpoints, and logging standards. This is especially relevant for the worker container, which handles secret decryption and Terraform execution.
+
+Containerization is not enough to ensure operational reliability. Container images require additional review of vulnerabilities, health checks, startup probes, and proper logging. It is particularly critical for the worker container which uses secrets and manages the execution of Terraform.
 
 \section{Database Migration Discipline}
-Schema changes are one of the most common sources of release fragility. Nebula stores users, credentials, task records, and resource state, so a careless migration can affect both security and availability. A responsible migration policy includes:
+Migration of schemas is another frequent cause of fragile releases. Nebula holds information about users, credentials, tasks, and resource states; an irresponsible migration could impact security and availability. In such a case, a well-thought-out migration strategy should consider:
+
 \begin{enumerate}
-    \item forward-only migrations where possible,
-    \item explicit review of nullable-to-non-null changes,
-    \item data backfills as controlled release steps,
-    \item backups before destructive changes,
-    \item smoke tests against the migrated schema.
+    \item migrating forward only when possible,
+    \item reviewing nullable-to-non-nullable changes explicitly,
+    \item performing data backfills as release steps,
+    \item backing up data before any destructive migration steps,
+    \item conducting smoke tests on the migrated schema.
 \end{enumerate}
 
 \section{Rollback Strategy}
-Rollback must be defined differently for code, configuration, and infrastructure:
+Each part of a release has its rollback strategies:
+
+
+
 \begin{itemize}
-    \item \textbf{Code rollback}: redeploy previous API and worker images.
-    \item \textbf{Configuration rollback}: restore known-good environment settings and feature flags.
-    \item \textbf{Infrastructure rollback}: apply carefully reviewed reverse changes rather than assuming all cloud resources can be reverted instantly.
+    \item \textbf{API code rollback}: rdeploying previous versions of API and worker images. 
+    \item \textbf{Configuration rollback}: reverting to proven configurations and feature flags.
+    \item \textbf{Infrastructure rollback}: mplementing reverse changes from a thorough review, not assuming immediate cloud infrastructure rollback.
 \end{itemize}
-This distinction is important because a release may fail at one layer but remain healthy at another. For example, the API code may be safe to roll back while the database schema remains forward compatible.
+
+
+The difference between the three kinds of rollback is important since it might be that the release failed in one domain but succeeded in others. For instance, the API code is stable enough to be rolled back, whereas the database schema still supports backward compatibility.
+
 
 \section{Release Readiness Checklist}
 \begin{table}[H]
@@ -148,6 +171,6 @@ Rollback note prepared & Recommended & accelerates incident response \\ \hline
 \end{table}
 
 \section{Discussion}
-The DevOps pipeline is not separate from the product; it is part of the product's reliability envelope. Nebula aims to reduce operational complexity for its users, and it must apply the same discipline to itself. By versioning artifacts, validating infrastructure templates, managing secrets outside source code, and promoting releases through controlled environments, the platform becomes easier to trust and easier to maintain. These practices also strengthen the academic value of the project because they show awareness of the full software lifecycle rather than implementation in isolation.
+DevOps pipeline is no different from any other element that comprises the product itself; this element constitutes an integral part of the reliability envelope of the product. The idea behind Nebula is to decrease the complexity associated with operations for the sake of its users. For the same reason, the development team needs to practice discipline while building the very platform itself by applying such measures as versioning of artifacts, validation of infrastructure templates, use of secrets management outside the source code, and release promotion across multiple stages.
 
 \newpage

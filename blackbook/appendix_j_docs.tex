@@ -1,9 +1,49 @@
 % Appendix J: Imported Documentation Diagrams
 \chapter{DOCUMENTATION DIAGRAMS IMPORTED FROM docs/}
-
 This appendix consolidates the visual diagrams already present in the project's \texttt{docs/} directory and makes them part of the formal blackbook. The blocks below are adapted from the source documentation files so that the report preserves the same architectural views, flow descriptions, and structural summaries used by the engineering documentation.
 
-\section{Diagrams from README.md}
+\subsection{Component Interaction Diagram}
+\textbf{Source:} \texttt{docs/README.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Component Interaction Diagram Adapted from docs/README.md}]
++--------------------------- FRONTEND ------------------------------+
+| +-----------+   +-------------+   +-------------+                 |
+| | Dashboard  |-->| React Query |-->| Axios API   |                |
+| | Component  |   |   Cache     |   |   Client    |                |
+| +-----------+   +-------------+   +------+------+                 |
++--------------------------------------------|----------------------+
+                                             | HTTP/JSON
+                                             v
++--------------------------- BACKEND -------------------------------+
+| +-------------------------------------------------------------+   |
+| | FastAPI Application                                         |   |
+| | +-----------+ +-----------+ +-------------+                 |   |
+| | |Middleware | | Routers   | |Dependencies |                 |   |
+| | | CORS      | | /auth     | | get_db()    |                 |   |
+| | | Auth      | | /dashboard| | get_user()  |                 |   |
+| | | Logging   | | /inventory| |             |                 |   |
+| | +-----------+ +-----------+ +-------------+                 |   |
+| | Endpoint handlers query and prepare response payloads       |   |
+| +-----------------------------+-------------------------------+   |
+|                               |                                   |
+|                               v                                   |
+|                    +---------------------------+                  |
+|                    | SQLAlchemy ORM            |                  |
+|                    | session.query(...).all()  |                  |
+|                    +-------------+-------------+                  |
++----------------------------------|--------------------------------+
+                                   v
++-------------------------- POSTGRESQL ------------------------------+
+| tables: users, credentials, resource_inventory, cost_data,         |
+| provider_health, terraform_states, resources                       |
++--------------------------------------------------------------------+
+
+CELERY WORKER INTERACTION: Celery Beat --> Redis Queue --> Celery Worker --> PostgreSQL
+
+
+\end{lstlisting}
+
+% \newpage
+\section{Diagrams from the Repository}
 
 \subsection{High-Level Architecture}
 \textbf{Source:} \texttt{docs/README.md}
@@ -29,9 +69,9 @@ This appendix consolidates the visual diagrams already present in the project's 
 |   +---------------------------+-------------------------------+   |
 |                               |                                   |
 |   +---------------------------v-------------------------------+   |
-|   | Celery Workers                                             |   |
-|   | - AWS Sync Service    - Azure Sync Service                 |   |
-|   | - GCP Sync Service    - Terraform Provisioning Tasks       |   |
+|   | Celery Workers                                            |   |
+|   | - AWS Sync Service    - Azure Sync Service                |   |
+|   | - GCP Sync Service    - Terraform Provisioning Tasks      |   |
 |   +---------------------------+-------------------------------+   |
 +-------------------------------+-----------------------------------+
                                 |
@@ -116,46 +156,6 @@ Celery Worker normalizes data
 PostgreSQL resource_inventory
 \end{lstlisting}
 
-\subsection{Component Interaction Diagram}
-\textbf{Source:} \texttt{docs/README.md}
-\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Component Interaction Diagram Adapted from docs/README.md}]
-+--------------------------- FRONTEND ------------------------------+
-| +-----------+   +-------------+   +-------------+                |
-| | Dashboard  |-->| React Query |-->| Axios API   |               |
-| | Component  |   |   Cache     |   |   Client    |               |
-| +-----------+   +-------------+   +------+------+               |
-+--------------------------------------------|----------------------+
-                                             | HTTP/JSON
-                                             v
-+--------------------------- BACKEND -------------------------------+
-| +-------------------------------------------------------------+  |
-| | FastAPI Application                                         |  |
-| | +-----------+ +-----------+ +-------------+                 |  |
-| | |Middleware | | Routers   | |Dependencies |                 |  |
-| | | CORS      | | /auth     | | get_db()    |                 |  |
-| | | Auth      | | /dashboard| | get_user()  |                 |  |
-| | | Logging   | | /inventory| |             |                 |  |
-| | +-----------+ +-----------+ +-------------+                 |  |
-| | Endpoint handlers query and prepare response payloads       |  |
-| +-----------------------------+-------------------------------+  |
-|                               |                                  |
-|                               v                                  |
-|                    +---------------------------+                  |
-|                    | SQLAlchemy ORM            |                  |
-|                    | session.query(...).all()  |                  |
-|                    +-------------+-------------+                  |
-+----------------------------------|--------------------------------+
-                                   |
-                                   v
-+-------------------------- POSTGRESQL -----------------------------+
-| tables: users, credentials, resource_inventory, cost_data,       |
-| provider_health, terraform_states, resources                     |
-+------------------------------------------------------------------+
-
-CELERY WORKER INTERACTION
-
-Celery Beat --> Redis Queue --> Celery Worker --> PostgreSQL
-\end{lstlisting}
 
 \subsection{Dashboard Request Flow Example}
 \textbf{Source:} \texttt{docs/README.md}
@@ -174,7 +174,7 @@ Celery Beat --> Redis Queue --> Celery Worker --> PostgreSQL
 12. Dashboard re-renders with real metrics and charts
 \end{lstlisting}
 
-\section{Diagram from BACKEND.md}
+\section{Diagrams for BACKEND}
 
 \subsection{Backend Project Structure}
 \textbf{Source:} \texttt{docs/BACKEND.md}
@@ -237,7 +237,7 @@ backend/
 `-- .env.example
 \end{lstlisting}
 
-\section{Diagram from DATABASE.md}
+\section{Diagrams for DATABASE}
 
 \subsection{Database Entity Relationship Diagram}
 \textbf{Source:} \texttt{docs/DATABASE.md}
@@ -287,7 +287,8 @@ Additional user-owned operational tables:
 - provider_health(user_id FK)
 \end{lstlisting}
 
-\section{Diagram from CELERY.md}
+\newpage
+\section{Diagrams for CELERY}
 
 \subsection{Celery Architecture}
 \textbf{Source:} \texttt{docs/CELERY.md}
@@ -339,7 +340,8 @@ Additional user-owned operational tables:
 +-----------------------------------------------------------+
 \end{lstlisting}
 
-\section{Diagrams from SECURITY.md}
+\newpage
+
 
 \subsection{Security Layers}
 \textbf{Source:} \texttt{docs/SECURITY.md}
@@ -389,7 +391,6 @@ Database -> Encrypted Blob -> AES-256 Decryption -> Plain Credential
                                    (with SECRET_KEY)
 \end{lstlisting}
 
-\section{Diagrams from SUMMARY.md}
 
 \subsection{High-Level Components}
 \textbf{Source:} \texttt{docs/SUMMARY.md}
@@ -417,14 +418,14 @@ Database -> Encrypted Blob -> AES-256 Decryption -> Plain Credential
 +-----------------------------------------------------------+
 |                        API LAYER                          |
 |                     FastAPI Backend                       |
-|      (Auth, Dashboard, Inventory, Billing, Resources)    |
+|      (Auth, Dashboard, Inventory, Billing, Resources)     |
 +--------------------------+--------------------------------+
                            |
                            v
 +-----------------------------------------------------------+
 |                 PRESENTATION LAYER                        |
 |                    React Frontend                         |
-|      (Dashboard, VMs, Storage, Deployments, Costs)       |
+|      (Dashboard, VMs, Storage, Deployments, Costs)        |
 +-----------------------------------------------------------+
 \end{lstlisting}
 
@@ -563,4 +564,4 @@ multi-cloud/
 `-- README.md
 \end{lstlisting}
 
-\newpage
+% \newpage

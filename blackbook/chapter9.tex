@@ -1,10 +1,10 @@
 % Chapter 9: Future Scope and Ethical Considerations
 \chapter{FUTURE SCOPE AND ETHICAL CONSIDERATIONS}
 
-As the cloud computing landscape evolves, the "Unified Command Center" model established by Nebula provides a foundation for more advanced orchestration techniques. The current system proves the feasibility of a secure, asynchronous, multi-cloud control plane. The next step is to understand where that foundation can realistically grow and what ethical boundaries must guide that growth. Future work is therefore not only a matter of adding features; it is also a question of how those features should behave when they affect cost, reliability, security, and human decision-making.
+The evolution of the cloud computing field means that the "Unified Command Center" paradigm defined by Nebula has laid out an initial groundwork for better orchestration techniques. The present setup has demonstrated that a reliable, asynchronous, and multicloud based control plane is possible. Now the key issue becomes what further developments could realistically build on the initial groundwork and what ethical considerations will need to be taken into account when defining such development paths. The future is not about just developing new functions, but also about how to behave when performing these functions.
 
 \section{Future Research and Enhancements}
-The following roadmap areas represent the most natural directions for extending the platform from a student-grade orchestration engine into a more production-oriented control plane.
+Though Nebula already provides management services for basic cloud infrastructure components such as virtual machines, storage, and networking primitives, its next significant step might be unification of the management of serverless computing functions. One "Nebula Function" should be able to provide all necessary resources needed for its deployment on platforms like AWS Lambda, Azure Functions, and Google Cloud Functions. The benefit from it will be especially high for those organizations that need regional redundancy without having separate deployment pipelines for each one.
 
 \begin{figure}[H]
 \centering
@@ -36,43 +36,45 @@ The following roadmap areas represent the most natural directions for extending 
 While Nebula currently manages core infrastructure such as virtual machines, storage, and networking primitives, a major future expansion is unified management of serverless functions. A single "Nebula Function" could be expressed once and then translated into deployment artifacts for AWS Lambda, Azure Functions, and Google Cloud Functions. This capability would be especially valuable for teams that want regional resilience without maintaining multiple provider-specific deployment pipelines. A follow-up research problem here is how to normalize differences in trigger models, packaging constraints, timeout policies, and cold-start behavior across clouds without creating a misleading abstraction.
 
 \subsection{Auto-Failover and Disaster Recovery (DR)}
-A more advanced feature is "Zero-Touch Failover." If an entire region or service family degrades, Nebula could trigger a controlled Terraform plan to recreate essential infrastructure on an alternate provider or alternate region. In practice, this should not be framed as a magical promise of \(100\%\) uptime. Real disaster recovery involves trade-offs in data freshness, DNS propagation, configuration drift, and regulatory constraints. A serious implementation would therefore need recovery tiers such as cold standby, warm standby, and active-active strategies. Nebula is well-positioned to become the orchestration layer for such strategies because it already owns the workflow for provisioning, synchronization, and failure interpretation.
+The next more sophisticated one would be “Zero-Touch Failover.” In case of degradation of a whole region or even of an entire family of services, Nebula can launch Terraform plan that will reconstruct necessary infrastructure in an alternative provider/region altogether. This should be taken not as a guarantee of \(100\%\) uptime. Disaster Recovery entails tradeoffs when it comes to data freshness, DNS propaga- tion time, configuration divergence, and other legal issues. Thus, a serious Disaster Recovery system would include several levels of failover including cold site, warm site, and active-active site, among others. And Nebula, once again, would fit in perfectly since it already possesses the pro- visioning cycle process.
 
 \subsection{AI-Powered Cost Optimization}
-The current AI Copilot focuses on failure analysis. Future versions can expand into economic analysis by observing idle resources, burst patterns, storage growth, and underutilized compute allocations. Rather than acting as a generic chatbot, the copilot could become a FinOps assistant that explains why a workload is expensive and what alternative deployment strategy would reduce cost. This might include suggestions such as moving background jobs to spot-friendly regions, replacing oversized virtual machines with right-sized instances, or using object lifecycle policies to archive rarely accessed data.
+In terms of the current AI Copilot, its focus is failure analysis. In future iterations, it can extend to economic analysis through idle resource detection, burst profiling, storage capacity expansion, and compute underutilization detection. Instead of serving as an all-purpose chatbot, it can serve as a FinOps copilot that will explain why a workload is costly and how a different approach to deployment will lower costs. Examples of such advice would be to use spot-optimized regions for background tasks, replace overprovisioned virtual machine instances with optimal ones, and implement lifecycle management of rarely accessed objects.
 
 \subsection{Kubernetes and Managed Container Platforms}
-Most modern multi-cloud strategies eventually involve containers. Future versions of Nebula should support lifecycle operations for EKS, AKS, and GKE, beginning with cluster discovery and basic provisioning, and then moving toward node pool scaling, ingress setup, policy templates, and workload rollout visibility. Supporting container platforms would make Nebula relevant to a much broader set of workloads, but it would also require more sophisticated identity handling, state reconciliation, and health reporting.
+A related direction would involve having policies enforced prior to infrastruc- ture modifications. A policy engine would enforce region-based restrictions, mandatory tags, encryption requirements, naming standards, and network exposure policies. The end result would make Nebula more than an execution plane; it would be a control plane aware of governance concerns. From an academic perspective, policy enforcement actions would include logging along with reasons for enforcement, ensuring that when a user’s deployment fails, they know not only that it failed, but why.
 
 \subsection{Policy-as-Code and Compliance Guardrails}
-Another important direction is the introduction of policy enforcement before infrastructure changes are applied. A policy engine could validate region restrictions, required tags, encryption requirements, naming conventions, and network exposure rules. This would shift Nebula from being only an execution plane into becoming a governance-aware control plane. For academic completeness, policy decisions should be logged with explanations so that users understand not only that a deployment was blocked, but why it was blocked.
+First, the capability provided by such an orchestration layer implies certain ethical obligations, which follow from the nature of the capabilities offered. Specifically, the orchestration layer enables one to provision, manipulate and destroy cloud resources on several clouds. In other words, the orchestration layer is anything but neutral in terms of ethical implications, and hence the degree of protection it offers should be considered an integral part of the layer’s ethics.
 
 \subsection{Edge and Hybrid Resource Awareness}
-Many organizations operate outside the public cloud alone. Branch offices, factory devices, research clusters, and on-premise virtualization stacks still matter. A mature version of Nebula could therefore evolve toward hybrid and edge awareness by incorporating agents or connectors that report local infrastructure into the same canonical inventory model. This is a challenging but important direction because it would test whether the control-plane abstractions developed in this project are robust beyond the public cloud environment.
+Organizations do not exist solely within the confines of the public cloud. Branch offices, factory machinery, research environments, and private virtualization systems all play their roles. A mature Nebula implementation would eventually move into hy- brid and edge environments through integration with agents or connectors reporting on local infrastructure to fit into the same canonical inventory framework. While difficult, this approach is essential because it will test the control-plane abstrac- tions created in this project beyond the public cloud environment.
 
 \section{Ethical and Security Considerations}
-The technical power of a unified orchestration layer introduces non-trivial ethical responsibilities. A platform that can provision, modify, or destroy resources across multiple clouds is not neutral by design; it amplifies human intent. As a result, the quality of its safeguards is part of its ethical profile.
+First, the capability provided by such an orchestration layer implies certain ethical obligations, which follow from the nature of the capabilities offered. Specifically, the orchestration layer enables one to provision, manipulate and destroy cloud resources on several clouds. In other words, the orchestration layer is anything but neutral in terms of ethical implications, and hence the degree of protection it offers should be considered an integral part of the layer’s ethics.
 
 \subsection{Data Sovereignty and GDPR}
-In a multi-cloud environment, data residency is a major ethical concern. Nebula must ensure that sensitive or regulated data stays within approved geographic regions even when infrastructure is being provisioned across multiple providers. It is not enough to expose region choice as a dropdown and assume the user will select correctly. A safer design is to encode geographic guardrails into the orchestration layer so that non-compliant plans are blocked early. This principle is especially important for environments that serve educational, healthcare, financial, or governmental workloads.
+One of the most important ethical issues associated with using Nebula in the multi-cloud context relates to data residency. The application has to ensure that any sensitive information remains only in those geographic locations that are authorized. Simply putting the region option in the form of a dropdown menu does not help here since users may choose the wrong value. Instead, some geographic limitations should be embedded at the orchestration layer level, preventing the deployment of unauthorized plans.
+
 
 \subsection{The Power of a Unified API}
-Centralizing cloud access keys into a single platform creates a high-value target for attackers. The ethical responsibility of the developer is therefore to minimize concentrated risk. That includes strong runtime isolation, key rotation, principle-of-least-privilege credentials, aggressive log scrubbing, and clear audit trails. The user should always know what action was requested, who requested it, which provider was touched, and what credentials or roles were involved conceptually, even if the raw secrets remain hidden.
+Concentration of cloud access keys to one platform presents a high-value target for the attacker. Hence, the role of the developer ethically is to mitigate this risk of concentration. Runtime isolation, key rotation, use of credentials based on the principle of least privilege, log scrubbing, and audit trail are the ways of accomplishing it. It is imperative that the user knows which request action he made, what provider got affected, which credential and roles got impacted, etc.
 
 \subsection{AI Explainability and Human Oversight}
-If the platform offers AI-generated remediation or optimization advice, that advice must be explainable enough for an operator to evaluate it. Recommendations that cannot be traced to evidence in the log stream or to explicit policy rules should not be applied automatically. Human oversight is therefore not a convenience feature; it is a governance requirement. This is especially true in failure situations, where the pressure to accept the first plausible recommendation can be high.
+In case the platform is equipped with artificial intelligence-driven recommendations, these recommendations must be explainable to the operator to make sure he has enough visibility to justify the applicability of such a recommendation. Any recommendation that cannot be justified from the log stream or by referring to a set of policies cannot be acted upon blindly by the operator. Failure scenarios are prone to this risk even more.
+
 
 \subsection{Cost Fairness and Organizational Transparency}
-Cloud spending decisions have organizational consequences. An orchestration platform that recommends one provider or one region over another should be transparent about the basis of that recommendation. Hidden heuristics can distort team priorities or create false confidence in cost projections. Ethical design here means exposing the decision criteria, including performance assumptions, compliance constraints, and cost weights.
+The choice of cloud service providers and locations is not without organizational repercussions. An orchestration platform that prioritizes one vendor or location over another must disclose its decision-making process, which may include performance requirements, compliance issues, and cost considerations. In this context, ethical design implies transparency regarding the factors considered when making the decision.
 
 \subsection{Environmental Sustainability}
-Cloud abstraction can accidentally distance users from the environmental impact of infrastructure choices. A useful future enhancement would be a sustainability score that estimates the relative cost of overprovisioning, idle resources, and unnecessary replication. While such a score would necessarily be approximate, it would help teams connect infrastructure efficiency with broader environmental responsibility.
+Abstraction through cloud computing could unintentionally alienate cloud users from their responsibility to the environment. One possible improvement for the future would be a sustainability metric that can quantify the cost associated with over-provisioned, unused, or redundant infrastructure. Even though it will remain an estimate, it will bring users' attention to the issue of energy consumption by the cloud infrastructure.
 
 \section{Governance Guidelines for Responsible Operation}
-To deploy a platform like Nebula responsibly, the following governance principles should be observed:
+In order to responsibly implement a platform such as Nebula, it is necessary to adhere to the following governance principles:
 \begin{enumerate}
     \item \textbf{Approval boundaries}: destructive operations should require explicit confirmation or policy approval.
-    \item \textbf{Least privilege}: provider credentials should be scoped narrowly to the resources and actions actually needed.
+    \item \textbf{Least privilege}:  credentials for providers should be limited only to the resources and activities that are necessary.
     \item \textbf{Auditable actions}: every provisioning, deletion, and remediation event should be attributable to a user or automation identity.
     \item \textbf{Policy transparency}: enforcement rules should be documented and visible to operators.
     \item \textbf{Human-in-the-loop AI}: automated suggestions should remain reviewable before irreversible changes occur.
@@ -82,22 +84,22 @@ To deploy a platform like Nebula responsibly, the following governance principle
 % Chapter 10: Deployment and Operations Playbook
 \chapter{DEPLOYMENT AND OPERATIONS PLAYBOOK}
 
-This chapter translates the system design into an operational playbook. Whereas the appendix user manual focuses on local setup and user actions, the present chapter focuses on environment topology, release management, operations discipline, and support procedures. It answers an important practical question: once Nebula exists, how should a team run it reliably?
+The present chapter converts the system design into actionable steps. While the appendix user manual addresses itself to local configurations and usage, the present chapter deals with the environment architecture, release management, operational best practices, and support processes. An important practical question answered by the present chapter is how to maintain a reliable Nebula once it exists.
 
 \section{Environment Topology}
-Nebula is best operated across multiple environments with controlled promotion between them. A sensible baseline consists of:
+The best way to operate \texttt{Nebula} is to do so in a multi-environment setup that has controlled environment promotions. The recommended base configuration includes:
 \begin{itemize}
-    \item \textbf{Local development}: individual developer workstations with mocked or sandbox credentials.
-    \item \textbf{Shared integration}: a common environment used for API, UI, and worker compatibility testing.
-    \item \textbf{Staging}: a near-production deployment with realistic secrets management and cloud sandboxes.
-    \item \textbf{Production}: the live control plane used by authenticated operators.
+    \item \textbf{Local development}: individual developer machines using mocked/sandboxed credentials.
+    \item \textbf{Shared integration}: an environment to test APIs/UI/worker compatibilities.
+    \item \textbf{Staging}: a near-production configuration with realistic secrets management and sandbox clouds.
+    \item \textbf{Production}: actual live control plane using authenticated operators.
 \end{itemize}
 
-Each environment should use separate databases, brokers, and encryption keys. This separation reduces accidental cross-contamination and makes rollback decisions safer.
+Different database, broker, and encryption key usage should be maintained per environment.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=2.1cm, auto, scale=0.88, every node/.style={scale=0.88}]
+\begin{tikzpicture}[node distance=2.0cm, auto, scale=0.78, every node/.style={scale=0.78}]
     \tikzstyle{env} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=8em, minimum height=3em]
     \tikzstyle{line} = [draw, -latex']
 
@@ -115,14 +117,16 @@ Each environment should use separate databases, brokers, and encryption keys. Th
 \end{figure}
 
 \section{Release Pipeline}
-A robust release pipeline should ensure that both application code and infrastructure definitions move through quality gates before they reach operators. The recommended stages are:
+The pipeline for code releases needs to have the following stages:
+
 \begin{enumerate}
-    \item static validation of backend, frontend, and Terraform files,
-    \item unit testing of validation logic, API behavior, and utility functions,
-    \item integration testing of queue workflows and database persistence,
+    \item static code validation of backend, frontend and Terraform files,
+    \item unit testing of the validation code, API operations and utility functions,
+    \item integration testing of queue workflow, data persistence to database,
     \item sandbox deployment using non-production cloud credentials,
-    \item manual review of release notes for security-impacting changes,
-    \item controlled rollout to staging and then production.
+    \item sandboxing with non-production credentials in cloud services provider environment,
+    \item security review of release notes for any impact on security,
+    \item gradual deployment to staging and production environments.
 \end{enumerate}
 
 \subsection{Illustrative CI/CD Flow}
@@ -173,6 +177,7 @@ jobs:
 
 \section{Operational Readiness Checklist}
 Before enabling the platform for active user traffic, the following readiness checks should be completed:
+
 \begin{table}[H]
 \centering
 \caption{Operational Readiness Checklist}
@@ -191,39 +196,56 @@ Backup job verification & recommended & last successful snapshot within policy w
 \end{table}
 
 \section{Observability and Service Levels}
-The operations team needs more than container logs. A healthy deployment should emit:
+The operations team would require more information than logs from containers. In a good deployment, the system would output:
+ 
+
 \begin{itemize}
-    \item API latency metrics,
-    \item worker throughput and retry counts,
-    \item task failure categories by provider,
-    \item inventory reconciliation lag,
-    \item authentication failure trends,
-    \item database connection saturation,
-    \item queue depth over time.
+    \item latency stats for APIs,
+    \item throughput of workers and retries,
+    \item failure reasons grouped by provider,
+    \item time to reconciliation,
+    \item trends in authentication failures,
+    \item saturation of database connections,
+    \item length of queue over time.
 \end{itemize}
 
-From these signals, a small but useful service-level framework can be defined. For example, interactive API requests should remain fast, queued tasks should begin execution within a bounded time under normal load, and failed tasks should always produce an auditable reason. These are realistic service promises for a control plane and align more closely with user expectations than raw infrastructure uptime alone.
+Based on all this data, we can construct some basic SLO framework. For instance, interactive API calls need to have low latency, queue tasks need to be executed with certain guarantees, and failing tasks must provide an explainable reason. All this is achievable and relevant for SLOs in control plane applications.
 
 \section{Backup, Recovery, and Rollback}
-Production operation also requires explicit recovery planning. The following assets should be protected:
+Furthermore, production operations require recovery plans. The following items would need protection:
+
+
+
+
+
 \begin{enumerate}
-    \item PostgreSQL state, including users, credentials, resources, and task metadata,
-    \item configuration files and Terraform module templates,
-    \item container images and release manifests,
-    \item audit trails and operational logs required for investigation.
+    \item the PostgreSQL database state - users, roles, resources and task info,
+    \item configuration files and templates for Terraform modules,
+    \item images and releases,
+    \item logs and other operational data used in debugging.
 \end{enumerate}
 
-Rollback should be treated differently at each layer. Application rollback may involve reverting the API and worker images to a previous version. Database rollback is more sensitive and often requires forward fixes instead of reversal. Terraform rollback must also be handled carefully because infrastructure state may already have changed externally. For that reason, the safest release design is progressive rollout with smoke tests rather than large, all-at-once production changes.
+Rollbacks need special handling at each layer. Rollback in applications could entail rolling back the API and workers back to an earlier image. Rollback in databases can be tricky since it involves making forward changes instead of backwards ones.
+
+In addition, Terraform rollbacks can be difficult since the infrastructure state has possibly been modified. Therefore, the best way to do a deployment is through progressive releases accompanied by smoke tests rather than large production releases.
 
 \section{Incident Handling Model}
-When a user-facing incident occurs, the platform should follow a standard triage model:
+In the case of a user impact incident, the following needs to happen:
+ 
+
+
+
+
+document remediation steps and post-incident actions.
+
 \begin{enumerate}
-    \item classify the incident as authentication, provider outage, queue backlog, database issue, or application regression,
-    \item identify whether the blast radius is single-user, single-provider, or system-wide,
-    \item preserve diagnostic evidence such as task logs and recent configuration changes,
-    \item stabilize the system by pausing risky automation if required,
-    \item communicate status clearly to affected users,
-    \item document remediation steps and post-incident actions.
+    \item Classify the incident as either authentication problem,
+    \item provider outage, queues, database issues, or application regression.
+    \item Determine whether the blast radius involves single users, providers, or the entire system.
+    \item Collect diagnostic information like task logs and recent configuration changes.
+    \item Stabilize the system through halting any dangerous automations.
+    \item Communicate with users on the situation.
+    \item Document remediation steps and post-incident actions.
 \end{enumerate}
 
 \subsection{Example Runbook Entry}
@@ -242,15 +264,18 @@ Database saturation & shed non-critical jobs & optimize queries and add pooling 
 \end{table}
 
 \section{Change Management and Team Workflow}
-Operating a multi-cloud control plane requires disciplined change management because even small bugs can affect multiple providers at once. Teams should therefore distinguish between:
+Running a multi-cloud control plane requires diligent change management because any bug could impact more than one cloud provider simultaneously. Therefore, the following distinctions must be made when managing changes in software:
+
 \begin{itemize}
-    \item \textbf{feature releases}, which add capabilities such as new resource types,
-    \item \textbf{operational releases}, which change logging, retries, concurrency, or observability,
-    \item \textbf{security releases}, which affect authentication, secrets, or provider permissions.
+    \item \textbf{feature changes}, that introduce new capabilities, like new resource types,
+    \item \textbf{operation changes}, that include changes to logging, retry,
+    \item \textbf{security releases}, concurrency, and observability,
+    \item \textbf{security changes}, including anything involving authentication, credentials, and provider permissions.
 \end{itemize}
-This classification helps prioritize review depth and testing strategy. For example, a change to the retry scheduler should trigger load-focused regression testing, whereas a change to credential handling should trigger security-focused review and staged rollout.
+
+The differences are important for planning how much review and testing is needed. For instance, changes to the retry scheduler should lead to stress testing, while changes to credentials should involve thorough security reviews.
 
 \section{Why This Playbook Matters}
-Many student projects stop at architecture diagrams or source code walkthroughs. In real systems, however, operational discipline is what determines whether architecture survives contact with users. This chapter therefore extends the contribution of the blackbook beyond implementation. It shows that the platform has been considered not only as software to be written, but as a service to be run, monitored, supported, and improved over time.
+A lot of student projects usually end up with architectural diagram analysis and source code description. In practice, however, operational discipline will decide on survival of architecture when faced with real users. This chapter goes further than that contribution of the blackbook as it demonstrates that the platform was evaluated not only as an implementation task, but also as a service to be operated and improved upon. 
 
 \newpage
