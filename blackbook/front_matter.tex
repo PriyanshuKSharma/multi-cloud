@@ -4,17 +4,18 @@
     \centering
     \vspace*{1cm}
     
-    {\Huge \textbf{CONTAMINATION-AWARE WASTE CLASSIFICATION SYSTEM}} \\[1.5cm]
+    {\Huge \textbf{NEBULA: THE MULTI-CLOUD COMMAND CENTER}} \\[0.5cm]
+    {\Large \textit{A Unified Orchestration Engine for AWS, Azure, and Google Cloud Platform}} \\[1.5cm]
     
     {\Large Thesis submitted in partial fulfilment of the requirements of the degree of} \\[0.5cm]
     {\Large \textbf{Bachelor of Technology}} \\[0.5cm]
     {\Large in} \\[0.5cm]
-    {\Large \textbf{Information Technology and Data Science}} \\[1.5cm]
+    {\Large \textbf{Information Technology (Cloud Technology)}} \\[1.5cm]
     
     {\Large by} \\[0.5cm]
-    {\Large \textbf{Sumit Rathi (2022-B-23102004A)}} \\
-    {\Large \textbf{Sanjana Arun (2022-B-11052004)}} \\
-    {\Large \textbf{Seanna Martin (2022-B-08112004C)}} \\[1.5cm]
+    {\Large \textbf{Priyanshu Kumar Sharma}} \\
+    {\Large \textbf{Vaishnavi Jadhav}} \\
+    {\Large \textbf{Vaibhav Gulge}} \\[1.5cm]
     
     {\Large Under the Supervision of} \\[0.5cm]
     {\Large \textbf{Dr. Sandeep Kulkarni}} \\
@@ -25,7 +26,7 @@
     
     {\Large School of Engineering} \\
     {\scshape Ajeenkya DY Patil University, Pune} \\[0.5cm]
-    {\Large April 2025}
+    {\Large April 2026}
     
 \end{titlepage}
 
@@ -34,7 +35,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[C]{\includegraphics[height=0.8cm]{adypu-logo.png}} % CENTERED LOGO
-\fancyhead[R]{} % Clear any right header text
+\fancyhead[R]{} % Right header is empty
 \fancyfoot[C]{\thepage}
 
 % ---------------- CERTIFICATE ----------------
@@ -42,10 +43,10 @@
 \addcontentsline{toc}{chapter}{Certificate}
 
 \begin{flushright}
-Date: April 25, 2025
+Date: April 25, 2026
 \end{flushright}
 
-This is to certify that the dissertation entitled \textbf{``Contamination-Aware Waste Classification System''} is a bonafide work of \textbf{``Sumit Rathi (2022-B-23102004A), Sanjana Arun (2022-B-11052004) \& Seanna Martin (2022-B-08112004C)''} submitted to the School of Engineering, Ajeenkya DY Patil University, Pune in partial fulfilment of the requirement for the award of the degree of \textbf{``Bachelor of Technology in Information Technology and Data Science''}.
+This is to certify that the dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} is a bonafide work of \textbf{``Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge''} submitted to the School of Engineering, Ajeenkya DY Patil University, Pune in partial fulfilment of the requirement for the award of the degree of \textbf{``Bachelor of Technology in Information Technology''}.
 
 \vspace{3cm}
 
@@ -67,10 +68,10 @@ Internal Examiner \hfill External Examiner
 \addcontentsline{toc}{chapter}{Supervisor's Certificate}
 
 \begin{flushright}
-Date: April 25, 2025
+Date: April 25, 2026
 \end{flushright}
 
-This is to certify that the dissertation entitled \textbf{``Contamination-Aware Waste Classification System''} submitted by \textbf{Sumit Rathi (2022-B-23102004A), Sanjana Arun (2022-B-11052004) \& Seanna Martin (2022-B-08112004C)}, is a record of original work carried out by them under my supervision and guidance in partial fulfilment of the requirements of the degree \textbf{Bachelor of Technology in Information Technology and Data Science} at School of Engineering, Ajeenkya DY Patil University, Pune, Maharashtra-412105. 
+This is to certify that the dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} submitted by \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, is a record of original work carried out by them under my supervision and guidance in partial fulfilment of the requirements of the degree \textbf{Bachelor of Technology in Information Technology} at School of Engineering, Ajeenkya DY Patil University, Pune, Maharashtra-412105. 
 
 Neither this dissertation nor any part of it has been submitted earlier for any degree or diploma to any institute or university in India or abroad.
 
@@ -87,27 +88,27 @@ Supervisor
 \chapter*{Declaration of Originality}
 \addcontentsline{toc}{chapter}{Declaration of Originality}
 
-We, \textbf{Sumit Rathi (2022-B-23102004A), Sanjana Arun (2022-B-11052004) \& Seanna Martin (2022-B-08112004C)}, hereby declare that this dissertation entitled \textbf{``Contamination-Aware Waste Classification System''} presents our original work carried out as bachelor students of School of Engineering, Ajeenkya D Y Patil University, Pune, Maharashtra.
+We, \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, hereby declare that this dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} presents our original work carried out as bachelor students of School of Engineering, Ajeenkya D Y Patil University, Pune, Maharashtra.
 
 To the best of our knowledge, this dissertation contains no material previously published or written by another person, nor any material presented by us for the award of any degree or diploma of Ajeenkya DY Patil University, Pune or any other institution. We also declare that we have adhered to all principles of academic honesty and integrity and have not misrepresented or fabricated or falsified any idea/data/fact/source in our submission.
 
 \vspace{2cm}
 
 \begin{flushleft}
-Date: 25 April, 2025 \\
+Date: 25 April, 2026 \\
 Place: Lohegaon, Pune
 \end{flushleft}
 
 \vspace{2cm}
 
 \begin{flushright}
-Sumit Rathi \\ Sanjana Arun \\ Seanna Martin
+Priyanshu Kumar Sharma \\ Vaishnavi Jadhav \\ Vaibhav Gulge
 \end{flushright}
 
 % --- REMOVE LOGO FROM HERE ONWARDS ---
 \newpage
 \fancyhead[C]{} % Clear the center logo
-\fancyhead[R]{} % Ensure right header is also empty
+\fancyhead[R]{} % Ensure right header is empty
 
 % ---------------- ACKNOWLEDGEMENT ----------------
 \chapter*{Acknowledgement}
@@ -118,5 +119,41 @@ We would like to express our sincere gratitude to all those who have contributed
 \vspace{3cm}
 
 \begin{flushright}
-Sumit Rathi \\ Sanjana Arun \\ Seanna Martin
+Priyanshu Kumar Sharma \\ Vaishnavi Jadhav \\ Vaibhav Gulge
 \end{flushright}
+
+\newpage
+
+% ---------------- ABSTRACT ----------------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+The transition from traditional on-premise infrastructure to cloud computing has been revolutionary, providing unparalleled scalability and cost-efficiency. However, as organizations grow, the reliance on a single cloud vendor often leads to ``vendor lock-in,'' escalating costs, and single-point-of-failure risks. This has prompted a strategic shift toward Multi-Cloud architectures.
+
+This project introduces \textbf{Nebula: The Multi-Cloud Command Center}, a high-performance orchestration engine designed to unify infrastructure management across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula abstracts these providers into a single control plane, leveraging Infrastructure as Code (IaC) through Terraform and an asynchronous execution engine powered by FastAPI and Celery. 
+
+Key innovations include an \textbf{AI-driven Troubleshooting Copilot} that parses Terraform execution logs to provide deterministic remediation steps, a \textbf{Security Vault} for encrypted credential management, and \textbf{Real-time Inventory Syncing}. The resulting platform empowers developers to provision, monitor, and troubleshoot resources across different clouds without switching between disparate consoles.
+
+\newpage
+
+% ---------------- ABBREVIATIONS ----------------
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+
+\begin{tabular}{ll}
+AI & Artificial Intelligence \\
+API & Application Programming Interface \\
+AWS & Amazon Web Services \\
+Azure & Microsoft Azure Cloud \\
+CPU & Central Processing Unit \\
+GCP & Google Cloud Platform \\
+GPU & Graphics Processing Unit \\
+HCL & HashiCorp Configuration Language \\
+IaC & Infrastructure as Code \\
+IAM & Identity and Access Management \\
+JSON & JavaScript Object Notation \\
+ML & Machine Learning \\
+SaaS & Software as a Service \\
+UML & Unified Modeling Language \\
+YAML & Yet Another Markup Language \\
+\end{tabular}
