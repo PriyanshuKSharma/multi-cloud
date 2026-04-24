@@ -747,12 +747,15 @@ def create_resource(
         ("aws", "sns"): "aws_sns",
         ("aws", "storage"): "aws_s3",
         ("aws", "vm"): "aws_vm",
+        ("aws", "network"): "aws_network",
         ("aws", "faas"): "aws_lambda",
         ("azure", "storage"): "azure_blob",
         ("azure", "vm"): "azure_vm",
+        ("azure", "network"): "azure_network",
         ("azure", "faas"): "azure_functions",
         ("gcp", "storage"): "gcp_storage",
         ("gcp", "vm"): "gcp_vm",
+        ("gcp", "network"): "gcp_network",
         ("gcp", "faas"): "gcp_functions",
     }
     
@@ -827,6 +830,12 @@ def create_resource(
         )
         tf_vars["display_name"] = _clean_string(tf_vars.get("display_name"), resource.name)
         tf_vars["delivery_policy"] = _clean_string(tf_vars.get("delivery_policy"))
+    elif provider == "aws" and resource_type == "network":
+        tf_vars.setdefault("region", "us-east-1")
+        tf_vars.setdefault("network_name", resource.name)
+        tf_vars.setdefault("cidr_block", "10.0.0.0/16")
+        tf_vars["enable_dns_support"] = _as_bool(tf_vars.get("enable_dns_support"), True)
+        tf_vars["enable_dns_hostnames"] = _as_bool(tf_vars.get("enable_dns_hostnames"), True)
     elif provider == "aws" and resource_type == "faas":
         tf_vars.setdefault("region", "us-east-1")
         aws_function_name = _clean_string(tf_vars.get("function_name"), resource.name)
@@ -897,6 +906,12 @@ def create_resource(
                 tf_vars["location"] = tf_vars["region"]
             tf_vars.setdefault("vm_name", resource.name)
             tf_vars.setdefault("resource_group_name", f"nebula-rg-{resource.id}")
+        elif resource_type == "network":
+            if "region" in tf_vars and "location" not in tf_vars:
+                tf_vars["location"] = tf_vars["region"]
+            tf_vars.setdefault("network_name", resource.name)
+            tf_vars.setdefault("resource_group_name", f"nebula-net-rg-{resource.id}")
+            tf_vars.setdefault("cidr_block", "10.0.0.0/16")
         elif resource_type == "storage":
             if "region" in tf_vars and "location" not in tf_vars:
                 tf_vars["location"] = tf_vars["region"]
@@ -927,6 +942,10 @@ def create_resource(
             tf_vars.setdefault("instance_name", resource.name)
             if "zone" not in tf_vars:
                 tf_vars["zone"] = f"{tf_vars['region']}-a"
+        elif resource_type == "network":
+            tf_vars.setdefault("network_name", resource.name)
+            tf_vars.setdefault("cidr_block", "10.0.0.0/16")
+            tf_vars["enable_private_access"] = _as_bool(tf_vars.get("enable_private_access"), True)
         elif resource_type == "faas":
             gcp_function_name = _clean_string(tf_vars.get("function_name"), resource.name)
             tf_vars["function_name"] = _sanitize_kebab_name(gcp_function_name, "cloud-simplify-fn")
