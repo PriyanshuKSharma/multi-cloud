@@ -207,9 +207,18 @@ const ActivityPage: React.FC = () => {
     });
   }, [events, providerFilter, search, sourceFilter]);
 
-  const refreshAll = () => {
-    refetchDeployments();
-    refetchDashboard();
+  const refreshAll = async () => {
+    try {
+      // Trigger backend sync task
+      await axios.post('/dashboard/sync/trigger');
+      // Refetch local data
+      refetchDeployments();
+      refetchDashboard();
+    } catch (e) {
+      // Gracefully handle sync trigger failure, still refresh local view
+      refetchDeployments();
+      refetchDashboard();
+    }
   };
 
   const isLoading = isDeploymentsLoading || isDashboardLoading;
