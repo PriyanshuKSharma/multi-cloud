@@ -159,34 +159,34 @@ const DeploymentDetailPage: React.FC = () => {
     data: storageObjects = [],
     refetch: refetchStorageObjects,
     isFetching: isStorageFetching,
-  } = useQuery<StorageObject[]>({
+  } = useQuery({
     queryKey: ['deployments', 'detail', id, 'storage', 'objects'],
     enabled: Boolean(id) && isAwsStorage,
     queryFn: async () => {
-      const response = await axios.get(`/resources/${id}/storage/objects`, {
-        params: { source: 'provisioning', max_keys: 300 },
+      const response = await axios.get(`/resources/${deployment?.resource_id}/storage/objects`, {
+        params: { max_keys: 50 },
       });
       const payload = response.data;
       return Array.isArray(payload?.items) ? (payload.items as StorageObject[]) : [];
     },
     refetchInterval: isAwsStorage ? 15000 : false,
+    retry: false, // 🔥 ADD THIS
   });
 
   const {
     data: websiteInfo,
     refetch: refetchWebsiteInfo,
     isFetching: isWebsiteInfoFetching,
-  } = useQuery<StorageWebsiteInfo>({
-    queryKey: ['deployments', 'detail', id, 'storage', 'website'],
-    enabled: Boolean(id) && isAwsStorage,
-    queryFn: async () => {
-      const response = await axios.get(`/resources/${id}/storage/website`, {
-        params: { source: 'provisioning' },
-      });
-      return response.data as StorageWebsiteInfo;
-    },
-    refetchInterval: isAwsStorage ? 20000 : false,
-  });
+  } = useQuery({
+  queryKey: ['deployments', 'detail', id, 'storage', 'website'],
+  enabled: Boolean(id) && isAwsStorage,
+  queryFn: async () => {
+    const response = await axios.get(`/resources/${deployment?.resource_id}/storage/website`);
+    return response.data as StorageWebsiteInfo;
+  },
+  refetchInterval: isAwsStorage ? 20000 : false,
+  retry: false, // 🔥 ADD THIS
+});
 
   React.useEffect(() => {
     if (!folderInputRef.current) return;
@@ -257,7 +257,7 @@ const DeploymentDetailPage: React.FC = () => {
     setOperationMessage(null);
 
     try {
-      const response = await axios.get(`/resources/${deployment.id}/storage/download`, {
+      const response = await axios.get(`/resources/${deployment.resource_id}/storage/download`, {
         params: { key: selectedDownloadKey, source: 'provisioning' },
         responseType: 'blob',
       });
@@ -317,7 +317,7 @@ const DeploymentDetailPage: React.FC = () => {
     formData.append('key', selectedKey);
 
     try {
-      await axios.post(`/resources/${deployment.id}/storage/upload`, formData, {
+      await axios.post(`/resources/${deployment.resource_id}/storage/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { source: 'provisioning' },
       });
@@ -365,7 +365,7 @@ const DeploymentDetailPage: React.FC = () => {
     formData.append('prefix', folderPrefixInput.trim());
 
     try {
-      const response = await axios.post(`/resources/${deployment.id}/storage/upload-folder`, formData, {
+      const response = await axios.post(`/resources/${deployment.resource_id}/storage/upload-folder`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { source: 'provisioning' },
       });
@@ -402,7 +402,7 @@ const DeploymentDetailPage: React.FC = () => {
     setOperationMessage(null);
 
     try {
-      const response = await axios.post(`/resources/${deployment.id}/storage/website/enable`, {
+      const response = await axios.post(`/resources/${deployment.resource_id}/storage/website/enable`, {
         index_document: indexDocument,
         error_document: errorDocument,
         public_read: websitePublicRead,
@@ -635,11 +635,10 @@ const DeploymentDetailPage: React.FC = () => {
 
           {operationMessage && (
             <div
-              className={`rounded-lg border px-3 py-2 text-sm ${
-                operationMessage.type === 'success'
+              className={`rounded-lg border px-3 py-2 text-sm ${operationMessage.type === 'success'
                   ? 'border-green-500/30 bg-green-500/10 text-green-300'
                   : 'border-red-500/30 bg-red-500/10 text-red-300'
-              }`}
+                }`}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span>{operationMessage.text}</span>

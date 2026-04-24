@@ -26,8 +26,10 @@ logger = logging.getLogger(__name__)
 default_origins = [
     "http://localhost",
     "http://localhost:5173",
+    "http://localhost:5174",   # ✅ ADD THIS
     "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",   # ✅ ADD THIS (optional but good)
     "http://127.0.0.1:3000",
     "https://nebula-xi-lyart.vercel.app",
 ]

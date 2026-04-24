@@ -2,12 +2,16 @@ import React from 'react';
 import { Cloud } from 'lucide-react';
 
 interface ProviderIconProps {
-  provider: 'aws' | 'azure' | 'gcp';
+  provider?: string; // allow undefined/null from backend
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
 
-const ProviderIcon: React.FC<ProviderIconProps> = ({ provider, size = 'md', showLabel = false }) => {
+const ProviderIcon: React.FC<ProviderIconProps> = ({
+  provider,
+  size = 'md',
+  showLabel = false,
+}) => {
   const sizeConfig = {
     sm: { icon: 'w-4 h-4', container: 'w-6 h-6', text: 'text-xs' },
     md: { icon: 'w-5 h-5', container: 'w-8 h-8', text: 'text-sm' },
@@ -32,22 +36,40 @@ const ProviderIcon: React.FC<ProviderIconProps> = ({ provider, size = 'md', show
     },
   };
 
-  const config = providerConfig[provider];
+  // 🔥 Normalize provider safely
+  const normalizedProvider = (provider || '').toLowerCase();
+
+  // 🔥 Fallback config (prevents crash)
+  const config =
+    providerConfig[normalizedProvider as keyof typeof providerConfig] || {
+      name: 'Unknown',
+      color: 'from-gray-500 to-gray-700',
+      textColor: 'text-gray-400',
+    };
+
   const sizes = sizeConfig[size];
 
+  // 🔥 Label version
   if (showLabel) {
     return (
       <div className="flex items-center space-x-2">
-        <div className={`${sizes.container} rounded-lg bg-gradient-to-br ${config.color} flex items-center justify-center`}>
+        <div
+          className={`${sizes.container} rounded-lg bg-gradient-to-br ${config.color} flex items-center justify-center`}
+        >
           <Cloud className={`${sizes.icon} text-white`} />
         </div>
-        <span className={`font-semibold ${config.textColor} ${sizes.text}`}>{config.name}</span>
+        <span className={`font-semibold ${config.textColor} ${sizes.text}`}>
+          {config.name}
+        </span>
       </div>
     );
   }
 
+  // 🔥 Icon only
   return (
-    <div className={`${sizes.container} rounded-lg bg-gradient-to-br ${config.color} flex items-center justify-center`}>
+    <div
+      className={`${sizes.container} rounded-lg bg-gradient-to-br ${config.color} flex items-center justify-center`}
+    >
       <Cloud className={`${sizes.icon} text-white`} />
     </div>
   );
