@@ -8,12 +8,64 @@ from app.db.base import get_db
 from app.models.user import User
 from app.models.resource_inventory import ResourceInventory
 from app.api.deps import get_current_user
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 import logging
+import uuid
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+class NetworkCreate(BaseModel):
+    name: str
+    provider: str
+    region: str
+    metadata: Dict[str, Any]
+
+@router.post("/networks")
+def create_network_resource(
+    network: NetworkCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new network resource
+    """
+    try:
+        resource_id = f"vpc-{uuid.uuid4().hex[:8]}"
+        
+        new_network = ResourceInventory(
+            user_id=current_user.id,
+            provider=network.provider.lower(),
+            resource_type='network',
+            resource_id=resource_id,
+            resource_name=network.name,
+            region=network.region,
+            status='active',
+            resource_metadata=network.metadata,
+            created_at=datetime.utcnow(),
+            last_synced_at=datetime.utcnow()
+        )
+        db.add(new_network)
+        db.commit()
+        db.refresh(new_network)
+        
+        return {
+            'id': new_network.id,
+            'resource_id': new_network.resource_id,
+            'name': new_network.resource_name,
+            'provider': new_network.provider.upper(),
+            'type': new_network.resource_type,
+            'region': new_network.region,
+            'status': new_network.status,
+            'metadata': new_network.resource_metadata
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating network resource: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating network: {str(e)}")
 
 
 @router.get("/vms")
