@@ -34,15 +34,17 @@ logger = logging.getLogger(__name__)
 default_origins = [
     "http://localhost",
     "http://localhost:5173",
-    "http://localhost:5174",   # ✅ ADD THIS
+    "http://localhost:5174",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",   # ✅ ADD THIS (optional but good)
+    "http://127.0.0.1:5174",
     "http://127.0.0.1:3000",
     "https://nebula-xi-lyart.vercel.app",
+    "https://nebulacommandcenter.vercel.app",
 ]
 cors_origins_env = os.getenv("CORS_ORIGINS", "")
 origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()] or default_origins
+origin_regex = os.getenv("CORS_ORIGIN_REGEX", r"^https://([a-z0-9-]+\.)?vercel\.app$")
 
 # Optional single-origin override for deployed frontends.
 frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip()
@@ -52,7 +54,7 @@ if frontend_origin and frontend_origin not in origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX"),
+    allow_origin_regex=origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
