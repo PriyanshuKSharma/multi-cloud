@@ -158,6 +158,30 @@ def get_dashboard_stats(
             }
             for r in recent_resources
         ]
+
+        # Calculate dynamic metrics for change labels
+        now = datetime.utcnow()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        resources_today = [r for r in inventory if r.created_at >= today_start]
+        storage_today = [r for r in inventory if r.resource_type == 'storage' and r.created_at >= today_start]
+        networks_today = [r for r in inventory if r.resource_type in ['vpc', 'network', 'vnet'] and r.created_at >= today_start]
+        
+        vms = [r for r in inventory if r.resource_type == 'vm']
+        running_vms_count = len([vm for vm in vms if vm.status in ['running', 'RUNNING', 'active', 'ACTIVE']])
+        running_percent = (running_vms_count / len(vms) * 100) if vms else 0
+
+        # Cost Change calculation
+        sixty_days_ago = now - timedelta(days=60)
+        prev_cost_data = db.query(CostData).filter(
+            CostData.user_id == current_user.id,
+            CostData.period_start >= sixty_days_ago,
+            CostData.period_start < thirty_days_ago
+        ).all()
+        total_cost_prev = sum(c.cost_amount for c in prev_cost_data)
+        cost_change_percent = 0
+        if total_cost_prev > 0:
+            cost_change_percent = ((total_cost - total_cost_prev) / total_cost_prev) * 100
         
         return {
             'total_resources': total_resources,
@@ -171,7 +195,34 @@ def get_dashboard_stats(
             'region_distribution': region_distribution,
             'provider_health': provider_health,
             'recent_activity': recent_activity,
-            'last_updated': datetime.utcnow().isoformat()
+            'last_updated': now.isoformat(),
+            'metrics': {
+                'resources_change': {
+                    'value': len(resources_today),
+                    'label': 'added today',
+                    'type': 'increase' if len(resources_today) > 0 else 'neutral'
+                },
+                'vms_status': {
+                    'value': round(running_percent, 1),
+                    'label': 'running',
+                    'type': 'neutral' if not vms else 'increase' if running_percent > 0 else 'decrease'
+                },
+                'storage_change': {
+                    'value': len(storage_today),
+                    'label': 'added today',
+                    'type': 'increase' if len(storage_today) > 0 else 'neutral'
+                },
+                'networks_change': {
+                    'value': len(networks_today),
+                    'label': 'created today',
+                    'type': 'increase' if len(networks_today) > 0 else 'neutral'
+                },
+                'cost_change': {
+                    'value': abs(round(cost_change_percent, 1)),
+                    'label': 'vs last month',
+                    'type': 'increase' if cost_change_percent > 0 else 'decrease' if cost_change_percent < 0 else 'neutral'
+                }
+            }
         }
         
     except Exception as e:
