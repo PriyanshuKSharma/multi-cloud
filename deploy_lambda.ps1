@@ -10,23 +10,77 @@ $DB_PASSWORD = "trialForNebula"
 function Ensure-LambdaFunctionUrlInvokePermission {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$FunctionName
+        [string]$FunctionName,
+        [Parameter(Mandatory = $true)]
+        [string]$Region
     )
 
     Write-Host "🔐 Ensuring Lambda Function URL invoke permission..." -ForegroundColor Yellow
     $policy = aws lambda get-policy --function-name $FunctionName --output text 2>$null
 
     if ($policy -notmatch '"Action":"lambda:InvokeFunction"') {
-        aws lambda add-permission `
+        $addPermissionOutput = aws lambda add-permission `
             --function-name $FunctionName `
             --statement-id FunctionURLInvokeAllowPublicAccess `
             --action lambda:InvokeFunction `
             --principal "*" `
             --invoked-via-function-url `
-            --output text | Out-Null
+            --output text 2>&1
 
-        Write-Host "✅ Added public invoke permission for Function URL." -ForegroundColor Green
-        return
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Added public invoke permission for Function URL." -ForegroundColor Green
+            return
+        }
+
+        if ($addPermissionOutput -match "Unknown options: --invoked-via-function-url") {
+            $pythonFallback = @'
+import json
+import sys
+import urllib.error
+import urllib.request
+
+import boto3
+from botocore.auth import SigV4Auth
+from botocore.awsrequest import AWSRequest
+
+function_name = sys.argv[1]
+region = sys.argv[2]
+url = f"https://lambda.{region}.amazonaws.com/2015-03-31/functions/{function_name}/policy"
+payload = {
+    "Action": "lambda:InvokeFunction",
+    "Principal": "*",
+    "StatementId": "FunctionURLInvokeAllowPublicAccess",
+    "InvokedViaFunctionUrl": True,
+}
+
+session = boto3.Session(region_name=region)
+credentials = session.get_credentials()
+if credentials is None:
+    raise SystemExit("No AWS credentials available for Lambda permission fallback.")
+
+body = json.dumps(payload).encode("utf-8")
+request = AWSRequest(method="POST", url=url, data=body, headers={"Content-Type": "application/json"})
+SigV4Auth(credentials.get_frozen_credentials(), "lambda", region).add_auth(request)
+prepared = request.prepare()
+http_request = urllib.request.Request(url, data=body, headers=dict(prepared.headers.items()), method="POST")
+
+try:
+    with urllib.request.urlopen(http_request, timeout=30) as response:
+        print(response.read().decode("utf-8"))
+except urllib.error.HTTPError as exc:
+    print(exc.read().decode("utf-8"), file=sys.stderr)
+    raise
+'@
+            $pythonFallback | python - $FunctionName $Region
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to add Function URL invoke permission via Python fallback."
+            }
+
+            Write-Host "✅ Added public invoke permission for Function URL via Python fallback." -ForegroundColor Green
+            return
+        }
+
+        throw "Failed to add Function URL invoke permission: $addPermissionOutput"
     }
 
     Write-Host "ℹ️ Function URL invoke permission already present." -ForegroundColor Gray
@@ -79,7 +133,7 @@ $S3_BUCKET = terraform output -raw s3_bucket_name
 $CDN_URL = terraform output -raw cloudfront_url
 cd $ROOT_DIR
 
-Ensure-LambdaFunctionUrlInvokePermission -FunctionName "$PROJECT_NAME-api"
+Ensure-LambdaFunctionUrlInvokePermission -FunctionName "$PROJECT_NAME-api" -Region $AWS_REGION
 
 Write-Host "📡 Syncing Frontend to S3..." -ForegroundColor Yellow
 aws s3 sync frontend/dist s3://$S3_BUCKET --delete
