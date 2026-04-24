@@ -46,7 +46,7 @@ def get_dashboard_stats(
         total_resources = len(inventory)
         active_vms = len([r for r in inventory if r.resource_type == 'vm' and r.status in ['running', 'RUNNING']])
         total_storage = len([r for r in inventory if r.resource_type == 'storage'])
-        total_networks = len([r for r in inventory if r.resource_type in ['vpc', 'network', 'resource_group']])
+        total_networks = len([r for r in inventory if r.resource_type in ['vpc', 'network', 'resource_group', 'vnet']])
         
         # Provider breakdown
         provider_counts = {}
