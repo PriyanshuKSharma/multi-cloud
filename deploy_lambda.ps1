@@ -7,6 +7,31 @@ $AWS_REGION = "ap-south-1"
 $PROJECT_NAME = "nebula-multicloud"
 $DB_PASSWORD = "trialForNebula"
 
+function Ensure-LambdaFunctionUrlInvokePermission {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FunctionName
+    )
+
+    Write-Host "🔐 Ensuring Lambda Function URL invoke permission..." -ForegroundColor Yellow
+    $policy = aws lambda get-policy --function-name $FunctionName --output text 2>$null
+
+    if ($policy -notmatch '"Action":"lambda:InvokeFunction"') {
+        aws lambda add-permission `
+            --function-name $FunctionName `
+            --statement-id FunctionURLInvokeAllowPublicAccess `
+            --action lambda:InvokeFunction `
+            --principal "*" `
+            --invoked-via-function-url `
+            --output text | Out-Null
+
+        Write-Host "✅ Added public invoke permission for Function URL." -ForegroundColor Green
+        return
+    }
+
+    Write-Host "ℹ️ Function URL invoke permission already present." -ForegroundColor Gray
+}
+
 # 2. Stage 1: Create ECR Repositories (API & Worker)
 Write-Host "🏗️ Stage 1: Preparing ECR Repositories..." -ForegroundColor Yellow
 $ROOT_DIR = Get-Location
@@ -53,6 +78,8 @@ terraform apply -var "db_password=$DB_PASSWORD" -auto-approve
 $S3_BUCKET = terraform output -raw s3_bucket_name
 $CDN_URL = terraform output -raw cloudfront_url
 cd $ROOT_DIR
+
+Ensure-LambdaFunctionUrlInvokePermission -FunctionName "$PROJECT_NAME-api"
 
 Write-Host "📡 Syncing Frontend to S3..." -ForegroundColor Yellow
 aws s3 sync frontend/dist s3://$S3_BUCKET --delete
