@@ -78,7 +78,7 @@ const normalizeStatus = (status: unknown): ActivityStatus => {
   if (normalized === 'stopped') return 'stopped';
   if (normalized === 'pending') return 'pending';
   if (normalized === 'failed' || normalized === 'error') return 'failed';
-  if (normalized === 'active' || normalized === 'success' || normalized === 'completed') return 'active';
+  if (normalized === 'active' || normalized === 'success' || normalized === 'completed' || normalized === 'available' || normalized === 'up') return 'active';
   if (normalized === 'inactive' || normalized === 'destroyed') return 'inactive';
   if (normalized === 'healthy') return 'healthy';
   if (normalized === 'degraded') return 'degraded';
