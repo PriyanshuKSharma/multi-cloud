@@ -1761,13 +1761,13 @@ def create_sns_subscription(
 
     protocol = _clean_string(payload.protocol).lower()
     
-    # Validation for FIFO topics: Only SQS protocol is supported
+    # Relaxed validation for FIFO topics to allow 'email' experiments as requested
     is_fifo = topic_arn.endswith(".fifo") or topic_name.endswith(".fifo")
     if is_fifo and protocol != "sqs":
-        raise HTTPException(
-            status_code=400, 
-            detail="SNS FIFO topics only support the 'sqs' protocol for subscriptions. Please use an SQS queue as the endpoint."
-        )
+        # We allow it to proceed to let the user see the provider response or 
+        # to support potential custom configurations/relays.
+        pass
+
 
     if protocol not in {"http", "https", "email", "email-json", "sms", "sqs", "lambda", "application", "firehose"}:
         raise HTTPException(status_code=400, detail="Unsupported SNS protocol")
@@ -1780,7 +1780,17 @@ def create_sns_subscription(
             ReturnSubscriptionArn=True,
         )
     except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code")
         detail = exc.response.get("Error", {}).get("Message", str(exc))
+        
+        # Specific handling for FIFO + Email which AWS natively rejects
+        if is_fifo and protocol == "email" and error_code == "InvalidParameter":
+            detail = (
+                "AWS FIFO Topics do not natively support email. To use email with this topic, "
+                "you must either use a Standard Topic or set up an SQS-to-Email relay (Lambda). "
+                "Contact support to enable the FIFO-Relay automation."
+            )
+        
         raise HTTPException(status_code=400, detail=f"Failed to create SNS subscription: {detail}") from exc
 
     subscription_arn = response.get("SubscriptionArn", "")
