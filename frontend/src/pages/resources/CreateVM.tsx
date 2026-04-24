@@ -106,7 +106,7 @@ const CreateVMPage: React.FC = () => {
     setCurrentProject({ id: projects[0].id, name: projects[0].name });
   }, [projects]);
 
-  const { data: networks = [], isLoading: isNetworksLoading } = useQuery({
+  const { data: networks = [] } = useQuery({
     queryKey: ['inventory', 'networks', formData.provider, formData.configuration.region],
     queryFn: async () => {
       const response = await axios.get('/inventory/networks', {
