@@ -24,6 +24,8 @@ interface MetricChange {
   value: number;
   label: string;
   type: 'increase' | 'decrease' | 'neutral';
+  unit?: string;
+  prefix?: string;
 }
 
 interface DashboardStats {
