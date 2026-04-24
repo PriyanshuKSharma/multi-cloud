@@ -20,6 +20,12 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
 
+interface MetricChange {
+  value: number;
+  label: string;
+  type: 'increase' | 'decrease' | 'neutral';
+}
+
 interface DashboardStats {
   total_resources: number;
   active_vms: number;
@@ -59,6 +65,13 @@ interface DashboardStats {
     region: string;
     last_synced: string;
   }>;
+  metrics?: {
+    resources_change: MetricChange;
+    vms_status: MetricChange;
+    storage_change: MetricChange;
+    networks_change: MetricChange;
+    cost_change: MetricChange;
+  };
   last_updated: string;
 }
 
@@ -147,46 +160,46 @@ const DashboardPage: React.FC = () => {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <MetricCard
-          title="Total Resources"
-          value={stats?.total_resources || 0}
-          change={{ value: 5, label: 'added today', type: 'increase' }}
-          icon={Layers}
-          iconColor="text-blue-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Active VMs"
-          value={stats?.active_vms || 0}
-          change={{ value: 2, label: 'running', type: 'increase' }}
-          icon={Server}
-          iconColor="text-green-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Storage Resources"
-          value={stats?.total_storage || 0}
-          change={{ value: 1, label: 'bucket removed', type: 'decrease' }}
-          icon={Database}
-          iconColor="text-purple-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Network Resources"
-          value={stats?.total_networks || 0}
-          change={{ value: 3, label: 'created this week', type: 'increase' }}
-          icon={Network}
-          iconColor="text-emerald-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Monthly Cost"
-          value={`$${stats?.estimated_monthly_cost?.toFixed(2) || '0.00'}`}
-          change={{ value: 8.5, label: 'vs last month', type: 'increase' }}
-          icon={DollarSign}
-          iconColor="text-yellow-500"
-          loading={isLoading}
-        />
+            <MetricCard
+              title="Total Resources"
+              value={stats?.total_resources || 0}
+              change={stats?.metrics?.resources_change || { value: 0, label: 'added today', type: 'neutral' }}
+              icon={Layers}
+              iconColor="text-blue-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Active VMs"
+              value={stats?.active_vms || 0}
+              change={stats?.metrics?.vms_status || { value: 0, label: 'running', type: 'neutral' }}
+              icon={Server}
+              iconColor="text-green-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Storage Resources"
+              value={stats?.total_storage || 0}
+              change={stats?.metrics?.storage_change || { value: 0, label: 'added today', type: 'neutral' }}
+              icon={Database}
+              iconColor="text-purple-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Network Resources"
+              value={stats?.total_networks || 0}
+              change={stats?.metrics?.networks_change || { value: 0, label: 'created today', type: 'neutral' }}
+              icon={Network}
+              iconColor="text-emerald-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Monthly Cost"
+              value={`$${stats?.estimated_monthly_cost?.toFixed(2) || '0.00'}`}
+              change={stats?.metrics?.cost_change || { value: 0, label: 'vs last month', type: 'neutral' }}
+              icon={DollarSign}
+              iconColor="text-yellow-500"
+              loading={isLoading}
+            />
       </div>
 
       {/* Charts Row */}
