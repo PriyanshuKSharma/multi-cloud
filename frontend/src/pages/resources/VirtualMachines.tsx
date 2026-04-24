@@ -426,6 +426,10 @@ const VirtualMachinesPage: React.FC = () => {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Cloud Resource ID</p>
+                          <p className="text-xs font-mono text-gray-400 truncate" title={vm.resource_id}>{vm.resource_id || 'N/A'}</p>
+                        </div>
                         <div>
                           <p className="text-xs text-gray-500">Instance Type</p>
                           <p className="text-sm font-medium text-gray-300">{vm.metadata.instance_type || 'N/A'}</p>

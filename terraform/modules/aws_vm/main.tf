@@ -9,7 +9,24 @@ variable "instance_type" {
 }
 
 variable "ami" {
-  description = "AMI ID"
+  description = "AMI ID. If empty, the latest Amazon Linux 2 AMI is used."
+  type        = string
+  default     = ""
+}
+
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
 }
 
 variable "instance_name" {
@@ -54,7 +71,7 @@ locals {
 }
 
 resource "aws_instance" "vm" {
-  ami                    = var.ami
+  ami                    = trimspace(var.ami) != "" ? var.ami : data.aws_ami.amazon_linux_2.id
   instance_type          = var.instance_type
   subnet_id              = local.effective_subnet_id
   key_name               = trimspace(var.key_name) != "" ? var.key_name : null

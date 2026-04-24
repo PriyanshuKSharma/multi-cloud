@@ -1,67 +1,70 @@
 % Chapter 1: Introduction (Massive Expansion for 80+ Page Project)
 \chapter{INTRODUCTION}
+%% \thispagestyle{plain} removed to allow global fancy style with logo
 
-The "Cloud First" era has transformed the global digital economy. As organizations move from simple cloud adoption to "Multi-Cloud Strategic Maturity," the need for unified management platforms has become a critical operational requirement.
+The Cloud First era has revolutionized the digital economy in the world. With organizations progressing beyond mere cloud adoption to Multi-Cloud Strategic Maturity, the necessity to integrate management platforms has emerged as a serious operational necessity.
 
 \section{Historical Context of Computing}
-Modern computing has undergone several paradigms of transformation, each significantly increasing the abstraction between the user and the underlying hardware. Understanding the evolution of these paradigms is critical to appreciating the value proposition of the Nebula Multi-Cloud Command Center. 
+There have been a number of paradigms of transformation in modern computing, all of which have made the user and the underlying hardware more and more abstract. It is important to understand how these paradigms have developed to fully recognize the value proposition of the Nebula Multi-Cloud Command Center.
 
 \subsection{The Mainframe Era (1950s - 1970s)}
-In the early days of computing, massive mainframe computers occupied entire rooms. These systems were centralized, and users accessed them via "dumb terminals." While powerful for their time, they were prohibitively expensive, difficult to scale, and represented a single point of failure. Management was strictly manual and required a specialized workforce.
+Early computer technology saw the use of massive computers which occupied whole rooms. These systems were centralized and users accessed these systems through dumb terminals. Though very powerful at the time, they were prohibitively priced, difficult to scale, and were a single point of failure. It was highly manualized management that demanded a specialized workforce.
 
 \subsection{Client-Server Architecture (1980s - 1990s)}
-The rise of the Personal Computer (PC) led to the client-server model. Computing tasks were distributed between a server (providing data or services) and a client (requesting them). While more flexible than mainframes, this era introduced the "silo" problem, where different departments managed their own physical servers, leading to underutilization of hardware resources and high maintenance costs.
+The client-server model was the result of the emergence of the Personal Computer (PC). Calculations were performed over a server (where data or services are delivered) and a client (where they are requested). Although more flexible compared to the mainframes, this period brought about the so-called silo issue where various departments operated with their own physical servers, resulting in inefficient use of the hardware resources and excessive maintenance expenses.
 
 \subsection{The Virtualization Revolution (2000s)}
-Virtualization transformed the relationship between software and hardware. Hypervisors allowed multiple Virtual Machines (VMs) to run on a single physical server. This was the technological precursor to cloud computing, enabling efficient resource utilization and the ability to "spin up" servers in minutes rather than weeks.
+The relationship between software and hardware was changed by virtualization. Hyper- visors enabled more than one Virtual Machines (VMs) to operate on a physical server. It was the technological antecedent to cloud computing and allowed efficient resource utilization and the ability to spin up servers in minutes as opposed to weeks.
 
 \section{The Rise of Cloud Computing}
-Cloud computing is the logical culmination of virtualization, broad network access, and automated management. The National Institute of Standards and Technology (NIST) \cite{mell2011nist} defines cloud computing as a model for enabling ubiquitous, convenient, on-demand network access to a shared pool of configurable computing resources.
+Cloud computing is the natural extension of virtualization, wide network access and automated management. According to the National Institute of Standards and Technology (NIST) [1], cloud computing refers to a model to facilitate ubiquitous, convenient, on-demand network access to a common pool of configurable computing resources.
 
 \subsection{NIST Service Models}
-To understand the scope of the Nebula platform, we must categorize the services it manages:
+To get the picture of what Nebula platform covers, we need to classify the services that it deals with:
 \begin{enumerate}
-    \item \textbf{Infrastructure as Service (IaaS)}: Provides fundamental computing resources such as Virtual Machines (AWS EC2, Azure VM), storage, and networks. Nebula provides deep integration at this layer.
-    \item \textbf{Platform as Service (PaaS)}: Provides a platform allowing customers to develop, run, and manage applications without the complexity of infrastructure. Examples include AWS Lambda and Azure Functions, which Nebula manages as "Network Functions."
-    \item \textbf{Software as Service (SaaS)}: Software is licensed on a subscription basis and is centrally hosted. While Nebula is a SaaS-like platform itself, it manages the underlying IaaS and PaaS to support enterprise SaaS deployments.
+    \item \textbf{Infrastructure as Service (IaaS)}: Offers basic computing, including Virtual Machines (AWS EC2, Azure VM), storage and networks. This layer is heavily integrated by Nebula.
+
+    \item \textbf{Platform as Service (PaaS)}: It is a platform that enables customers to create, execute, and manage applications without having the complexity of infrastructure. Examples are AWS Lambda and Azure Functions, which Nebula is managing as Network Functions.
+    \item \textbf{Software as Service (SaaS)}: Software is sold on a subscription model and is centrally hosted. Although Nebula is a SaaS-like platform, it controls the underlying IaaS and PaaS to facilitate enterprise SaaS deployments.
 \end{enumerate}
 
 \subsection{NIST Deployment Models}
 \begin{itemize}
-    \item \textbf{Public Cloud}: Resources are owned and operated by a third-party service provider (AWS, Azure, GCP).
-    \item \textbf{Private Cloud}: Resources used exclusively by a single business or organization.
-    \item \textbf{Hybrid Cloud}: A composition of two or more clouds (private, community, or public) that remain unique entities but are bound together.
-    \item \textbf{Multi-Cloud}: The use of multiple public cloud services from different providers. Nebula is specifically designed to dominate this space.
+    \item \textbf{Public Cloud}: It is owned and managed by a third party service provider (AWS, Azure, GCP).
+    \item \textbf{Private Cloud}: Resources known to only one business or organization.
+    \item \textbf{Hybrid Cloud}: A combination of two or more clouds (community, private, or public) that are distinct entities, yet are interconnected.
+    \item \textbf{Multi-Cloud}: This is where a number of public clouds of various providers are used. Nebula is actually created to conquer this space.
 \end{itemize}
 
 \section{The Multi-Cloud Strategic Shift}
-Organizations are increasingly adopting a multi-cloud strategy to avoid "Vendor Lock-in." However, this shift introduces significant management friction. 
+A multi-cloud strategy is another approach that organizations are employing to prevent Vendor Lock- in. Nonetheless, this transition presents important managerial strife. 
 
 \subsection{Drivers for Multi-Cloud Adoption}
 \begin{itemize}
-    \item \textbf{Best-of-Breed Services}: Using GCP for data analytics while keeping enterprise applications on Azure.
-    \item \textbf{Data Sovereignty}: Storing data in specific geographical regions to comply with GDPR or local regulations.
-    \item \textbf{Negotiation Leverage}: Having infrastructure on multiple clouds prevents reliance on a single vendor's pricing model.
+    \item \textbf{Best-of-Breed Services}: Data analytics with GCP and retaining enter- prise apps on Azure.
+    \item \textbf{Data Sovereignty}:Storing data in particular physical locations to abide by GDPR or local laws.
+    \item \textbf{Negotiation Leverage}: Presence in several clouds eliminates dependency on one vendor and their pricing model.
 \end{itemize}
 
 \section{Problem Statement and Motivation}
-Despite its benefits, multi-cloud management is fragmented. Currently, an administrator must:
+Multi-cloud management is disjointed, despite its advantages. At this time, an administrator should:
 \begin{enumerate}
-    \item Manage high-security credentials across three different portals.
-    \item Learn separate naming conventions (e.g., Security Groups in AWS vs. NSG in Azure).
-    \item Handle long-running deployments that often time out in the browser.
+    \item Control high-security credentials in three portals.
+    \item Get familiar with different naming (e.g., Security Groups in AWS and NSG in Azure).
+    \item Manage deployments that are long-running and frequently crash in the browser.
+
 \end{enumerate}
-The motivation for \textbf{Nebula} is to create a "Unified Control Plane" that abstracts these complexities into a single, high-performance API and User Interface.
+Nebula is motivated by the need to develop a Unified Control Plane which encapsulates these complexities into one, high-performance API and User Interface.
 
 \section{Project Objectives and Scope}
-The specific objectives of this project are:
+The particular targets of this project are:
 \begin{itemize}
     \item Achieve 100% visibility of cloud inventory across providers.
-    \item Reduce troubleshooting time using LLM-based log analysis.
-    \item Standardize resource provisioning workflows.
-    \item implementing a secure credential vault using application-layer encryption.
-    \item Enable real-time deployment log streaming using WebSockets or periodic polling.
+    \item Minimize troubleshooting with LLM log analysis.
+    \item Automatize resource provisioning processes.
+    \item A secure credential vault by way of application-layer encryption.
+    \item Stream the deployment logs in real time with WebSockets or polling.
 \end{itemize}
-The scope covers the initial development of the core engine, security vault, and a React-based interactive cockpit.
+The area includes the early work on the core engine, security vault and a React-based interactive cockpit.
 
 \newpage

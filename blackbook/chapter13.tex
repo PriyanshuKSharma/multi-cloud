@@ -1,0 +1,83 @@
+% Chapter 9: Future Scope and Ethical Considerations
+\chapter{FUTURE SCOPE AND ETHICAL CONSIDERATIONS}
+
+The evolution of the cloud computing field means that the "Unified Command Center" paradigm defined by Nebula has laid out an initial groundwork for better orchestration techniques. The present setup has demonstrated that a reliable, asynchronous, and multicloud based control plane is possible. Now the key issue becomes what further developments could realistically build on the initial groundwork and what ethical considerations will need to be taken into account when defining such development paths. The future is not about just developing new functions, but also about how to behave when performing these functions.
+
+\section{Future Research and Enhancements}
+Though Nebula already provides management services for basic cloud infrastructure components such as virtual machines, storage, and networking primitives, its next significant step might be unification of the management of serverless computing functions. One "Nebula Function" should be able to provide all necessary resources needed for its deployment on platforms like AWS Lambda, Azure Functions, and Google Cloud Functions. The benefit from it will be especially high for those organizations that need regional redundancy without having separate deployment pipelines for each one.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=2.0cm, auto, scale=0.82, every node/.style={scale=0.82}]
+    \tikzstyle{core} = [rectangle, draw, rounded corners, fill=blue!10, text centered, minimum width=10em, minimum height=3em]
+    \tikzstyle{future} = [rectangle, draw, rounded corners, fill=orange!10, text centered, minimum width=9em, minimum height=2.8em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [core] (nebula) {Current Nebula Core};
+    \node [future, above left=of nebula] (serverless) {Serverless Control};
+    \node [future, above=of nebula] (dr) {Disaster Recovery};
+    \node [future, above right=of nebula] (finops) {AI Cost Optimization};
+    \node [future, below left=of nebula] (k8s) {Kubernetes Support};
+    \node [future, below=of nebula] (policy) {Policy as Code};
+    \node [future, below right=of nebula] (hybrid) {Hybrid / Edge Ops};
+
+    \draw [line] (nebula) -- (serverless);
+    \draw [line] (nebula) -- (dr);
+    \draw [line] (nebula) -- (finops);
+    \draw [line] (nebula) -- (k8s);
+    \draw [line] (nebula) -- (policy);
+    \draw [line] (nebula) -- (hybrid);
+\end{tikzpicture}
+\caption{Future Roadmap Dimensions for the Nebula Control Plane}
+\label{fig:future_roadmap}
+\end{figure}
+
+\subsection{Serverless Cross-Cloud Orchestration (SaaS-less)}
+While Nebula currently manages core infrastructure such as virtual machines, storage, and networking primitives, a major future expansion is unified management of serverless functions. A single "Nebula Function" could be expressed once and then translated into deployment artifacts for AWS Lambda, Azure Functions, and Google Cloud Functions. This capability would be especially valuable for teams that want regional resilience without maintaining multiple provider-specific deployment pipelines. A follow-up research problem here is how to normalize differences in trigger models, packaging constraints, timeout policies, and cold-start behavior across clouds without creating a misleading abstraction.
+
+\subsection{Auto-Failover and Disaster Recovery (DR)}
+The next more sophisticated one would be “Zero-Touch Failover.” In case of degradation of a whole region or even of an entire family of services, Nebula can launch Terraform plan that will reconstruct necessary infrastructure in an alternative provider/region altogether. This should be taken not as a guarantee of \(100\%\) uptime. Disaster Recovery entails tradeoffs when it comes to data freshness, DNS propaga- tion time, configuration divergence, and other legal issues. Thus, a serious Disaster Recovery system would include several levels of failover including cold site, warm site, and active-active site, among others. And Nebula, once again, would fit in perfectly since it already possesses the pro- visioning cycle process.
+
+\subsection{AI-Powered Cost Optimization}
+In terms of the current AI Copilot, its focus is failure analysis. In future iterations, it can extend to economic analysis through idle resource detection, burst profiling, storage capacity expansion, and compute underutilization detection. Instead of serving as an all-purpose chatbot, it can serve as a FinOps copilot that will explain why a workload is costly and how a different approach to deployment will lower costs. Examples of such advice would be to use spot-optimized regions for background tasks, replace overprovisioned virtual machine instances with optimal ones, and implement lifecycle management of rarely accessed objects.
+
+\subsection{Kubernetes and Managed Container Platforms}
+A related direction would involve having policies enforced prior to infrastruc- ture modifications. A policy engine would enforce region-based restrictions, mandatory tags, encryption requirements, naming standards, and network exposure policies. The end result would make Nebula more than an execution plane; it would be a control plane aware of governance concerns. From an academic perspective, policy enforcement actions would include logging along with reasons for enforcement, ensuring that when a user’s deployment fails, they know not only that it failed, but why.
+
+\subsection{Policy-as-Code and Compliance Guardrails}
+First, the capability provided by such an orchestration layer implies certain ethical obligations, which follow from the nature of the capabilities offered. Specifically, the orchestration layer enables one to provision, manipulate and destroy cloud resources on several clouds. In other words, the orchestration layer is anything but neutral in terms of ethical implications, and hence the degree of protection it offers should be considered an integral part of the layer’s ethics.
+
+\subsection{Edge and Hybrid Resource Awareness}
+Organizations do not exist solely within the confines of the public cloud. Branch offices, factory machinery, research environments, and private virtualization systems all play their roles. A mature Nebula implementation would eventually move into hy- brid and edge environments through integration with agents or connectors reporting on local infrastructure to fit into the same canonical inventory framework. While difficult, this approach is essential because it will test the control-plane abstrac- tions created in this project beyond the public cloud environment.
+
+\section{Ethical and Security Considerations}
+First, the capability provided by such an orchestration layer implies certain ethical obligations, which follow from the nature of the capabilities offered. Specifically, the orchestration layer enables one to provision, manipulate and destroy cloud resources on several clouds. In other words, the orchestration layer is anything but neutral in terms of ethical implications, and hence the degree of protection it offers should be considered an integral part of the layer’s ethics.
+
+\subsection{Data Sovereignty and GDPR}
+One of the most important ethical issues associated with using Nebula in the multi-cloud context relates to data residency. The application has to ensure that any sensitive information remains only in those geographic locations that are authorized. Simply putting the region option in the form of a dropdown menu does not help here since users may choose the wrong value. Instead, some geographic limitations should be embedded at the orchestration layer level, preventing the deployment of unauthorized plans.
+
+
+\subsection{The Power of a Unified API}
+Concentration of cloud access keys to one platform presents a high-value target for the attacker. Hence, the role of the developer ethically is to mitigate this risk of concentration. Runtime isolation, key rotation, use of credentials based on the principle of least privilege, log scrubbing, and audit trail are the ways of accomplishing it. It is imperative that the user knows which request action he made, what provider got affected, which credential and roles got impacted, etc.
+
+\subsection{AI Explainability and Human Oversight}
+In case the platform is equipped with artificial intelligence-driven recommendations, these recommendations must be explainable to the operator to make sure he has enough visibility to justify the applicability of such a recommendation. Any recommendation that cannot be justified from the log stream or by referring to a set of policies cannot be acted upon blindly by the operator. Failure scenarios are prone to this risk even more.
+
+
+\subsection{Cost Fairness and Organizational Transparency}
+The choice of cloud service providers and locations is not without organizational repercussions. An orchestration platform that prioritizes one vendor or location over another must disclose its decision-making process, which may include performance requirements, compliance issues, and cost considerations. In this context, ethical design implies transparency regarding the factors considered when making the decision.
+
+\subsection{Environmental Sustainability}
+Abstraction through cloud computing could unintentionally alienate cloud users from their responsibility to the environment. One possible improvement for the future would be a sustainability metric that can quantify the cost associated with over-provisioned, unused, or redundant infrastructure. Even though it will remain an estimate, it will bring users' attention to the issue of energy consumption by the cloud infrastructure.
+
+\section{Governance Guidelines for Responsible Operation}
+In order to responsibly implement a platform such as Nebula, it is necessary to adhere to the following governance principles:
+\begin{enumerate}
+    \item \textbf{Approval boundaries}: destructive operations should require explicit confirmation or policy approval.
+    \item \textbf{Least privilege}:  credentials for providers should be limited only to the resources and activities that are necessary.
+    \item \textbf{Auditable actions}: every provisioning, deletion, and remediation event should be attributable to a user or automation identity.
+    \item \textbf{Policy transparency}: enforcement rules should be documented and visible to operators.
+    \item \textbf{Human-in-the-loop AI}: automated suggestions should remain reviewable before irreversible changes occur.
+\end{enumerate}
+
+\newpage

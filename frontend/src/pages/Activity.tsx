@@ -78,7 +78,7 @@ const normalizeStatus = (status: unknown): ActivityStatus => {
   if (normalized === 'stopped') return 'stopped';
   if (normalized === 'pending') return 'pending';
   if (normalized === 'failed' || normalized === 'error') return 'failed';
-  if (normalized === 'active' || normalized === 'success' || normalized === 'completed') return 'active';
+  if (normalized === 'active' || normalized === 'success' || normalized === 'completed' || normalized === 'available' || normalized === 'up') return 'active';
   if (normalized === 'inactive' || normalized === 'destroyed') return 'inactive';
   if (normalized === 'healthy') return 'healthy';
   if (normalized === 'degraded') return 'degraded';
@@ -207,9 +207,18 @@ const ActivityPage: React.FC = () => {
     });
   }, [events, providerFilter, search, sourceFilter]);
 
-  const refreshAll = () => {
-    refetchDeployments();
-    refetchDashboard();
+  const refreshAll = async () => {
+    try {
+      // Trigger backend sync task
+      await axios.post('/dashboard/sync/trigger');
+      // Refetch local data
+      refetchDeployments();
+      refetchDashboard();
+    } catch (e) {
+      // Gracefully handle sync trigger failure, still refresh local view
+      refetchDeployments();
+      refetchDashboard();
+    }
   };
 
   const isLoading = isDeploymentsLoading || isDashboardLoading;

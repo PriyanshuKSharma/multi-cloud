@@ -227,6 +227,17 @@ const DeploymentDetailPage: React.FC = () => {
     [deployment?.terraform_output]
   );
 
+  const downloadTerraform = () => {
+    if (!deployment) return;
+    const content = `# Terraform template for ${deployment.resource_name}\n` +
+      `# Provider: ${deployment.provider}\n` +
+      `# Resource Type: ${deployment.resource_type}\n\n` +
+      JSON.stringify(deployment.configuration, null, 2);
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    downloadBlob(`${deployment.resource_name.replace(/\s+/g, '_').toLowerCase()}.tf.json`, blob);
+  };
+
   const downloadMetadata = () => {
     if (!deployment) return;
     const metadataPayload = {
@@ -599,13 +610,22 @@ const DeploymentDetailPage: React.FC = () => {
                 <Boxes className="w-5 h-5 text-violet-400" />
                 <span>Terraform Output</span>
               </h3>
-              <button
-                onClick={() => copyText(formattedTerraformOutput)}
-                className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
-                title="Copy Terraform output JSON"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={downloadTerraform}
+                  className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
+                  title="Download Terraform template (.tf.json)"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => copyText(formattedTerraformOutput)}
+                  className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
+                  title="Copy Terraform output JSON"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <pre className="text-sm text-gray-300 bg-[#0b0d12] border border-gray-800/50 rounded-lg p-4 overflow-auto font-mono">
               {formattedTerraformOutput}

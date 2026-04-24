@@ -9,6 +9,7 @@ import ConfirmDialog from './ui/ConfirmDialog';
 
 interface Resource {
   id: number;
+  resource_id: string;
   name: string;
   provider: string;
   type: string;
@@ -224,12 +225,20 @@ const ResourceList: React.FC = () => {
                             </span>
                           </div>
                           
-                          {resource.terraform_output?.ip && (
-                            <div className="pt-2 border-t border-white/10">
-                              <p className="text-xs text-gray-400">IP Address</p>
-                              <p className="font-mono text-sm text-white">{resource.terraform_output.ip}</p>
-                            </div>
-                          )}
+                          <div className="pt-2 border-t border-white/10 space-y-2">
+                            {resource.resource_id && (
+                              <div>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Cloud Resource ID</p>
+                                <p className="font-mono text-[10px] text-gray-300 break-all leading-tight">{resource.resource_id}</p>
+                              </div>
+                            )}
+                            {resource.terraform_output?.ip && (
+                              <div>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">IP Address</p>
+                                <p className="font-mono text-sm text-white">{resource.terraform_output.ip}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Delete Button */}
@@ -253,6 +262,7 @@ const ResourceList: React.FC = () => {
                     <thead className="bg-gray-800/50 text-gray-400 uppercase text-xs">
                       <tr>
                         <th className="p-4 font-semibold">Name</th>
+                        <th className="p-4 font-semibold">Cloud ID</th>
                         <th className="p-4 font-semibold">Type</th>
                         <th className="p-4 font-semibold">Provider</th>
                         <th className="p-4 font-semibold">Status</th>
@@ -267,7 +277,12 @@ const ResourceList: React.FC = () => {
                           onClick={() => handleResourceClick(res)}
                           className="hover:bg-gray-700/30 transition-colors cursor-pointer group"
                         >
-                          <td className="p-4 font-medium text-white group-hover:text-blue-400 transition-colors">{res.name}</td>
+                          <td className="p-4 font-medium text-white group-hover:text-blue-400 transition-colors truncate max-w-[200px]">{res.name}</td>
+                          <td className="p-4">
+                            <code className="text-[10px] text-gray-400 font-mono bg-gray-800/30 px-1.5 py-0.5 rounded truncate max-w-[150px] inline-block" title={res.resource_id}>
+                              {res.resource_id || '-'}
+                            </code>
+                          </td>
                           <td className="p-4 text-gray-300 capitalize">{res.type}</td>
                           <td className="p-4">
                             <span className={`px-2 py-1 rounded text-xs font-semibold uppercase ${

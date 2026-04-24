@@ -1,12 +1,12 @@
 % Chapter 5: Implementation (Extraordinary Expansion)
 \chapter{IMPLEMENTATION}
 
-The implementation layer is where the "Nebula Engine" resides. This chapter provides a deep-dive into the "Code and Workflows" that power the Nebula Multi-Cloud platform.
+The implementation layer is where the "Nebula Engine" resides. This chapter pro- vides a deep-dive into the "Code and Workflows" that power the Nebula Multi-Cloud platform.
 
 \section{Implementation Design Principles}
-1. \textbf{Separation of Concerns}: The user interface, API, and worker are isolated services.
-2. \textbf{Asynchronous Execution}: All expensive "Cloud Actions" are shifted to workers to preserve responsiveness.
-3. \textbf{Explicit State Transitions}: Every resource moves from "pending" to "active" or "failed."
+1. \textbf{Separation of Concerns}:  The API, worker and the user interface are separate services. \\
+2. \textbf{Asynchronous Execution}: All costly "Cloud Actions" are offloaded to workers to maintain responsiveness.. \\
+3. \textbf{Explicit State Transitions}: Each resource is either in the pending state or the active state or the failed state. \\
 4. \textbf{Security-by-Default}: Credentials remain encrypted at rest and are only materialized in memory during task execution.
 
 \section{Core Implementation Workflows (TikZ Diagrams)}
@@ -138,12 +138,211 @@ const Cockpit = () => {
 \end{lstlisting}
 
 \section{State Management Logic and Lifecycle}
-Nebula uses a combination of React Context and custom hooks to manage the infrastructure state across different cloud providers.
+The Nebula project utilizes both React Context as well as its own hooks for the management of infrastructure state on different cloud platforms.
 
 \begin{itemize}
     \item \textbf{Context Provisioning}: The \texttt{CloudProviderContext} stores the registration status of AWS, Azure, and GCP accounts globally.
-    \item \textbf{Effect Lifecycles}: When a resource status changes (e.g., from 'pending' to 'active'), a side-effect is triggered to refresh the local inventory without a full page reload.
-    \item \textbf{Memoization}: Large inventory tables are memoized using \texttt{useMemo} to ensure high performance even with 100+ resources.
+    \item \textbf{Effect Lifecycles}: If the state of the particular resource changes (for example, from 'pending' to 'active'), an effect is produced to update the local inventory without reloading the whole page.
+    \item \textbf{Memoization}: To keep the inventory lists with many rows performant, their memoization is implemented through.
+
 \end{itemize}
+
+\newpage
+% Chapter 10: Deployment and Operations Playbook
+\chapter{DEPLOYMENT AND OPERATIONS PLAYBOOK}
+
+The present chapter converts the system design into actionable steps. While the appendix user manual addresses itself to local configurations and usage, the present chapter deals with the environment architecture, release management, operational best practices, and support processes. An important practical question answered by the present chapter is how to maintain a reliable Nebula once it exists.
+
+\section{Environment Topology}
+The best way to operate \texttt{Nebula} is to do so in a multi-environment setup that has controlled environment promotions. The recommended base configuration includes:
+\begin{itemize}
+    \item \textbf{Local development}: individual developer machines using mocked/sandboxed credentials.
+    \item \textbf{Shared integration}: an environment to test APIs/UI/worker compatibilities.
+    \item \textbf{Staging}: a near-production configuration with realistic secrets management and sandbox clouds.
+    \item \textbf{Production}: actual live control plane using authenticated operators.
+\end{itemize}
+
+Different database, broker, and encryption key usage should be maintained per environment.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=2.3cm, auto, scale=0.78, every node/.style={scale=0.78}]
+    \tikzstyle{env} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=8em, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [env] (local) {Local Dev};
+    \node [env, right=of local] (integration) {Shared Integration};
+    \node [env, right=of integration] (staging) {Staging};
+    \node [env, right=of staging] (production) {Production};
+
+    \draw [line] (local) -- node[above] {merge / validate} (integration);
+    \draw [line] (integration) -- node[above] {smoke tests} (staging);
+    \draw [line] (staging) -- node[above] {manual approval} (production);
+\end{tikzpicture}
+\caption{Recommended Environment Promotion Flow for Nebula Deployments}
+\label{fig:environment_promotion}
+\end{figure}
+
+\section{Release Pipeline}
+The pipeline for code releases needs to have the following stages:
+
+\begin{enumerate}
+    \item static code validation of backend, frontend and Terraform files,
+    \item unit testing of the validation code, API operations and utility functions,
+    \item integration testing of queue workflow, data persistence to database,
+    \item sandbox deployment using non-production cloud credentials,
+    \item sandboxing with non-production credentials in cloud services provider environment,
+    \item security review of release notes for any impact on security,
+    \item gradual deployment to staging and production environments.
+\end{enumerate}
+
+\subsection{Illustrative CI/CD Flow}
+\begin{lstlisting}[language=Python, caption=Release Pipeline Stages in Pseudo Workflow Form]
+name: nebula-release
+on:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    steps:
+      - checkout
+      - run backend lint
+      - run frontend lint
+      - run terraform validate
+
+  test:
+    steps:
+      - run unit tests
+      - run API contract tests
+      - run queue integration tests
+
+  package:
+    steps:
+      - build api image
+      - build worker image
+      - publish versioned artifacts
+
+  deploy-staging:
+    needs: [validate, test, package]
+    steps:
+      - apply staging configuration
+      - run smoke tests
+
+  approve-production:
+    needs: [deploy-staging]
+    steps:
+      - manual approval
+
+  deploy-production:
+    needs: [approve-production]
+    steps:
+      - roll out api
+      - roll out workers
+      - verify health endpoints
+\end{lstlisting}
+
+\section{Operational Readiness Checklist}
+Before enabling the platform for active user traffic, the following readiness checks should be completed:
+
+\begin{table}[h]
+\centering
+\caption{Operational Readiness Checklist}
+\label{tab:ops_readiness}
+\begin{tabular}{|p{4.2cm}|p{2.2cm}|p{5.0cm}|}
+\hline
+\textbf{Control Item} & \textbf{Status Type} & \textbf{Expected Evidence} \\ \hline
+API health endpoint & mandatory & returns HTTP 200 with version metadata \\ \hline
+Worker queue connectivity & mandatory & successful enqueue and dequeue test \\ \hline
+Database migrations & mandatory & schema version matches release tag \\ \hline
+Secret injection & mandatory & runtime variables resolved without fallback defaults \\ \hline
+Cloud sandbox credential test & recommended & read-only identity check passes for each provider \\ \hline
+Audit logging & mandatory & create, delete, and login events persisted \\ \hline
+Backup job verification & recommended & last successful snapshot within policy window \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Observability and Service Levels}
+The operations team would require more information than logs from containers. In a good deployment, the system would output:
+ 
+
+\begin{itemize}
+    \item latency stats for APIs,
+    \item throughput of workers and retries,
+    \item failure reasons grouped by provider,
+    \item time to reconciliation,
+    \item trends in authentication failures,
+    \item saturation of database connections,
+    \item length of queue over time.
+\end{itemize}
+
+Based on all this data, we can construct some basic SLO framework. For instance, interactive API calls need to have low latency, queue tasks need to be executed with certain guarantees, and failing tasks must provide an explainable reason. All this is achievable and relevant for SLOs in control plane applications.
+
+\section{Backup, Recovery, and Rollback}
+Furthermore, production operations require recovery plans. The following items would need protection:
+
+
+
+
+
+\begin{enumerate}
+    \item the PostgreSQL database state - users, roles, resources and task info,
+    \item configuration files and templates for Terraform modules,
+    \item images and releases,
+    \item logs and other operational data used in debugging.
+\end{enumerate}
+
+Rollbacks need special handling at each layer. Rollback in applications could entail rolling back the API and workers back to an earlier image. Rollback in databases can be tricky since it involves making forward changes instead of backwards ones.
+
+In addition, Terraform rollbacks can be difficult since the infrastructure state has possibly been modified. Therefore, the best way to do a deployment is through progressive releases accompanied by smoke tests rather than large production releases.
+
+\section{Incident Handling Model}
+In the case of a user impact incident, the following needs to happen:
+ 
+
+
+
+
+document remediation steps and post-incident actions.
+
+\begin{enumerate}
+    \item Classify the incident as either authentication problem,
+    \item provider outage, queues, database issues, or application regression.
+    \item Determine whether the blast radius involves single users, providers, or the entire system.
+    \item Collect diagnostic information like task logs and recent configuration changes.
+    \item Stabilize the system through halting any dangerous automations.
+    \item Communicate with users on the situation.
+    \item Document remediation steps and post-incident actions.
+\end{enumerate}
+
+\subsection{Example Runbook Entry}
+\begin{table}[h]
+\centering
+\caption{Sample Incident Runbook}
+\label{tab:incident_runbook}
+\begin{tabular}{|p{3.0cm}|p{4.0cm}|p{4.4cm}|}
+\hline
+\textbf{Incident Type} & \textbf{Immediate Action} & \textbf{Follow-up Action} \\ \hline
+Queue backlog & scale workers, inspect stuck tasks & tune retry policy and concurrency \\ \hline
+Credential decrypt failure & stop execution for affected tenant & rotate key material and re-encrypt secrets \\ \hline
+Provider API throttling & enable backoff and reduce fan-out & review sync scheduling policy \\ \hline
+Database saturation & shed non-critical jobs & optimize queries and add pooling controls \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Change Management and Team Workflow}
+Running a multi-cloud control plane requires diligent change management because any bug could impact more than one cloud provider simultaneously. Therefore, the following distinctions must be made when managing changes in software:
+
+\begin{itemize}
+    \item \textbf{feature changes}, that introduce new capabilities, like new resource types,
+    \item \textbf{operation changes}, that include changes to logging, retry,
+    \item \textbf{security releases}, concurrency, and observability,
+    \item \textbf{security changes}, including anything involving authentication, credentials, and provider permissions.
+\end{itemize}
+
+The differences are important for planning how much review and testing is needed. For instance, changes to the retry scheduler should lead to stress testing, while changes to credentials should involve thorough security reviews.
+
+\section{Why This Playbook Matters}
+A lot of student projects usually end up with architectural diagram analysis and source code description. In practice, however, operational discipline will decide on survival of architecture when faced with real users. This chapter goes further than that contribution of the blackbook as it demonstrates that the platform was evaluated not only as an implementation task, but also as a service to be operated and improved upon. 
 
 \newpage

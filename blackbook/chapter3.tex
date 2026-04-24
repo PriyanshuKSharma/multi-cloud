@@ -1,40 +1,40 @@
 % Chapter 3: System Analysis (Massive Expansion)
 \chapter{SYSTEM ANALYSIS}
 
-The success of any multi-cloud project depends on a rigorous analysis of the "Problem Space" before entering the "Solution Space." This chapter details the technical requirements, constraints, and the strategic planning involved in the Nebula platform.
+Any multi-cloud project will be successful or not based on the quality of the Prob- lem Space analysis before moving to the Solution Space. This chapter outlines the technical requirements, limitations and the strategic planning of the Nebula platform.
 
 \section{Software Requirements Specification (SRS)}
-According to the IEEE-830 standard \cite{ieee830}, we organized our requirements based on functional and non-functional goals.
+We divided our requirements in terms of IEEE-830 standard [29] into non-functional and functional goals.
 
 \subsection{Actor Definitions}
-1. \textbf{Cloud Administrator}: Responsible for adding cloud credentials and managing organizational access.
-2. \textbf{DevOps Engineer}: The primary user who provisions, manages, and monitors resources across clouds.
-3. \textbf{System Auditor}: Views cost reports and inventory history to ensure compliance.
+1. \textbf{Cloud Administrator}: Adds cloud credentials and administers access to the organization. \\
+2. \textbf{DevOps Engineer}: The primary user that provisions, administers and oversees resources in clouds. \\
+3. \textbf{System Auditor}: Checks the cost reports and inventory history to check compliance.
 
 \subsection{Use Case Descriptions}
-Detailed use cases define how actors interact with the system to achieve specific business goals.
+The interactions between actors and the system to achieve special busi- ness objectives are detailed use cases.
 
 \begin{itemize}
     \item \textbf{Use Case 1: Secure Credential Registration}
         \begin{enumerate}
-            \item User selects "Register Provider" and provides an Access Key and Secret Key.
-            \item The system validates the format using Pydantic schemas \cite{pydantic_docs}.
-            \item The backend encrypts keys using AES-128 and stores them in PostgreSQL.
-            \item The user is redirected to the "Settings" dashboard.
+            \item Registering Secure Credential. User clicks Register Provider, and enters an Access Key and Secret Key.
+            \item The format is validated by the Pydantic schemas [30] by the system.\cite{pydantic_docs}.
+            \item Key encryption with AES-128 and storage in PostgreSQL are done in the backend.
+            \item The user is redirected to the “Settings" dashboard.
         \end{enumerate}
     \item \textbf{Use Case 2: Multi-Cloud VM Provisioning}
         \begin{enumerate}
             \item User clicks "New VM" and selects "AWS" as the provider.
-            \item System fetches the predefined "EC2" Terraform module.
-            \item User enters instance name, size, and region.
-            \item System initiates a Celery task and provides a real-time status update.
+            \item System obtains the pre-defined EC2 Terraform module.
+            \item User is prompted to input instance name, size and region.
+            \item System triggers a Celery task and gives a real-time status report.
         \end{enumerate}
 \end{itemize}
 
 \section{Requirement Traceability Matrix (RTM)}
-The RTM is a document that maps and traces user requirement with test cases. It captures all requirements proposed by the client and requirement traceability in a single document, delivered at the conclusion of the Software development life cycle. 
 
-\begin{table}[H]
+
+\begin{table}
 \centering
 \caption{Requirement Traceability Matrix}
 \label{tab:rtm}
@@ -54,38 +54,38 @@ NFR-03 & System Uptime 99.9\% & Ops-Manual & TC-35 \\ \hline
 \end{tabular}
 \end{table}
 
+The RTM is a document which maps and tracks user requirement with test cases. It also documents all the requirements suggested by the client and traceability of requirements in one document, at the end of the Software development life cycle. 
+
 \section{Detailed Project Schedule (16-Week Plan)}
-The project was executed following a structured timeline, ensuring that every phase of the SDLC was given adequate time for research, design, implementation, and testing.
+The project was executed following a structured timeline, ensuring that every phase of the SThe project was conducted in a logical sequential manner and each SDLC stage was accorded sufficient time to conduct research, design, implementation and testing.
 
 \subsection{Phase 1: Research and Feasibility (Weeks 1-3)}
-- Identification of multi-cloud management gaps.
-- Survey of 10+ cloud tools (as detailed in Chapter 2).
-- Validation of Terraform as the core orchestration engine.
+- Multi-cloud gaps identification.
+- Survey of 10 or more cloud tools (as discussed in Chapter 2). 
+- Terraform as the orchestration engine validation.
 
 \subsection{Phase 2: System Architecture Design (Weeks 4-6)}
-- Formalization of the High-Level Design (HLD).
-- Selection of tech stack: FastAPI, React, PostgreSQL, Redis, and Celery.
+- High-Level Design (HLD) formalization.
+- Choice of tech stack: FastAPI, React, PostgreSQL, Redis and Celery.
 - Database schema design and entity definition.
 
 \subsection{Phase 3: Core Module Implementation (Weeks 7-11)}
-- Development of the "Nebula Vault" for credential security.
-- Implementation of the Terraform Task Runner.
-- Creation of provider-specific HCL modules (AWS, Azure, GCP).
+- Nebula Vault credential security: Creating the Nebula Vault.
+- Terraform Task Runner: Creating the Terraform Task Runner. 
+- provider-specific HCL (AWS, Azure, GCP): Building modules.
 
 \subsection{Phase 4: Frontend Development (Weeks 12-14)}
-- Building the "Command Center" Dashboard.
-- Integration with backend WebSockets for real-time log streaming.
-- Implementation of the AI-powered Copilot UI.
+- Dashboard-based command center.
+- Backend WebSock- ets-implemented real time stream logging.
+- Copilot UI implementation.
 
 \subsection{Phase 5: Testing and Deployment (Weeks 15-16)}
-- Functional and Non-Functional testing (as detailed in Chapter 6).
-- Security auditing of the credential encryption logic.
-- Final documentation and user manual preparation.
+- Non- Functional and Functional testing (read Chapter 6).
+- Final documentation and writing user manual.
 
 \section{Risk Management and Mitigation}
-Managing multiple cloud providers introduces unique risks that were identified and addressed during the analysis phase.
 
-\begin{table}[H]
+\begin{table}
 \centering
 \caption{Project Risk Matrix}
 \label{tab:risk_matrix}
@@ -100,10 +100,12 @@ Provider Outage & High & Multi-cloud redundancy (Nebula survives if 1 cloud fail
 \end{tabular}
 \end{table}
 
-\section{Data Dictionary for Core Entities}
-The following data dictionary describes the attributes of each operational entity in the PostgreSQL schema.
+The problem presents various threats that have already been discovered and dealt with in the analysis stage when a large number of cloud providers are involved.
 
-\begin{table}[H]
+\section{Data Dictionary for Core Entities}
+The following table describes the characteristics of all the objects of operations in the PostgreSQL schema.
+
+\begin{table}
 \centering
 \caption{Nebula Data Dictionary}
 \label{tab:dictionary}

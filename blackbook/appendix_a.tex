@@ -74,14 +74,23 @@ Google Cloud onboarding requires a service account with a JSON key and the corre
 \centering
 \caption{Essential Environment Variables for Local Setup}
 \label{tab:appendix_env_vars}
-\begin{tabular}{|p{3.2cm}|p{3.2cm}|p{4.8cm}|}
+
+\renewcommand{\arraystretch}{1.6}
+
+\begin{tabular}{|p{5cm}|p{5cm}|p{6cm}|}
 \hline
 \textbf{Variable} & \textbf{Example} & \textbf{Purpose} \\ \hline
-DATABASE\_URL & postgresql://user:pass@localhost:5432/nebula\_db & database connection string \\ \hline
-REDIS\_URL & redis://localhost:6379/0 & queue broker and task transport \\ \hline
-SECRET\_KEY & generated fernet key & encryption of provider secrets \\ \hline
-AI\_COPILOT\_API\_KEY & provider token & failure analysis integration \\ \hline
-LOG\_LEVEL & info & runtime verbosity tuning \\ \hline
+
+DATABASE\_URL & postgresql://user:pass\_db & Database connection string used by the application to connect to PostgreSQL. \\ \hline
+
+REDIS\_URL & redis://localhost:6379/0 & Used as message broker and task queue transport for background job processing. \\ \hline
+
+SECRET\_KEY & Generated Fernet key & Ensures encryption and secure storage of sensitive provider credentials. \\ \hline
+
+AI\_COPILOT\_API\_KEY & Provider token & Enables integration with AI-based troubleshooting and failure analysis services. \\ \hline
+
+LOG\_LEVEL & info & Controls logging verbosity for debugging and monitoring purposes. \\ \hline
+
 \end{tabular}
 \end{table}
 
@@ -136,7 +145,7 @@ To clean up a project safely:
     \item \textbf{Issue}: "Terraform state locked."
     \item \textbf{Solution}: Delete the \texttt{.terraform.tfstate.lock.info} file in the workspace directory and retry.
     \item \textbf{Issue}: "Azure subscription not found."
-    \item \textbf{Solution}: Verify the Tenant ID and ensure the Service Principal has \texttt{Contributor} permissions on the subscription.
+    \item \textbf{Solution}: Verify the Tenant ID and ensure the Service Principal has \\ Contributor permissions on the subscription.
 \end{itemize}
 
 \subsection{Expanded Troubleshooting Matrix}
@@ -144,7 +153,7 @@ To clean up a project safely:
 \centering
 \caption{Common Operational Issues and Recovery Actions}
 \label{tab:appendix_troubleshooting}
-\begin{tabular}{|p{3.4cm}|p{3.4cm}|p{4.2cm}|}
+\begin{tabular}{|p{3.6cm}|p{3.6cm}|p{4.4cm}|}
 \hline
 \textbf{Symptom} & \textbf{Likely Cause} & \textbf{Recommended Action} \\ \hline
 Task remains queued & worker offline or broker unavailable & restart worker service and verify Redis connectivity \\ \hline
@@ -157,13 +166,13 @@ Repeated auth failures & expired credential or wrong secret format & re-register
 
 \subsection{Frequently Asked Questions}
 \begin{enumerate}
-    \item \textbf{Can Nebula manage multiple accounts of the same provider?}
+    \item \textbf{Can Nebula manage multiple accounts of the same provider?} \\
     Yes. The credential vault can store multiple provider entries, provided each is tagged and scoped clearly.
-    \item \textbf{Should production credentials be used during development?}
+    \item \textbf{Should production credentials be used during development?} \\
     No. Use sandbox or low-privilege accounts whenever possible.
-    \item \textbf{Why does a task take longer than the API request?}
-    Because the API only records intent and queues the work. The actual infrastructure execution happens asynchronously in the worker layer.
-    \item \textbf{What should I do if a resource is visible in the cloud console but missing in Nebula?}
+    \item \textbf{Why does a task take longer than the API request?} \\
+    Because the API only records intent and queues the work. The actual \\ infrastructure execution happens asynchronously in the worker layer.
+    \item \textbf{What should I do if a resource is visible in the cloud console but missing in Nebula?} \\
     Trigger a manual synchronization cycle. If the resource still does not appear, verify whether the credential used by Nebula has permission to list that resource type.
 \end{enumerate}
 

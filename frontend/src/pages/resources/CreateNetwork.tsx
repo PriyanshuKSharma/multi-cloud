@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
@@ -10,8 +10,9 @@ import {
   Check,
   AlertCircle,
   Loader,
+  Plus,
+  Trash2
 } from 'lucide-react';
-
 
 const regions = {
   aws: [
@@ -19,6 +20,7 @@ const regions = {
     { value: 'us-west-2', label: 'US West (Oregon)' },
     { value: 'eu-west-1', label: 'EU West (Ireland)' },
     { value: 'ap-southeast-1', label: 'Asia Pacific (Singapore)' },
+    { value: 'ap-south-1', label: 'Asia Pacific (Mumbai)' },
   ],
   azure: [
     { value: 'eastus', label: 'East US' },
@@ -38,23 +40,40 @@ interface CreateNetworkForm {
   name: string;
   provider: 'aws' | 'azure' | 'gcp';
   region: string;
+  resources_to_create: 'vpc_only' | 'vpc_and_more';
+  ipv4_allocation: 'manual' | 'ipam';
   cidr_block: string;
+  ipv6_allocation: 'none' | 'ipam' | 'amazon_provided' | 'owned_by_me';
+  tenancy: 'default' | 'dedicated';
+  encryption_control: 'none' | 'monitor' | 'enforce';
   enable_dns: boolean;
   enable_nat: boolean;
+  tags: { key: string; value: string }[];
 }
 
 const CreateNetwork: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateNetworkForm>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateNetworkForm>({
     defaultValues: {
       provider: 'aws',
       region: 'us-east-1',
+      resources_to_create: 'vpc_only',
+      ipv4_allocation: 'manual',
       cidr_block: '10.0.0.0/16',
+      ipv6_allocation: 'none',
+      tenancy: 'default',
+      encryption_control: 'none',
       enable_dns: true,
       enable_nat: false,
+      tags: [],
     }
+  });
+
+  const { fields: tagFields, append: appendTag, remove: removeTag } = useFieldArray({
+    control,
+    name: "tags"
   });
 
   const selectedProvider = watch('provider');
@@ -63,6 +82,7 @@ const CreateNetwork: React.FC = () => {
   const cidrBlock = watch('cidr_block');
   const dnsEnabled = watch('enable_dns');
   const natEnabled = watch('enable_nat');
+  const ipv4Allocation = watch('ipv4_allocation');
 
   const applyCidrPreset = (cidr: string) => {
     setValue('cidr_block', cidr, { shouldDirty: true });
@@ -79,17 +99,26 @@ const CreateNetwork: React.FC = () => {
       const payload = {
         name: data.name,
         provider: data.provider,
-        region: data.region,
-        metadata: {
+        type: 'network', 
+        project_id: 0,
+        configuration: {
+            region: data.region,
+            resources_to_create: data.resources_to_create,
+            ipv4_allocation: data.ipv4_allocation,
             cidr: data.cidr_block,
+            ipv6_allocation: data.ipv6_allocation,
+            tenancy: data.tenancy,
+            encryption_control: data.encryption_control,
             dns_enabled: data.enable_dns,
-            nat_gateway: data.enable_nat
+            nat_gateway: data.enable_nat,
+            tags: data.tags,
         }
       };
-      return await axios.post('/inventory/networks', payload);
+      return await axios.post('/resources/', payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', 'networks'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
       navigate('/resources/networks');
     },
   });
@@ -159,10 +188,28 @@ const CreateNetwork: React.FC = () => {
           </div>
 
           <div className="bg-[#0f0f11] border border-gray-800/60 rounded-2xl p-6 space-y-6">
-            <h2 className="text-lg font-semibold text-white">Network Settings</h2>
+            <h2 className="text-lg font-semibold text-white">VPC Settings</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">Resources to create</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="vpc_only" {...register('resources_to_create')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    VPC only
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="vpc_and_more" {...register('resources_to_create')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    VPC and more
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">Network Name</label>
+                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">Name tag</label>
+                <p className="text-xs text-gray-500 mb-2">Creates a tag with a key of 'Name' and a value that you specify.</p>
                 <input
                   type="text"
                   {...register('name', { required: 'Network name is required' })}
@@ -179,6 +226,7 @@ const CreateNetwork: React.FC = () => {
 
               <div>
                 <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">Region</label>
+                <p className="text-xs text-gray-500 mb-2">Deployment region for this network.</p>
                 <select
                   {...register('region')}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
@@ -191,43 +239,176 @@ const CreateNetwork: React.FC = () => {
                 </select>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">CIDR Block</label>
-                <input
-                  type="text"
-                  {...register('cidr_block', {
-                    required: 'CIDR block is required',
-                    pattern: {
-                      value: /^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
-                      message: 'Invalid CIDR format (e.g., 10.0.0.0/16)',
-                    },
-                  })}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
-                  placeholder="10.0.0.0/16"
-                />
-                {errors.cidr_block && (
-                  <p className="mt-1 text-xs text-red-400 flex items-center">
-                    <AlertCircle className="w-3 h-3 mr-1" />
-                    {errors.cidr_block.message}
-                  </p>
+              <div className="md:col-span-2 space-y-4">
+                <label className="block text-xs uppercase tracking-wider text-gray-400">IPv4 CIDR block</label>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="manual" {...register('ipv4_allocation')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    IPv4 CIDR manual input
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="ipam" {...register('ipv4_allocation')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    IPAM-allocated IPv4 CIDR block
+                  </label>
+                </div>
+                
+                {ipv4Allocation === 'manual' && (
+                  <div className="mt-3">
+                    <label className="block text-sm text-gray-300 mb-2">IPv4 CIDR</label>
+                    <input
+                      type="text"
+                      {...register('cidr_block', {
+                        required: 'CIDR block is required',
+                        pattern: {
+                          value: /^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
+                          message: 'Invalid CIDR format (e.g., 10.0.0.0/16)',
+                        },
+                      })}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-gray-200 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                      placeholder="10.0.0.0/16"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">CIDR block size must be between /16 and /28.</p>
+                    {errors.cidr_block && (
+                      <p className="mt-1 text-xs text-red-400 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {errors.cidr_block.message}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {['10.0.0.0/16', '172.16.0.0/16', '192.168.0.0/24'].map((cidr) => (
+                        <button
+                          key={cidr}
+                          type="button"
+                          onClick={() => applyCidrPreset(cidr)}
+                          className="cursor-pointer rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/15"
+                        >
+                          Use {cidr}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {['10.0.0.0/16', '172.16.0.0/16', '192.168.0.0/24'].map((cidr) => (
+              <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-800/50">
+                <label className="block text-xs uppercase tracking-wider text-gray-400">IPv6 CIDR block</label>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="none" {...register('ipv6_allocation')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    No IPv6 CIDR block
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="ipam" {...register('ipv6_allocation')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    IPAM-allocated IPv6 CIDR block
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="amazon_provided" {...register('ipv6_allocation')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    Amazon-provided IPv6 CIDR block
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="owned_by_me" {...register('ipv6_allocation')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    IPv6 CIDR owned by me
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-800/50">
+                <label className="block text-xs uppercase tracking-wider text-gray-400">Tenancy</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="default" {...register('tenancy')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    Default
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="dedicated" {...register('tenancy')} className="text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    Dedicated
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-800/50">
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs uppercase tracking-wider text-gray-400">VPC encryption control ($)</label>
+                </div>
+                <p className="text-xs text-gray-500">Monitor mode provides visibility into encryption status without blocking traffic. Enforce mode prevents unencrypted traffic. Additional charges apply.</p>
+                <div className="flex flex-col gap-3">
+                  <label className="flex items-start gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="none" {...register('encryption_control')} className="mt-1 text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    <div>
+                      <span className="font-medium text-gray-200">None</span>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="monitor" {...register('encryption_control')} className="mt-1 text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    <div>
+                      <span className="font-medium text-gray-200">Monitor mode</span>
+                      <p className="text-xs text-gray-500 mt-1">See which resources in your VPC are unencrypted but allow the creation of unencrypted resources.</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-2 cursor-pointer text-sm text-gray-300">
+                    <input type="radio" value="enforce" {...register('encryption_control')} className="mt-1 text-cyan-500 focus:ring-cyan-500 bg-gray-800 border-gray-700" />
+                    <div>
+                      <span className="font-medium text-gray-200">Enforce mode</span>
+                      <p className="text-xs text-gray-500 mt-1">Requires all resources, except exclusions, in your VPC to be encryption-capable and blocks creation of unencrypted resources.</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-800/50">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Tags</h3>
+                  <p className="text-xs text-gray-500 mt-1">A tag is a label that you assign to an AWS resource. Each tag consists of a key and an optional value. You can use tags to search and filter your resources or track your AWS costs.</p>
+                </div>
+                
+                {tagFields.length === 0 ? (
+                  <div className="py-4 text-center border border-dashed border-gray-700/50 rounded-lg">
+                    <p className="text-sm text-gray-500">No tags associated with the resource</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {tagFields.map((field, index) => (
+                      <div key={field.id} className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <input
+                            {...register(`tags.${index}.key` as const, { required: true })}
+                            placeholder="Key"
+                            className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            {...register(`tags.${index}.value` as const)}
+                            placeholder="Value"
+                            className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeTag(index)}
+                          className="p-2 text-gray-400 hover:text-red-400 bg-gray-800/50 border border-gray-700/50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 <button
-                  key={cidr}
                   type="button"
-                  onClick={() => applyCidrPreset(cidr)}
-                  className="cursor-pointer rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/15"
+                  onClick={() => appendTag({ key: '', value: '' })}
+                  className="flex items-center text-sm text-cyan-400 hover:text-cyan-300 font-medium transition-colors cursor-pointer"
                 >
-                  Use {cidr}
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add new tag
                 </button>
-              ))}
+              </div>
+
             </div>
 
-            <div className="space-y-3 pt-2 border-t border-gray-800/50">
+            <div className="space-y-3 pt-6 border-t border-gray-800/50">
               <label className="flex items-center justify-between p-4 rounded-xl border border-gray-800 bg-gray-900/20 cursor-pointer hover:bg-gray-800/40 transition-colors">
                 <div>
                   <h3 className="text-sm font-medium text-white">Enable DNS Options</h3>

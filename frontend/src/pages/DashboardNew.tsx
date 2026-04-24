@@ -15,9 +15,20 @@ import {
   RefreshCw,
   Terminal,
   AlertCircle,
+  Network,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
+import { Quote, ExternalLink, Award } from 'lucide-react';
+
+
+interface MetricChange {
+  value: number;
+  label: string;
+  type: 'increase' | 'decrease' | 'neutral';
+  unit?: string;
+  prefix?: string;
+}
 
 interface DashboardStats {
   total_resources: number;
@@ -58,6 +69,13 @@ interface DashboardStats {
     region: string;
     last_synced: string;
   }>;
+  metrics?: {
+    resources_change: MetricChange;
+    vms_status: MetricChange;
+    storage_change: MetricChange;
+    networks_change: MetricChange;
+    cost_change: MetricChange;
+  };
   last_updated: string;
 }
 
@@ -112,6 +130,7 @@ const DashboardPage: React.FC = () => {
         chips={[
           { label: `${stats?.total_resources ?? 0} total resources`, tone: 'blue' },
           { label: `${stats?.active_vms ?? 0} active VMs`, tone: 'emerald' },
+          { label: `${stats?.total_networks ?? 0} networks`, tone: 'cyan' },
           { label: `$${stats?.estimated_monthly_cost?.toFixed(2) ?? '0.00'} monthly`, tone: 'orange' },
         ]}
         actions={
@@ -145,38 +164,46 @@ const DashboardPage: React.FC = () => {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <MetricCard
-          title="Total Resources"
-          value={stats?.total_resources || 0}
-          change={{ value: 5, label: 'added today', type: 'increase' }}
-          icon={Layers}
-          iconColor="text-blue-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Active VMs"
-          value={stats?.active_vms || 0}
-          change={{ value: 2, label: 'running', type: 'increase' }}
-          icon={Server}
-          iconColor="text-green-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Storage Resources"
-          value={stats?.total_storage || 0}
-          change={{ value: 1, label: 'bucket removed', type: 'decrease' }}
-          icon={Database}
-          iconColor="text-purple-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Monthly Cost"
-          value={`$${stats?.estimated_monthly_cost?.toFixed(2) || '0.00'}`}
-          change={{ value: 8.5, label: 'vs last month', type: 'increase' }}
-          icon={DollarSign}
-          iconColor="text-yellow-500"
-          loading={isLoading}
-        />
+            <MetricCard
+              title="Total Resources"
+              value={stats?.total_resources || 0}
+              change={stats?.metrics?.resources_change || { value: 0, label: 'added today', type: 'neutral' }}
+              icon={Layers}
+              iconColor="text-blue-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Active VMs"
+              value={stats?.active_vms || 0}
+              change={stats?.metrics?.vms_status || { value: 0, label: 'running', type: 'neutral' }}
+              icon={Server}
+              iconColor="text-green-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Storage Resources"
+              value={stats?.total_storage || 0}
+              change={stats?.metrics?.storage_change || { value: 0, label: 'added today', type: 'neutral' }}
+              icon={Database}
+              iconColor="text-purple-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Network Resources"
+              value={stats?.total_networks || 0}
+              change={stats?.metrics?.networks_change || { value: 0, label: 'created today', type: 'neutral' }}
+              icon={Network}
+              iconColor="text-emerald-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Monthly Cost"
+              value={`$${stats?.estimated_monthly_cost?.toFixed(2) || '0.00'}`}
+              change={stats?.metrics?.cost_change || { value: 0, label: 'vs last month', type: 'neutral' }}
+              icon={DollarSign}
+              iconColor="text-yellow-500"
+              loading={isLoading}
+            />
       </div>
 
       {/* Charts Row */}
@@ -323,7 +350,13 @@ const DashboardPage: React.FC = () => {
                   key={index}
                   className="flex items-start space-x-4 p-4 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors"
                 >
-                  <Activity className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  {activity.type === 'vm' ? (
+                    <Server className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  ) : activity.type === 'storage' ? (
+                    <Database className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <Network className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-300 truncate">{activity.resource_name}</p>
                     <div className="flex items-center space-x-2 mt-1">
@@ -348,7 +381,50 @@ const DashboardPage: React.FC = () => {
           Last updated: {new Date(stats.last_updated).toLocaleString()}
         </div>
       )}
+
+
+      {/* Scientific Foundation Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10 rounded-2xl p-8 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+          <Award className="w-32 h-32 text-amber-500" />
+        </div>
+        
+        <div className="relative z-10 max-w-4xl">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-amber-500/20 rounded-lg">
+              <Quote className="w-5 h-5 text-amber-400" />
+            </div>
+            <h3 className="text-xl font-bold text-white tracking-tight">Scientific Foundation</h3>
+          </div>
+          
+          <p className="text-gray-400 text-lg leading-relaxed mb-6">
+            Nebula is built on peer-reviewed research exploring autonomous multi-cloud orchestration. 
+            The research, titled <strong>"Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management"</strong>, was recently published in the <strong>International Journal of Creative Research Thoughts (IJCRT)</strong>.
+          </p>
+          
+          <div className="flex flex-wrap gap-4">
+            <a 
+              href="http://www.ijcrt.org/viewfull.php?&p_id=IJCRT2604384"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-xl border border-amber-500/20 transition-all font-medium flex items-center space-x-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Read Full Paper</span>
+            </a>
+            <div className="px-5 py-2.5 bg-gray-800/30 text-gray-400 rounded-xl border border-gray-700/30 font-mono text-sm flex items-center">
+              DOI: 10.56975/ijcrt.v14i4.305033
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
+
   );
 };
 
