@@ -20,6 +20,14 @@ ensure_project_columns()
 ensure_resource_columns()
 
 app = FastAPI(title="Nebula API")
+
+@app.get("/")
+async def root():
+    return {"status": "online", "message": "Nebula Multi-Cloud API is active", "version": "1.0.0"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
 logger = logging.getLogger(__name__)
 
 # CORS Middleware
