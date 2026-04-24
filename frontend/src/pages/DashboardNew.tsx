@@ -404,7 +404,7 @@ const DashboardPage: React.FC = () => {
           
           <p className="text-gray-400 text-lg leading-relaxed mb-6">
             Nebula is built on peer-reviewed research exploring autonomous multi-cloud orchestration. 
-            The system's core architecture was recently published in the <strong>International Journal of Creative Research Thoughts (IJCRT)</strong>.
+            The research, titled <strong>"Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management"</strong>, was recently published in the <strong>International Journal of Creative Research Thoughts (IJCRT)</strong>.
           </p>
           
           <div className="flex flex-wrap gap-4">
