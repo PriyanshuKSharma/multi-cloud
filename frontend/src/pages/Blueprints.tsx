@@ -13,6 +13,7 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
+  Download,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -23,6 +24,7 @@ interface Blueprint {
   provider: string;
   resource_type: string;
   uses_count: number;
+  template: Record<string, any>;
   created_at: string;
 }
 
@@ -689,6 +691,25 @@ const BlueprintsPage: React.FC = () => {
                 >
                   <Copy className="w-3 h-3" />
                   <span>Clone</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const content = blueprint.template?._template_mode === 'cloudformation' 
+                      ? JSON.stringify(blueprint.template, null, 2)
+                      : `# Terraform blueprint for ${blueprint.name}\n# Resource Type: ${blueprint.resource_type}\n\n` + 
+                        JSON.stringify(blueprint.template, null, 2);
+                    const ext = blueprint.template?._template_mode === 'cloudformation' ? 'json' : 'tf.json';
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${blueprint.name.replace(/\s+/g, '_').toLowerCase()}.${ext}`;
+                    a.click();
+                  }}
+                  className="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg text-xs transition-colors"
+                  title="Download Template"
+                >
+                  <Download className="w-3 h-3" />
                 </button>
                 <button
                   onClick={() => deleteBlueprint.mutate(blueprint.id)}
