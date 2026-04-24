@@ -1,9 +1,14 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import PageHero from '../../components/ui/PageHero';
+import {
+  CURRENT_PROJECT_CHANGED_EVENT,
+  readCurrentProjectId,
+  setCurrentProject,
+} from '../../utils/currentProject';
 import {
   Network,
   ArrowLeft,
@@ -11,7 +16,8 @@ import {
   AlertCircle,
   Loader,
   Plus,
-  Trash2
+  Trash2,
+  CheckCircle
 } from 'lucide-react';
 
 const regions = {
@@ -51,10 +57,56 @@ interface CreateNetworkForm {
   tags: { key: string; value: string }[];
 }
 
+interface ProjectOption {
+  id: number;
+  name: string;
+}
+
 const CreateNetwork: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
+  const [projectMode, setProjectMode] = React.useState<'current' | 'new'>('current');
+  const [selectedProjectId, setSelectedProjectId] = React.useState<number | ''>('');
+  const [newProjectName, setNewProjectName] = React.useState('');
+  const [newProjectDescription, setNewProjectDescription] = React.useState('');
+  const [projectError, setProjectError] = React.useState<string | null>(null);
+
+  const { data: projects = [], isLoading: isProjectsLoading } = useQuery<ProjectOption[]>({
+    queryKey: ['projects', 'create-network'],
+    queryFn: async () => {
+      const response = await axios.get('/projects/');
+      const payload = response.data;
+      const items = Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : [];
+      return items.map((project: any) => ({
+        id: Number(project.id),
+        name: String(project.name ?? `Project ${project.id}`),
+      }));
+    },
+    staleTime: 30_000,
+  });
+
+  React.useEffect(() => {
+    if (projects.length === 0) return;
+    const storedId = readCurrentProjectId();
+    if (storedId && projects.some((project) => project.id === storedId)) {
+      setSelectedProjectId(storedId);
+      return;
+    }
+    setSelectedProjectId(projects[0].id);
+    setCurrentProject({ id: projects[0].id, name: projects[0].name });
+  }, [projects]);
+
+  React.useEffect(() => {
+    const onProjectChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id?: number | null }>;
+      if (typeof customEvent.detail?.id === 'number' && customEvent.detail.id > 0) {
+        setSelectedProjectId(customEvent.detail.id);
+      }
+    };
+    window.addEventListener(CURRENT_PROJECT_CHANGED_EVENT, onProjectChanged as EventListener);
+    return () => window.removeEventListener(CURRENT_PROJECT_CHANGED_EVENT, onProjectChanged as EventListener);
+  }, []);
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateNetworkForm>({
     defaultValues: {
       provider: 'aws',
@@ -95,12 +147,12 @@ const CreateNetwork: React.FC = () => {
   }, [selectedProvider, setValue]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: CreateNetworkForm) => {
+    mutationFn: async (data: CreateNetworkForm & { resolved_project_id: number }) => {
       const payload = {
         name: data.name,
         provider: data.provider,
         type: 'network', 
-        project_id: 0,
+        project_id: data.resolved_project_id,
         configuration: {
             region: data.region,
             resources_to_create: data.resources_to_create,
@@ -123,8 +175,43 @@ const CreateNetwork: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: CreateNetworkForm) => {
-    createMutation.mutate(data);
+  const resolveProjectId = async (): Promise<number | null> => {
+    if (projectMode === 'new') {
+      const trimmedName = newProjectName.trim();
+      if (!trimmedName) {
+        setProjectError('New project name is required.');
+        return null;
+      }
+      try {
+        const response = await axios.post('/projects/', {
+          name: trimmedName,
+          description: newProjectDescription.trim() || undefined,
+        });
+        const createdProject = response.data as ProjectOption;
+        setCurrentProject({ id: createdProject.id, name: createdProject.name });
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        return createdProject.id;
+      } catch (error: any) {
+        const detail = error?.response?.data?.detail;
+        setProjectError(typeof detail === 'string' ? detail : 'Failed to create project.');
+        return null;
+      }
+    }
+
+    const projectId = typeof selectedProjectId === 'number' ? selectedProjectId : Number(selectedProjectId);
+    if (!projectId || projectId <= 0) {
+      setProjectError('Select a project or create a new one.');
+      return null;
+    }
+    return projectId;
+  };
+
+  const onSubmit = async (data: CreateNetworkForm) => {
+    setProjectError(null);
+    const resolved_project_id = await resolveProjectId();
+    if (!resolved_project_id) return;
+    
+    createMutation.mutate({ ...data, resolved_project_id });
   };
 
   return (
@@ -435,6 +522,67 @@ const CreateNetwork: React.FC = () => {
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24">
+          {/* Project Assignment Section */}
+          <div className="bg-[#101015] border border-gray-800/70 rounded-2xl p-5 space-y-4">
+            <h2 className="text-sm font-semibold tracking-wide text-gray-200">Project Assignment</h2>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setProjectMode('current')}
+                className={`cursor-pointer rounded-lg border px-3 py-2 text-xs transition-colors ${
+                  projectMode === 'current'
+                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-100'
+                    : 'border-gray-700/60 bg-gray-900/50 text-gray-300 hover:bg-gray-800/60'
+                }`}
+              >
+                Existing
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectMode('new')}
+                className={`cursor-pointer rounded-lg border px-3 py-2 text-xs transition-colors ${
+                  projectMode === 'new'
+                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-100'
+                    : 'border-gray-700/60 bg-gray-900/50 text-gray-300 hover:bg-gray-800/60'
+                }`}
+              >
+                New
+              </button>
+            </div>
+
+            {projectMode === 'current' ? (
+              <select
+                value={selectedProjectId}
+                onChange={(event) => setSelectedProjectId(Number(event.target.value))}
+                disabled={isProjectsLoading || projects.length === 0}
+                className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 disabled:opacity-60"
+              >
+                <option value="">Select project</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={newProjectName}
+                  onChange={(event) => setNewProjectName(event.target.value)}
+                  placeholder="New project name"
+                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                />
+                <textarea
+                  value={newProjectDescription}
+                  onChange={(event) => setNewProjectDescription(event.target.value)}
+                  rows={2}
+                  placeholder="Description (optional)"
+                  className="w-full resize-none px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                />
+              </div>
+            )}
+          </div>
           <div className="bg-[#101015] border border-gray-800/70 rounded-2xl p-5">
             <h3 className="text-sm font-semibold text-gray-200 mb-3">Live Summary</h3>
             <div className="space-y-2 text-sm">
@@ -454,6 +602,12 @@ const CreateNetwork: React.FC = () => {
                 <span className="text-gray-500">CIDR</span>
                 <span className="text-cyan-300">{cidrBlock}</span>
               </div>
+              <div className="pt-2 mt-2 border-t border-gray-800/70 flex items-center justify-between">
+                <span className="text-gray-500">Project</span>
+                <span className="text-gray-200 truncate max-w-[170px] text-right">
+                  {projectMode === 'new' ? newProjectName || 'new project' : projects.find(p => p.id === (typeof selectedProjectId === 'number' ? selectedProjectId : Number(selectedProjectId)))?.name || 'not selected'}
+                </span>
+              </div>
               <div className="pt-2 mt-2 border-t border-gray-800/70">
                 <p className="text-gray-500 text-xs">
                   DNS: {dnsEnabled ? 'enabled' : 'disabled'} | NAT: {natEnabled ? 'enabled' : 'disabled'}
@@ -462,13 +616,13 @@ const CreateNetwork: React.FC = () => {
             </div>
           </div>
 
-          {createMutation.isError && (
+          {(projectError || createMutation.isError) && (
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-200 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <div>
                 <p className="font-semibold">Failed to create network</p>
                 <p className="mt-1 text-red-300/80 text-xs">
-                  {(createMutation.error as any)?.response?.data?.detail || 'Please verify CIDR and provider permissions.'}
+                  {projectError || (createMutation.error as any)?.response?.data?.detail || 'Please verify CIDR and provider permissions.'}
                 </p>
               </div>
             </div>
