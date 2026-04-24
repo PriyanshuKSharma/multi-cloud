@@ -1,5 +1,12 @@
 from mangum import Mangum
-from main import app
+from app.db.base import Base, engine
+from app.main import app
+
+# Ensure tables exist (Lambda warm-up)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"DB Init Error: {e}")
 
 # This is the entry point for AWS Lambda
 handler = Mangum(app, lifespan="off")
