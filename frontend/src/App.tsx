@@ -22,6 +22,7 @@ import CreateVM from './pages/resources/CreateVM';
 import Storage from './pages/resources/Storage';
 import CreateStorage from './pages/resources/CreateStorage';
 import Networks from './pages/resources/Networks';
+import NetworkDetail from './pages/resources/NetworkDetail';
 import CreateNetwork from './pages/resources/CreateNetwork';
 import Functions from './pages/resources/Functions';
 import CreateFunction from './pages/resources/CreateFunction';
@@ -125,6 +126,7 @@ function App() {
                     <Route path="storage" element={<Storage />} />
                     <Route path="storage/create" element={<CreateStorage />} />
                     <Route path="networks" element={<Networks />} />
+                    <Route path="networks/:id" element={<NetworkDetail />} />
                     <Route path="networks/create" element={<CreateNetwork />} />
                     <Route path="functions" element={<Functions />} />
                     <Route path="functions/create" element={<CreateFunction />} />
