@@ -200,27 +200,32 @@ def get_dashboard_stats(
                 'resources_change': {
                     'value': len(resources_today),
                     'label': 'added today',
-                    'type': 'increase' if len(resources_today) > 0 else 'neutral'
+                    'type': 'increase' if len(resources_today) > 0 else 'neutral',
+                    'unit': ''
                 },
                 'vms_status': {
                     'value': round(running_percent, 1),
                     'label': 'running',
-                    'type': 'neutral' if not vms else 'increase' if running_percent > 0 else 'decrease'
+                    'type': 'increase' if running_percent > 80 else 'decrease' if running_percent < 20 else 'neutral',
+                    'unit': '%'
                 },
                 'storage_change': {
                     'value': len(storage_today),
                     'label': 'added today',
-                    'type': 'increase' if len(storage_today) > 0 else 'neutral'
+                    'type': 'increase' if len(storage_today) > 0 else 'neutral',
+                    'unit': ''
                 },
                 'networks_change': {
                     'value': len(networks_today),
                     'label': 'created today',
-                    'type': 'increase' if len(networks_today) > 0 else 'neutral'
+                    'type': 'increase' if len(networks_today) > 0 else 'neutral',
+                    'unit': ''
                 },
                 'cost_change': {
                     'value': abs(round(cost_change_percent, 1)),
                     'label': 'vs last month',
-                    'type': 'increase' if cost_change_percent > 0 else 'decrease' if cost_change_percent < 0 else 'neutral'
+                    'type': 'increase' if cost_change_percent > 0 else 'decrease' if cost_change_percent < 0 else 'neutral',
+                    'unit': '%'
                 }
             }
         }
