@@ -4,8 +4,8 @@
     \centering
     \vspace*{1cm}
     
-    {\Huge \textbf{NEBULA: THE MULTI-CLOUD COMMAND CENTER}} \\[0.5cm]
-    {\Large \textit{A Unified Orchestration Engine for AWS, Azure, and Google Cloud Platform}} \\[1.5cm]
+    {\Huge \textbf{DEMOCRATIZING AWS CLOUD OPERATIONS: A UNIFIED ORCHESTRATION APPROACH TO STANDARDIZED INFRASTRUCTURE MANAGEMENT}} \\[0.5cm]
+    {\Large \textit{An Implementation-Driven Study with Nebula}} \\[1.5cm]
     
     {\Large Thesis submitted in partial fulfilment of the requirements of the degree of} \\[0.5cm]
     {\Large \textbf{Bachelor of Technology}} \\[0.5cm]
@@ -46,7 +46,7 @@
 Date: April 25, 2026
 \end{flushright}
 
-This is to certify that the dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} is a bonafide work of \textbf{``Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge''} submitted to the School of Engineering, Ajeenkya DY Patil University, Pune in partial fulfilment of the requirement for the award of the degree of \textbf{``Bachelor of Technology in Information Technology''}.
+This is to certify that the dissertation entitled \textbf{``Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management''} is a bonafide work of \textbf{``Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge''} submitted to the School of Engineering, Ajeenkya DY Patil University, Pune in partial fulfilment of the requirement for the award of the degree of \textbf{``Bachelor of Technology in Information Technology''}.
 
 \vspace{3cm}
 
@@ -71,7 +71,7 @@ Internal Examiner \hfill External Examiner
 Date: April 25, 2026
 \end{flushright}
 
-This is to certify that the dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} submitted by \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, is a record of original work carried out by them under my supervision and guidance in partial fulfilment of the requirements of the degree \textbf{Bachelor of Technology in Information Technology} at School of Engineering, Ajeenkya DY Patil University, Pune, Maharashtra-412105. 
+This is to certify that the dissertation entitled \textbf{``Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management''} submitted by \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, is a record of original work carried out by them under my supervision and guidance in partial fulfilment of the requirements of the degree \textbf{Bachelor of Technology in Information Technology} at School of Engineering, Ajeenkya DY Patil University, Pune, Maharashtra-412105. 
 
 Neither this dissertation nor any part of it has been submitted earlier for any degree or diploma to any institute or university in India or abroad.
 
@@ -88,7 +88,7 @@ Supervisor
 \chapter*{Declaration of Originality}
 \addcontentsline{toc}{chapter}{Declaration of Originality}
 
-We, \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, hereby declare that this dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} presents our original work carried out as bachelor students of School of Engineering, Ajeenkya D Y Patil University, Pune, Maharashtra.
+We, \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, hereby declare that this dissertation entitled \textbf{``Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management''} presents our original work carried out as bachelor students of School of Engineering, Ajeenkya D Y Patil University, Pune, Maharashtra.
 
 To the best of our knowledge, this dissertation contains no material previously published or written by another person, nor any material presented by us for the award of any degree or diploma of Ajeenkya DY Patil University, Pune or any other institution. We also declare that we have adhered to all principles of academic honesty and integrity and have not misrepresented or fabricated or falsified any idea/data/fact/source in our submission.
 
@@ -129,7 +129,7 @@ Priyanshu Kumar Sharma \\ Vaishnavi Jadhav \\ Vaibhav Gulge
 \thispagestyle{plain}
 \addcontentsline{toc}{chapter}{Abstract}
 
-The transition from traditional on-premise infrastructure to cloud computing has significantly transformed how organizations design, deploy, and scale applications by offering enhanced flexibility, scalability, and cost efficiency. However, reliance on a single cloud provider introduces challenges such as vendor lock-in, increased costs, limited interoperability, and risks of service outages. These limitations have driven the adoption of multi-cloud architectures, where workloads are distributed across multiple platforms to improve resilience and performance. Despite its benefits, multi-cloud environments introduce complexities in infrastructure management, monitoring, security, and operational consistency due to differences in provider-specific interfaces and APIs. This project presents Nebula: The Multi-Cloud Command Center, a unified orchestration platform designed to simplify the management of resources across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula provides a centralized control plane that abstracts cloud-specific complexities, enabling seamless provisioning and management through Infrastructure as Code (IaC) using Terraform. The platform integrates an asynchronous execution framework powered by FastAPI and Celery for efficient and responsive operations. A key feature is an AI-driven Troubleshooting Copilot, which analyzes execution logs to provide accurate remediation suggestions, reducing debugging time and operational effort. Additionally, Nebula includes a Security Vault for secure credential management and a real-time inventory syncing system to maintain an updated view of resources across clouds. The system is designed to be scalable, modular, and extensible, making it suitable for both enterprise and research applications. Overall, Nebula enhances operational efficiency and reduces complexity by enabling users to provision, monitor, and troubleshoot multi-cloud resources through a unified interface, eliminating the need to navigate multiple cloud consoles.
+The transition from traditional on-premise infrastructure to cloud computing has significantly transformed how organizations design, deploy, and scale applications by offering enhanced flexibility, scalability, and cost efficiency. However, reliance on a single cloud provider introduces challenges such as vendor lock-in, increased costs, limited interoperability, and risks of service outages. These limitations have driven the adoption of multi-cloud architectures, where workloads are distributed across multiple platforms to improve resilience and performance. Despite its benefits, multi-cloud environments introduce complexities in infrastructure management, monitoring, security, and operational consistency due to differences in provider-specific interfaces and APIs. This project presents Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management (with the Nebula platform), a unified orchestration platform designed to simplify the management of resources across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula provides a centralized control plane that abstracts cloud-specific complexities, enabling seamless provisioning and management through Infrastructure as Code (IaC) using Terraform. The platform integrates an asynchronous execution framework powered by FastAPI and Celery for efficient and responsive operations. A key feature is an AI-driven Troubleshooting Copilot, which analyzes execution logs to provide accurate remediation suggestions, reducing debugging time and operational effort. Additionally, Nebula includes a Security Vault for secure credential management and a real-time inventory syncing system to maintain an updated view of resources across clouds. The system is designed to be scalable, modular, and extensible, making it suitable for both enterprise and research applications. Overall, Nebula enhances operational efficiency and reduces complexity by enabling users to provision, monitor, and troubleshoot multi-cloud resources through a unified interface, eliminating the need to navigate multiple cloud consoles.
 
 
 
