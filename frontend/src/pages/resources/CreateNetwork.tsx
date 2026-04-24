@@ -99,8 +99,10 @@ const CreateNetwork: React.FC = () => {
       const payload = {
         name: data.name,
         provider: data.provider,
-        region: data.region,
-        metadata: {
+        type: 'network', 
+        project_id: 0,
+        configuration: {
+            region: data.region,
             resources_to_create: data.resources_to_create,
             ipv4_allocation: data.ipv4_allocation,
             cidr: data.cidr_block,
@@ -112,10 +114,11 @@ const CreateNetwork: React.FC = () => {
             tags: data.tags,
         }
       };
-      return await axios.post('/inventory/networks', payload);
+      return await axios.post('/resources/', payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', 'networks'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
       navigate('/resources/networks');
     },
   });
