@@ -372,7 +372,7 @@ const NetworksPage: React.FC = () => {
                       )}
                     </div>
                     
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                    <div className="flex items-center space-x-4 text-xs text-gray-500 mb-2">
                       <span>{item.region}</span>
                       {item.metadata.cidr_block && (
                         <>
@@ -380,6 +380,13 @@ const NetworksPage: React.FC = () => {
                           <span className="font-mono">{item.metadata.cidr_block}</span>
                         </>
                       )}
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-800/30">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Cloud Resource ID</p>
+                      <p className="text-[10px] font-mono text-gray-400 break-all leading-tight mt-0.5" title={item.resource_id}>
+                        {item.resource_id || 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
