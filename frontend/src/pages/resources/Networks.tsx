@@ -566,18 +566,18 @@ const NetworkDetailPanel: React.FC<{
       : [];
 
   return (
-    <div className="fixed inset-0 z-50 flex" onClick={onClose}>
+    <div className="fixed inset-0 z-[200]" onClick={onClose}>
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-      {/* Panel — right side slide-over */}
+      {/* Panel — fixed to the right side of the full viewport */}
       <motion.div
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative ml-auto h-full w-full max-w-3xl bg-[#0c0d10] border-l border-gray-800/60 flex flex-col overflow-hidden shadow-2xl"
+        className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-[#0c0d10] border-l border-gray-800/60 flex flex-col overflow-hidden shadow-2xl z-[201]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60 bg-[#111319] shrink-0">
