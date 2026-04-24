@@ -64,9 +64,7 @@ Nebula is built and maintained by a dedicated engineering group from **Ajeenkya 
 
 Nebula is more than just a tool; it is a peer-reviewed research project exploring the boundaries of cloud orchestration and infrastructure-as-code.
 
-> [!NOTE]
-> **Research Paper:** _Nebula: A Multi-Cloud Provisioning and Orchestration Engine_
-> **Published in:** International Journal of Creative Research Thoughts (IJCRT)
+> [!NOTE] > **Research Paper:** _Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management_ > **Published in:** International Journal of Creative Research Thoughts (IJCRT)
 > **Volume:** 14 | **Issue:** 4 | **Date:** April 2026
 >
 > 🔗 [View Full Paper](http://www.ijcrt.org/viewfull.php?&p_id=IJCRT2604384) | 📄 [DOI: 10.56975/ijcrt.v14i4.305033](https://doi.org/10.56975/ijcrt.v14i4.305033)
