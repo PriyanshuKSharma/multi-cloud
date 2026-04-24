@@ -99,9 +99,9 @@ resource "aws_iam_role" "lambda_exec" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_policy" {
+resource "aws_iam_role_policy_attachment" "admin_access" {
   role       = aws_iam_role.lambda_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
 resource "aws_lambda_function" "api" {
@@ -122,7 +122,7 @@ resource "aws_lambda_function" "api" {
     variables = {
       DATABASE_URL      = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/multicloud"
       SECRET_KEY        = "nebula-super-secret-key-12345"
-      CORS_ORIGINS      = "http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,https://nebulacommandcenter.vercel.app"
+      CORS_ORIGINS      = "https://${aws_cloudfront_distribution.cdn.domain_name},https://nebulacommandcenter.vercel.app"
       CORS_ORIGIN_REGEX = "^https://([a-z0-9-]+\\.)?vercel\\.app$"
       FRONTEND_ORIGIN   = "https://${aws_cloudfront_distribution.cdn.domain_name}"
       CELERY_BROKER_URL = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0"
