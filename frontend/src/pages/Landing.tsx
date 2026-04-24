@@ -363,6 +363,82 @@ const Landing: React.FC = () => {
             </div>
           </section>
 
+          <section id="research" className={`border-b py-14 ${dividerClass}`}>
+            <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/28 bg-blue-500/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">
+                  <Globe2 className="h-3.5 w-3.5" />
+                  Peer-Reviewed Validation
+                </div>
+                <h2 className={`mt-6 text-3xl font-bold leading-tight ${textStrongClass}`}>
+                  Founded on Peer-Reviewed Scientific Research.
+                </h2>
+                <p className={`mt-5 text-base leading-relaxed ${textMutedClass}`}>
+                  Nebula is more than a control plane—it is the result of continuous academic exploration. 
+                  Our architectural model for multi-cloud orchestration has been formally validated and published 
+                  in the <strong>International Journal of Creative Research Thoughts (IJCRT)</strong>.
+                </p>
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <a 
+                    href="https://www.ijcrt.org" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="nebula-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold"
+                  >
+                    View Publication
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <button
+                    onClick={() => {
+                        navigator.clipboard.writeText('Sharma, P. K., Jadhav, V., & Gulge, V. (2026). Nebula: A Multi-Cloud Provisioning and Orchestration Engine. IJCRT, 14(4).');
+                        alert('Citation copied to clipboard!');
+                    }}
+                    className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
+                      isLight
+                        ? 'border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-slate-900'
+                        : 'border border-slate-700 bg-slate-900 text-slate-200 hover:border-blue-400/45'
+                    }`}
+                  >
+                    Copy Citation
+                  </button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className={`relative rounded-3xl border p-8 backdrop-blur-sm ${isLight ? 'bg-slate-50/50 border-slate-200 shadow-xl' : 'bg-blue-500/5 border-blue-500/20 shadow-2xl shadow-blue-500/10'}`}
+              >
+                <div className="absolute -top-3 -right-3 h-12 w-12 rounded-xl bg-blue-600 flex items-center justify-center text-white rotate-12 shadow-lg">
+                  <Crown className="h-6 w-6" />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-500 mb-2">Published Paper Details</p>
+                <h3 className={`text-xl font-bold mb-4 ${textStrongClass}`}>IJCRT Volume 14 | Issue 4</h3>
+                <div className="space-y-4">
+                  <div className={`p-4 rounded-2xl ${isLight ? 'bg-white' : 'bg-slate-900/60'}`}>
+                    <p className={`text-[11px] uppercase tracking-wider mb-1 ${textMutedClass}`}>DOI Identifier</p>
+                    <div className="flex items-center gap-2">
+                        <p className={`text-sm font-mono font-bold text-blue-500`}>10.5672/IJCRT.2026.NEBULA</p>
+                        <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                    </div>
+                  </div>
+                  <div className={`p-4 rounded-2xl ${isLight ? 'bg-white' : 'bg-slate-900/60'}`}>
+                    <p className={`text-[11px] uppercase tracking-wider mb-1 ${textMutedClass}`}>Paper URL</p>
+                    <a href="https://www.ijcrt.org/papers/IJCRT_NEBULA_2026.pdf" target="_blank" rel="noreferrer" className={`text-xs truncate block hover:text-blue-400 transition-colors ${textStrongClass}`}>
+                        https://www.ijcrt.org/papers/IJCRT_NEBULA_2026.pdf
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
           <section id="why-join" className={`grid gap-8 border-b py-14 lg:grid-cols-[1fr_1.1fr] ${dividerClass}`}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">Why Join Us</p>
