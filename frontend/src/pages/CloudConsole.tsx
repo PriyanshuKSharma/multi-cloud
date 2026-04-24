@@ -394,7 +394,7 @@ const CloudConsole: React.FC = () => {
   const vmCount = resources?.filter((item) => item.type === 'vm').length ?? 0;
   const storageCount = resources?.filter((item) => item.type === 'storage').length ?? 0;
   const networkCount =
-    resources?.filter((item) => ['network', 'vpc', 'resource_group'].includes(item.type)).length ?? 0;
+    resources?.filter((item) => ['network', 'vpc', 'resource_group', 'vnet'].includes(item.type)).length ?? 0;
   const faasCount =
     resources?.filter((item) => ['faas', 'function', 'lambda'].includes(item.type)).length ?? 0;
   const providerOptions =
