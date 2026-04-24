@@ -13,7 +13,7 @@ from app.services.subscription import enforce_cloud_account_limit
 
 router = APIRouter()
 
-@router.post("/", response_model=CredentialResponse)
+@router.post("/create", response_model=CredentialResponse)
 def create_credential(
     cred: CredentialCreate,
     current_user: User = Depends(get_current_user),
@@ -39,7 +39,7 @@ def create_credential(
     db.refresh(db_cred)
     return db_cred
 
-@router.get("/", response_model=List[CredentialResponse])
+@router.get("/list", response_model=List[CredentialResponse])
 def read_credentials(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
