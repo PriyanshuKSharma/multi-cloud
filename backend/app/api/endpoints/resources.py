@@ -1760,6 +1760,15 @@ def create_sns_subscription(
     sns_client, topic_arn, topic_name, region = _resolve_sns_topic_arn(resource, current_user, db)
 
     protocol = _clean_string(payload.protocol).lower()
+    
+    # Validation for FIFO topics: Only SQS protocol is supported
+    is_fifo = topic_arn.endswith(".fifo") or topic_name.endswith(".fifo")
+    if is_fifo and protocol != "sqs":
+        raise HTTPException(
+            status_code=400, 
+            detail="SNS FIFO topics only support the 'sqs' protocol for subscriptions. Please use an SQS queue as the endpoint."
+        )
+
     if protocol not in {"http", "https", "email", "email-json", "sms", "sqs", "lambda", "application", "firehose"}:
         raise HTTPException(status_code=400, detail="Unsupported SNS protocol")
 
