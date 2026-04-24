@@ -257,6 +257,11 @@ resource "aws_lambda_permission" "allow_url" {
   function_url_auth_type = "NONE"
 }
 
+# AWS requires a companion lambda:InvokeFunction permission for newer public
+# Function URLs. The pinned AWS provider version in this project does not yet
+# expose the invoked_via_function_url toggle, so the deploy scripts add that
+# statement with the AWS CLI after Terraform creates the function URL.
+
 # --- Frontend (S3 + CloudFront) ---
 resource "aws_s3_bucket" "frontend" {
   bucket = "${var.project_name}-frontend-assets"
