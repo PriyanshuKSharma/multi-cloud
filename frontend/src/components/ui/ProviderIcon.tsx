@@ -32,8 +32,12 @@ const ProviderIcon: React.FC<ProviderIconProps> = ({ provider, size = 'md', show
     },
   };
 
-  const config = providerConfig[provider];
-  const sizes = sizeConfig[size];
+  const config = providerConfig[provider as keyof typeof providerConfig] || {
+    name: provider || 'Unknown',
+    color: 'from-gray-500 to-gray-600',
+    textColor: 'text-gray-400',
+  };
+  const sizes = sizeConfig[size] || sizeConfig.md;
 
   if (showLabel) {
     return (
