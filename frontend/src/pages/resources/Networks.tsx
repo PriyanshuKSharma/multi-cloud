@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
@@ -16,17 +16,8 @@ import {
   Settings,
   AlertCircle,
   CheckCircle2,
-  X,
-  Tag,
-  Wifi,
-  GitBranch,
-  Server,
-  Terminal,
-  ChevronRight,
-  Database,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { normalizeLogText } from '../../utils/terraformOutput';
 
 interface NetworkResource {
   id: number;
@@ -60,17 +51,7 @@ interface ProvisionedResource {
   created_at: string;
 }
 
-interface DeploymentDetail {
-  id: number;
-  resource_name: string;
-  provider: string;
-  resource_type: string;
-  status: string;
-  started_at: string;
-  logs: string;
-  configuration: Record<string, unknown>;
-  terraform_output: Record<string, unknown>;
-}
+
 
 const normalizeInventoryNetwork = (item: any): NetworkResource => {
   const metadata = item.metadata ?? {};
@@ -125,6 +106,7 @@ const normalizeProvisionedNetwork = (item: ProvisionedResource): NetworkResource
 
 const NetworksPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [filters, setFilters] = React.useState({
     provider: '',
     region: '',
@@ -133,7 +115,6 @@ const NetworksPage: React.FC = () => {
 
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
   const [networkToDelete, setNetworkToDelete] = React.useState<NetworkResource | null>(null);
-  const [networkDetailPanel, setNetworkDetailPanel] = React.useState<NetworkResource | null>(null);
   const [actionMessage, setActionMessage] = React.useState<{
     type: 'success' | 'error';
     text: string;
@@ -237,7 +218,7 @@ const NetworksPage: React.FC = () => {
   };
 
   const handleConfigure = (item: NetworkResource) => {
-    setNetworkDetailPanel(item);
+    navigate(`/resources/networks/${item.id}`);
   };
 
   return (
@@ -511,253 +492,6 @@ const NetworksPage: React.FC = () => {
         isLoading={deleteMutation.isPending}
       />
 
-      <AnimatePresence>
-        {networkDetailPanel && (
-          <NetworkDetailPanel
-            network={networkDetailPanel}
-            onClose={() => setNetworkDetailPanel(null)}
-            onDelete={(item) => { setNetworkDetailPanel(null); setNetworkToDelete(item); }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-/* ─── Full-screen network detail slide-over ─── */
-const NetworkDetailPanel: React.FC<{
-  network: NetworkResource;
-  onClose: () => void;
-  onDelete: (item: NetworkResource) => void;
-}> = ({ network, onClose, onDelete }) => {
-  const { data: deploymentDetail, isLoading: logsLoading } = useQuery<DeploymentDetail>({
-    queryKey: ['deployments', 'detail', network.id, 'network-panel'],
-    enabled: network.source === 'provisioning',
-    queryFn: async () => {
-      const response = await axios.get(`/deployments/${network.id}`);
-      return response.data as DeploymentDetail;
-    },
-    refetchInterval: network.status === 'pending' ? 4000 : false,
-  });
-
-  const extractLogs = (data: DeploymentDetail | undefined): string => {
-    if (!data) return '';
-    const output = data.terraform_output;
-    if (typeof output?.logs === 'string') return output.logs;
-    if (Array.isArray(output?.logs)) return (output.logs as string[]).join('\n');
-    if (typeof data.logs === 'string') return data.logs;
-    return '';
-  };
-
-  const rawLogs = extractLogs(deploymentDetail);
-  const formattedLogs = normalizeLogText(rawLogs);
-
-  const renderBool = (val: boolean | undefined | null) =>
-    val === true ? (
-      <span className="inline-flex items-center gap-1 text-green-400 font-medium"><CheckCircle2 className="w-3.5 h-3.5" /> Yes</span>
-    ) : (
-      <span className="inline-flex items-center gap-1 text-gray-500 font-medium"><X className="w-3.5 h-3.5" /> No</span>
-    );
-
-  const tagsArray: { key: string; value: string }[] = Array.isArray(network.metadata.tags)
-    ? (network.metadata.tags as any[])
-    : typeof network.metadata.tags === 'object' && network.metadata.tags !== null
-      ? Object.entries(network.metadata.tags).map(([key, value]) => ({ key, value: String(value) }))
-      : [];
-
-  return (
-    <div className="fixed inset-0 z-[200]" onClick={onClose}>
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-
-      {/* Panel — fixed to the right side of the full viewport */}
-      <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        onClick={(e) => e.stopPropagation()}
-        className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-[#0c0d10] border-l border-gray-800/60 flex flex-col overflow-hidden shadow-2xl z-[201]"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60 bg-[#111319] shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-              <Network className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-white">{network.resource_name}</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Network Resource Detail</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <StatusBadge status={network.status as any} size="sm" />
-            <button
-              onClick={onClose}
-              className="ml-2 rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-          {/* Identity */}
-          <section className="bg-[#111319] rounded-xl border border-gray-800/50 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
-              <Server className="w-3.5 h-3.5" /> Identity
-            </h3>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Provider</p>
-                <ProviderIcon provider={network.provider as any} size="sm" showLabel />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Region</p>
-                <p className="text-gray-200 font-mono">{network.region || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Resource ID</p>
-                <p className="text-gray-300 font-mono text-xs truncate">{network.resource_id || String(network.id)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Source</p>
-                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                  network.source === 'provisioning'
-                    ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/20'
-                    : 'bg-gray-500/15 text-gray-300 border border-gray-500/20'
-                }`}>
-                  {network.source === 'provisioning' ? 'Provisioned via Console' : 'Synced from Cloud'}
-                </span>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Created</p>
-                <p className="text-gray-300 text-xs">{network.created_at ? new Date(network.created_at).toLocaleString() : '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-0.5">Last Synced</p>
-                <p className="text-gray-300 text-xs">{network.last_synced ? new Date(network.last_synced).toLocaleString() : '—'}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Networking Config */}
-          <section className="bg-[#111319] rounded-xl border border-gray-800/50 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
-              <Wifi className="w-3.5 h-3.5" /> Network Configuration
-            </h3>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-              <div className="col-span-2">
-                <p className="text-xs text-gray-500 mb-1">VPC / CIDR Block</p>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 rounded-md px-3 py-1 text-sm">
-                    {network.metadata.cidr_block || 'Not specified'}
-                  </span>
-                </div>
-              </div>
-              {network.metadata.vpc_id && (
-                <div className="col-span-2">
-                  <p className="text-xs text-gray-500 mb-1">VPC ID</p>
-                  <p className="font-mono text-gray-300 text-xs">{network.metadata.vpc_id}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Subnets</p>
-                <p className="text-gray-200 font-semibold text-lg">{network.metadata.subnet_count ?? 0}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">DNS Support</p>
-                {renderBool(network.metadata.dns_enabled)}
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Internet Gateway</p>
-                {renderBool(network.metadata.internet_gateway as boolean | undefined)}
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">NAT Gateway</p>
-                {renderBool(network.metadata.nat_gateway as boolean | undefined)}
-              </div>
-            </div>
-          </section>
-
-          {/* Tags */}
-          {tagsArray.length > 0 && (
-            <section className="bg-[#111319] rounded-xl border border-gray-800/50 p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
-                <Tag className="w-3.5 h-3.5" /> Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {tagsArray.map((tag, idx) => (
-                  <div key={idx} className="flex items-center gap-0 rounded-lg overflow-hidden border border-gray-700/50 text-xs">
-                    <span className="bg-gray-800/80 text-gray-400 px-2.5 py-1.5 font-mono border-r border-gray-700/50">{tag.key}</span>
-                    <span className="bg-gray-900/80 text-cyan-300 px-2.5 py-1.5 font-mono">{tag.value}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Deployment Logs */}
-          {network.source === 'provisioning' && (
-            <section className="bg-[#111319] rounded-xl border border-gray-800/50 p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5" /> Deployment Logs
-              </h3>
-              {logsLoading ? (
-                <div className="flex items-center gap-2 text-gray-500 text-sm">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Loading deployment logs...</span>
-                </div>
-              ) : formattedLogs ? (
-                <pre className="text-xs text-green-300 font-mono bg-[#050608] rounded-lg p-4 border border-gray-800/50 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap break-all shadow-inner leading-relaxed">
-                  {formattedLogs}
-                </pre>
-              ) : (
-                <div className="text-center py-8">
-                  <Database className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No deployment logs available for this network.</p>
-                  <p className="text-xs text-gray-600 mt-1">Logs appear here once provisioning has completed.</p>
-                </div>
-              )}
-            </section>
-          )}
-
-          {network.source === 'inventory' && (
-            <section className="bg-[#111319] rounded-xl border border-gray-800/50 p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5" /> Deployment Logs
-              </h3>
-              <div className="text-center py-8">
-                <GitBranch className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">This network was synced from your cloud account.</p>
-                <p className="text-xs text-gray-600 mt-1">Terraform logs are only available for networks provisioned through this console.</p>
-              </div>
-            </section>
-          )}
-        </div>
-
-        {/* Footer actions */}
-        <div className="shrink-0 border-t border-gray-800/60 px-6 py-4 flex items-center justify-between bg-[#111319]">
-          <button
-            onClick={() => onDelete(network)}
-            disabled={network.source !== 'provisioning'}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-            title={network.source !== 'provisioning' ? 'Only console-provisioned networks can be deleted here' : ''}
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete Network
-          </button>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1.5 px-4 py-2 bg-gray-800/70 hover:bg-gray-800 text-gray-200 rounded-lg text-sm transition-colors cursor-pointer border border-gray-700"
-          >
-            Close
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </motion.div>
     </div>
   );
 };
