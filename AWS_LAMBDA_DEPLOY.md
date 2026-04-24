@@ -1,79 +1,77 @@
-# 🚀 Nebula AWS Lambda Deployment Guide
+# 🌌 Nebula: AWS Serverless & Containerized Deployment Guide
 
-This document explains how to deploy the Nebula Multi-Cloud platform to **AWS Lambda** and **S3/CloudFront** using the provided Terraform and PowerShell scripts.
-
-## 🏗️ Architecture Stack
-- **Backend**: FastAPI (Python) on AWS Lambda via Mangum.
-- **Frontend**: React 19 on S3 + CloudFront.
-- **Database**: Amazon RDS PostgreSQL.
-- **Storage**: Amazon ECR (for Lambda container image).
+This guide documents the production-grade architecture of Nebula, leveraging a hybrid **Serverless (Lambda)** and **Containerized (Fargate)** orchestration engine on AWS Mumbai (`ap-south-1`).
 
 ---
 
-## 🛠️ Prerequisites
-Before you begin, ensure you have the following installed:
-1.  **AWS CLI**: [Install & Configure](https://aws.amazon.com/cli/)
-2.  **Terraform**: [Install](https://developer.hashicorp.com/terraform/downloads)
-3.  **Docker Desktop**: [Install](https://www.docker.com/products/docker-desktop/)
-4.  **Node.js & npm**: (For building the frontend)
+## 🏗️ System Architecture
+
+Nebula is deployed using a "Best-of-Both-Worlds" strategy:
+
+| Component | Service | Rationale |
+| :--- | :--- | :--- |
+| **API Control Plane** | AWS Lambda | Scales to infinity, zero cost when idle, no server management. |
+| **Orchestration Workers** | AWS Fargate | Handles long-running Terraform provisioning tasks (bypass Lambda's 15m limit). |
+| **Task Broker** | ElastiCache Redis | High-speed communication between API and Workers. |
+| **Database** | Amazon RDS (Postgres) | Persistent storage for users, credentials, and state. |
+| **Frontend Content** | Amazon S3 + CloudFront | Global edge delivery with military-grade security (OAC). |
 
 ---
 
-## 📂 Deployment Files
-The following files were created to support this deployment:
+## 🚀 Deployment Operations
 
-| File | Description |
-| :--- | :--- |
-| `deploy_lambda.ps1` | Principal automation script (PowerShell). |
-| `backend/handler.py` | Mangum wrapper for FastAPI. |
-| `backend/Dockerfile.lambda` | Optimized Lambda container image. |
-| `terraform/lambda_deploy/` | Terraform infrastructure (VPC, RDS, Lambda, S3, CDN). |
+We use a unified deployment script that handles the complex dependency order automatically.
 
----
-
-## 🚀 Deployment Steps
-
-### 1. Configure AWS Credentials
-Run this command to authenticate with your AWS account:
-```powershell
-aws configure
-```
-
-### 2. Update Database Credentials
-Open `deploy_lambda.ps1` and ensure your `db_password` is set correctly in the terraform command:
-```powershell
-# In deploy_lambda.ps1
-terraform apply -var="db_password=your_secure_password" -auto-approve
-```
-
-### 3. Run the Deployment
-Execute the PowerShell script from the root directory:
+### **1. Windows (PowerShell)**
 ```powershell
 .\deploy_lambda.ps1
 ```
 
----
-
-## 🔄 What happens during deployment?
-1.  **Frontend Build**: Compiles your React app into `frontend/dist`.
-2.  **Infrastructure Initialization**: Terraform creates the VPC, RDS instance, and ECR repository.
-3.  **Backend Packaging**:
-    *   Authenticates Docker with AWS ECR.
-    *   Builds the backend using `Dockerfile.lambda`.
-    *   Pushes the image to AWS.
-4.  **Frontend Hosting**: Syncs the `dist` folder to an S3 bucket.
-5.  **Final Update**: Terraform updates the Lambda function to use the newly pushed image and provides the final URLs.
+### **2. Linux/macOS (Bash)**
+```bash
+./deployment/deploy.sh
+```
 
 ---
 
-## 🔗 Accessing the App
-At the end of the script, you will receive two URLs:
-- **Frontend URL**: `https://xxxxxxxx.cloudfront.net`
-- **Backend API URL**: `https://xxxxxxxx.lambda-url.ap-south-1.on.aws/`
+## 🛠️ Deployment Lifecycle
+
+The deployment is executed in 6 orchestrated stages:
+
+1.  **Stage 1: ECR Provisioning** - Initializes AWS container registries for the API and Worker.
+2.  **Stage 2: Cross-Architecture Build** - Builds Docker images using `buildx` for `linux/amd64` compatibility.
+3.  **Stage 3: Cloud Engine Setup** - Provisions RDS, ElastiCache, and the Lambda function.
+4.  **Stage 4: Unified Frontend Build** - Injects the live API URL into the React build process.
+5.  **Stage 5: Final Infrastructure Update** - Spawns the Fargate Worker service and CloudFront CDN.
+6.  **Stage 6: Global Asset Sync** - Syncs the production React build to S3.
 
 ---
 
-## ⚠️ Important Configuration
-The Lambda function relies on environment variables for database connectivity. These are automatically managed by Terraform in `main.tf`.
+## 🛡️ Security & Access Control
 
-If you need to update manual environment variables (like API keys), add them to the `environment` block in `terraform/lambda_deploy/main.tf` and re-run the script.
+- **Function isolation**: All compute resources reside in a private VPC.
+- **Gateway security**: The API is exposed via a **Function URL** with CORS protection.
+- **Credential Protection**: Database and Service credentials are managed via Terraform environment variables.
+- **Static Security**: S3 assets are private; access is strictly granted only to CloudFront via **Origin Access Control (OAC)**.
+
+> [!IMPORTANT]
+> Since October 2025, new public AWS Lambda Function URLs require both `lambda:InvokeFunctionUrl` and `lambda:InvokeFunction` permissions. The deployment scripts now add the second permission automatically to prevent `403 AccessDeniedException` responses from the Function URL.
+
+> [!IMPORTANT]
+> Do not enable CORS in both the Lambda Function URL and the FastAPI app at the same time. Nebula handles browser CORS in FastAPI so Vercel and CloudFront frontends do not receive duplicate `Access-Control-Allow-Origin` headers.
+
+---
+
+## 📈 Monitoring & Maintenance
+
+### **Viewing Logs**
+- **API Logs**: Amazon CloudWatch -> Log Groups -> `/aws/lambda/nebula-multicloud-api`
+- **Worker Logs**: Amazon CloudWatch -> Log Groups -> `/ecs/nebula-multicloud-worker`
+
+### **Scaling**
+- To increase the number of parallel workers, update the `desired_count` in `terraform/lambda_deploy/main.tf` and re-run the script.
+
+---
+
+> [!TIP]
+> Always run the deployment script from the **Project Root** to ensure paths for Docker and Terraform are resolved correctly.

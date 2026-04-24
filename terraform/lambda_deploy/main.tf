@@ -58,10 +58,10 @@ resource "aws_security_group" "db_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda_sg.id]
   }
 }
 
@@ -99,9 +99,9 @@ resource "aws_iam_role" "lambda_exec" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_policy" {
+resource "aws_iam_role_policy_attachment" "admin_access" {
   role       = aws_iam_role.lambda_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
 resource "aws_lambda_function" "api" {
@@ -117,11 +117,115 @@ resource "aws_lambda_function" "api" {
     security_group_ids = [aws_security_group.lambda_sg.id]
   }
 
+  # Updated with Redis
   environment {
     variables = {
-      DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/multicloud"
+      DATABASE_URL      = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/multicloud"
+      SECRET_KEY        = "nebula-super-secret-key-12345"
+      CORS_ORIGINS      = "https://${aws_cloudfront_distribution.cdn.domain_name},https://nebulacommandcenter.vercel.app"
+      CORS_ORIGIN_REGEX = "^https://([a-z0-9-]+\\.)?vercel\\.app$"
+      FRONTEND_ORIGIN   = "https://${aws_cloudfront_distribution.cdn.domain_name}"
+      CELERY_BROKER_URL = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0"
+      REDIS_URL         = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0"
     }
   }
+}
+
+# --- Redis Broker (ElastiCache) ---
+resource "aws_elasticache_cluster" "redis" {
+  cluster_id           = "${var.project_name}-redis"
+  engine               = "redis"
+  node_type            = "cache.t3.micro"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis7"
+  port                 = 6379
+  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  security_group_ids   = [aws_security_group.redis_sg.id]
+}
+
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "${var.project_name}-redis-subnets"
+  subnet_ids = aws_subnet.private[*].id
+}
+
+resource "aws_security_group" "redis_sg" {
+  name   = "${var.project_name}-redis-sg"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda_sg.id, aws_security_group.worker_sg.id]
+  }
+}
+
+# --- Background Workers (ECS Fargate) ---
+resource "aws_ecs_cluster" "main" {
+  name = "${var.project_name}-cluster"
+}
+
+resource "aws_ecr_repository" "worker" {
+  name         = "${var.project_name}-worker"
+  force_delete = true
+}
+
+resource "aws_ecs_task_definition" "worker" {
+  family                   = "${var.project_name}-worker"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.lambda_exec.arn # Reuse role
+  task_role_arn            = aws_iam_role.lambda_exec.arn
+
+  container_definitions = jsonencode([{
+    name  = "worker"
+    image = "${aws_ecr_repository.worker.repository_url}:latest"
+    environment = [
+      { name = "DATABASE_URL", value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/multicloud" },
+      { name = "CELERY_BROKER_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0" },
+      { name = "REDIS_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0" }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.worker.name
+        "awslogs-region"        = "ap-south-1"
+        "awslogs-stream-prefix" = "worker"
+      }
+    }
+  }])
+}
+
+resource "aws_ecs_service" "worker" {
+  name            = "${var.project_name}-worker-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.worker.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = aws_subnet.private[*].id
+    security_groups = [aws_security_group.worker_sg.id]
+  }
+}
+
+resource "aws_security_group" "worker_sg" {
+  name   = "${var.project_name}-worker-sg"
+  vpc_id = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_cloudwatch_log_group" "worker" {
+  name              = "/ecs/${var.project_name}-worker"
+  retention_in_days = 7
 }
 
 resource "aws_security_group" "lambda_sg" {
@@ -139,12 +243,20 @@ resource "aws_security_group" "lambda_sg" {
 resource "aws_lambda_function_url" "api_url" {
   function_name      = aws_lambda_function.api.function_name
   authorization_type = "NONE"
-  cors {
-    allow_origins = ["*"]
-    allow_methods = ["*"]
-    allow_headers = ["*"]
-  }
 }
+
+resource "aws_lambda_permission" "allow_url" {
+  statement_id           = "AllowFunctionUrlInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.api.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+# AWS requires a companion lambda:InvokeFunction permission for newer public
+# Function URLs. The pinned AWS provider version in this project does not yet
+# expose the invoked_via_function_url toggle, so the deploy scripts add that
+# statement with the AWS CLI after Terraform creates the function URL.
 
 # --- Frontend (S3 + CloudFront) ---
 resource "aws_s3_bucket" "frontend" {
@@ -187,4 +299,42 @@ resource "aws_cloudfront_distribution" "cdn" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+
+  # Add error response for SPA routing
+  custom_error_response {
+    error_code            = 403
+    response_code         = 200
+    response_page_path    = "/index.html"
+    error_caching_min_ttl = 300
+  }
+
+  custom_error_response {
+    error_code            = 404
+    response_code         = 200
+    response_page_path    = "/index.html"
+    error_caching_min_ttl = 300
+  }
+}
+
+# --- S3 Bucket Policy for CloudFront OAC ---
+resource "aws_s3_bucket_policy" "frontend_policy" {
+  bucket = aws_s3_bucket.frontend.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "s3:GetObject"
+        Effect   = "Allow"
+        Resource = "${aws_s3_bucket.frontend.arn}/*"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.cdn.arn
+          }
+        }
+      }
+    ]
+  })
 }

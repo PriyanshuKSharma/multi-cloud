@@ -39,7 +39,7 @@ const Settings: React.FC = () => {
   const fetchCredentials = async () => {
     setIsLoading(true);
     try {
-      const res = await api.get('/credentials/');
+      const res = await api.get('/credentials/list');
       setCredentials(res.data);
     } catch (err) {
       console.error(err);
