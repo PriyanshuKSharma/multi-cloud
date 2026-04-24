@@ -105,7 +105,7 @@ const CreateNetwork: React.FC = () => {
             region: data.region,
             resources_to_create: data.resources_to_create,
             ipv4_allocation: data.ipv4_allocation,
-            cidr: data.cidr_block,
+            cidr_block: data.cidr_block,
             ipv6_allocation: data.ipv6_allocation,
             tenancy: data.tenancy,
             encryption_control: data.encryption_control,
@@ -465,7 +465,12 @@ const CreateNetwork: React.FC = () => {
           {createMutation.isError && (
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-200 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <p>Failed to create network. Please verify CIDR and provider permissions.</p>
+              <div>
+                <p className="font-semibold">Failed to create network</p>
+                <p className="mt-1 text-red-300/80 text-xs">
+                  {(createMutation.error as any)?.response?.data?.detail || 'Please verify CIDR and provider permissions.'}
+                </p>
+              </div>
             </div>
           )}
 
