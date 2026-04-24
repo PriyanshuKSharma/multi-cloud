@@ -16,13 +16,13 @@ terraform apply -target aws_ecr_repository.backend -target aws_s3_bucket.fronten
 $ECR_REPO = terraform output -raw ecr_repository_url
 cd $ROOT_DIR
 
-# 3. Stage 2: Build and Push Backend Image
+# 3. Stage 2: Build and Push Backend Image (Forcing Legacy Format for AWS Compatibility)
 Write-Host "🐳 Stage 2: Building & Pushing Backend Image..." -ForegroundColor Yellow
 cd backend
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-docker build -t $PROJECT_NAME-backend -f Dockerfile.lambda .
-docker tag $PROJECT_NAME-backend`:latest "$ECR_REPO`:latest"
-docker push "$ECR_REPO`:latest"
+
+# Use buildx to ensure compatibility with AWS Lambda (stripping OCI manifest index)
+docker buildx build --platform linux/amd64 -t "$ECR_REPO`:latest" --provenance=false --push -f Dockerfile.lambda .
 cd $ROOT_DIR
 
 # 4. Stage 3: Create Backend Infrastructure (Lambda)
@@ -35,9 +35,7 @@ cd $ROOT_DIR
 # 5. Stage 4: Build Frontend with the correct API URL
 Write-Host "📦 Stage 4: Building Frontend with API link: $API_URL" -ForegroundColor Yellow
 cd frontend
-# Set environment variable for Vite
 $env:VITE_API_URL = "$API_URL"
-npm install
 npm run build
 cd $ROOT_DIR
 
