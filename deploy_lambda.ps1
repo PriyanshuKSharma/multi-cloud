@@ -14,14 +14,16 @@ npm run build
 cd ..
 
 # 3. Terraform Initial/Apply (to get ECR URL)
-Write-Host "🏗️ Preparing Infrastructure..." -ForegroundColor Yellow
+Write-Host "🏗️ Preparing Infrastructure (ECR & S3)..." -ForegroundColor Yellow
+$ROOT_DIR = Get-Location
 cd terraform/lambda_deploy
 terraform init
-terraform apply -var="db_password=trialForNebula" -auto-approve
+# Only create the ECR and S3 first so we can push to them
+terraform apply -target=aws_ecr_repository.backend -target=aws_s3_bucket.frontend -var="db_password=trialForNebula" -auto-approve
 
 $ECR_REPO = terraform output -raw ecr_repository_url
 $S3_BUCKET = terraform output -raw s3_bucket_name
-cd ../..
+cd $ROOT_DIR
 
 # 4. Build and Push Backend Image to ECR
 Write-Host "🐳 Building Backend Container..." -ForegroundColor Yellow
@@ -43,6 +45,7 @@ terraform apply -var="db_password=trialForNebula" -auto-approve
 
 $API_URL = terraform output -raw api_endpoint
 $CDN_URL = terraform output -raw cloudfront_url
+cd $ROOT_DIR
 
 Write-Host "`n✅ Deployment Complete!" -ForegroundColor Green
 Write-Host "🌍 Frontend: https://$CDN_URL"
