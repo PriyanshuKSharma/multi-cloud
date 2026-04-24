@@ -283,7 +283,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
             <Zap className="h-3 w-3 text-amber-300" />
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-200/90">Peer Reviewed</p>
           </div>
-          <p className="mt-1 text-xs text-gray-400">Read our published paper on Multi-Cloud Orchestration.</p>
+          <p className="mt-1 text-xs text-gray-400">Read our published paper: Democratizing AWS Cloud Operations.</p>
           <a
             href="https://doi.org/10.56975/ijcrt.v14i4.305033"
             target="_blank"
