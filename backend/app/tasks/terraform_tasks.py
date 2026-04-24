@@ -2,8 +2,11 @@ from app.core.celery_app import celery_app
 from app.services.terraform_runner import TerraformRunner
 from app.db.base import SessionLocal
 from app.models.resource import Resource
+from app.models.resource_inventory import ResourceInventory
+from datetime import datetime
 import os
 import json
+
 
 
 def _extract_gcp_service_account_info(cred_data: dict):
@@ -188,14 +191,71 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
         # Save logs and simple output parsing
         output_data = {"logs": logs}
         
-        # Try to parse actual outputs if successful (mocked here)
+        # Capture and parse actual outputs if successful
         if resource.status == "active":
-             # In a real app, we would use `terraform output -json` here
-             # output_data["ip"] = runner.output(env_vars)...
-             pass
+            try:
+                tf_output_raw = runner.output(env_vars)
+                if not tf_output_raw.startswith("Error:"):
+                    parsed_outputs = json.loads(tf_output_raw)
+                    output_data["outputs"] = parsed_outputs
+                    
+                    # --- SYNC TO INVENTORY ---
+                    res_name = resource.name
+                    res_provider = provider.lower()
+                    res_type = resource.type.lower()
+                    
+                    res_id = None
+                    public_ip = None
+                    private_ip = None
+                    instance_type = variables.get("instance_type") or variables.get("size") or variables.get("machine_type")
+                    region = env_vars.get("AWS_DEFAULT_REGION") or variables.get("location") or variables.get("region") or "us-east-1"
+                    
+                    for key, val in parsed_outputs.items():
+                        v = val.get("value")
+                        if "id" in key.lower() or "arn" in key.lower() or "resource_id" in key.lower():
+                            res_id = str(v)
+                        if "public_ip" in key.lower() or "nat_ip" in key.lower() or "external_ip" in key.lower():
+                            public_ip = str(v)
+                        if "private_ip" in key.lower() or "internal_ip" in key.lower():
+                            private_ip = str(v)
+                    
+                    if not res_id:
+                        res_id = f"{res_type}-{resource.id}"
+                        
+                    inv_item = db.query(ResourceInventory).filter(
+                        ResourceInventory.user_id == resource.project.user_id,
+                        ResourceInventory.resource_id == res_id
+                    ).first()
+                    
+                    if not inv_item:
+                        inv_item = ResourceInventory(
+                            user_id=resource.project.user_id,
+                            resource_id=res_id,
+                            resource_name=res_name,
+                            provider=res_provider,
+                            resource_type=res_type,
+                            status="active",
+                            region=region,
+                            instance_type=instance_type,
+                            public_ip=public_ip,
+                            private_ip=private_ip,
+                            created_at=datetime.utcnow(),
+                            last_synced_at=datetime.utcnow(),
+                            resource_metadata=parsed_outputs
+                        )
+                        db.add(inv_item)
+                    else:
+                        inv_item.status = "active"
+                        inv_item.last_synced_at = datetime.utcnow()
+                        inv_item.resource_metadata = parsed_outputs
+                        inv_item.public_ip = public_ip or inv_item.public_ip
+                        inv_item.private_ip = private_ip or inv_item.private_ip
+            except Exception as sync_err:
+                logs += f"\n[Warning] Post-provisioning sync failed: {sync_err}\n"
         
         resource.terraform_output = output_data
         db.commit()
+
         
         return {"status": resource.status, "logs": logs}
         
