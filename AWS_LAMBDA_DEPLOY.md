@@ -54,6 +54,9 @@ The deployment is executed in 6 orchestrated stages:
 - **Credential Protection**: Database and Service credentials are managed via Terraform environment variables.
 - **Static Security**: S3 assets are private; access is strictly granted only to CloudFront via **Origin Access Control (OAC)**.
 
+> [!IMPORTANT]
+> Since October 2025, new public AWS Lambda Function URLs require both `lambda:InvokeFunctionUrl` and `lambda:InvokeFunction` permissions. The deployment scripts now add the second permission automatically to prevent `403 AccessDeniedException` responses from the Function URL.
+
 ---
 
 ## 📈 Monitoring & Maintenance
