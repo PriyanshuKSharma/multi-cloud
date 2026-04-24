@@ -57,6 +57,9 @@ The deployment is executed in 6 orchestrated stages:
 > [!IMPORTANT]
 > Since October 2025, new public AWS Lambda Function URLs require both `lambda:InvokeFunctionUrl` and `lambda:InvokeFunction` permissions. The deployment scripts now add the second permission automatically to prevent `403 AccessDeniedException` responses from the Function URL.
 
+> [!IMPORTANT]
+> Do not enable CORS in both the Lambda Function URL and the FastAPI app at the same time. Nebula handles browser CORS in FastAPI so Vercel and CloudFront frontends do not receive duplicate `Access-Control-Allow-Origin` headers.
+
 ---
 
 ## 📈 Monitoring & Maintenance
