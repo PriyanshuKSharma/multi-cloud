@@ -1,0 +1,121 @@
+import os
+
+def create_nebula_svg(output_path):
+    svg_content = """<svg width="1200" height="400" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg_grad" x1="0" y1="0" x2="1200" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A0A14"/>
+      <stop offset="1" stop-color="#141428"/>
+    </linearGradient>
+    
+    <!-- Nebula Core Glow -->
+    <radialGradient id="core_glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(600 200) rotate(90) scale(150 250)">
+      <stop stop-color="#00F0FF" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#00F0FF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Platform Gradients -->
+    <linearGradient id="aws_grad" x1="0" y1="0" x2="1" y2="1">
+        <stop stop-color="#FF9900"/><stop offset="1" stop-color="#FF4D00"/>
+    </linearGradient>
+    <linearGradient id="azure_grad" x1="0" y1="0" x2="1" y2="1">
+        <stop stop-color="#0078D4"/><stop offset="1" stop-color="#002050"/>
+    </linearGradient>
+    <linearGradient id="gcp_grad" x1="0" y1="0" x2="1" y2="1">
+        <stop stop-color="#4285F4"/><stop offset="1" stop-color="#34A853"/>
+    </linearGradient>
+
+    <!-- 3D Shadow Filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="15" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Grid -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00F0FF" stroke-width="0.5" opacity="0.1"/>
+  </pattern>
+  <rect width="1200" height="400" fill="url(#grid)"/>
+
+  <rect width="1200" height="400" fill="url(#bg_grad)" opacity="0.9"/>
+  <circle cx="600" cy="200" r="250" fill="url(#core_glow)"/>
+
+  <!-- Typing Animation Simulation -->
+  <g transform="translate(600, 120)">
+    <text x="0" y="0" fill="#22D3EE" font-family="Fira Code, monospace" font-size="22" text-anchor="middle" font-weight="700">
+      <tspan x="0" dy="1.2em">
+        <animate attributeName="opacity" values="0;1;1;0" dur="8s" repeatCount="indefinite" begin="0s" />
+        ⚡ The Unified Multi-Cloud OS
+      </tspan>
+      <tspan x="0" dy="0">
+        <animate attributeName="opacity" values="0;1;1;0" dur="8s" repeatCount="indefinite" begin="4s" />
+        🤖 Integrated AI Cloud Copilot
+      </tspan>
+    </text>
+  </g>
+
+  <!-- Connection Lines (Isometric Feel) -->
+  <path d="M 600 200 L 300 100" stroke="#00F0FF" stroke-width="2" stroke-dasharray="10 5" opacity="0.4"/>
+  <path d="M 600 200 L 900 100" stroke="#00F0FF" stroke-width="2" stroke-dasharray="10 5" opacity="0.4"/>
+  <path d="M 600 200 L 600 350" stroke="#00F0FF" stroke-width="2" stroke-dasharray="10 5" opacity="0.4"/>
+
+  <!-- Floating Platforms (3D Cuboids Sim) -->
+  <!-- AWS Platform -->
+  <g filter="url(#shadow)" transform="translate(250, 80)">
+    <path d="M 0 20 L 50 0 L 100 20 L 50 40 Z" fill="url(#aws_grad)"/>
+    <path d="M 0 20 L 0 35 L 50 55 L 50 40 Z" fill="#CC7A00"/>
+    <path d="M 50 40 L 50 55 L 100 35 L 100 20 Z" fill="#995C00"/>
+    <text x="50" y="25" fill="white" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold">AWS</text>
+  </g>
+
+  <!-- Azure Platform -->
+  <g filter="url(#shadow)" transform="translate(850, 80)">
+    <path d="M 0 20 L 50 0 L 100 20 L 50 40 Z" fill="url(#azure_grad)"/>
+    <path d="M 0 20 L 0 35 L 50 55 L 50 40 Z" fill="#005A9E"/>
+    <path d="M 50 40 L 50 55 L 100 35 L 100 20 Z" fill="#003D6B"/>
+    <text x="50" y="25" fill="white" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold">AZURE</text>
+  </g>
+
+  <!-- GCP Platform -->
+  <g filter="url(#shadow)" transform="translate(550, 320)">
+    <path d="M 0 20 L 50 0 L 100 20 L 50 40 Z" fill="url(#gcp_grad)"/>
+    <path d="M 0 20 L 0 35 L 50 55 L 50 40 Z" fill="#2A66C9"/>
+    <path d="M 50 40 L 50 55 L 100 35 L 100 20 Z" fill="#1C4B9E"/>
+    <text x="50" y="25" fill="white" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold">GCP</text>
+  </g>
+
+  <!-- Central Nebula Core -->
+  <g filter="url(#shadow)" transform="translate(560, 170)">
+    <circle cx="40" cy="40" r="40" fill="#00F0FF" opacity="0.8">
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="3s" repeatCount="indefinite" />
+      <animate attributeName="r" values="38;42;38" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="40" cy="40" r="25" fill="white" opacity="0.9">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <text x="40" y="45" fill="#0A0A14" font-family="Arial" font-size="14" text-anchor="middle" font-weight="heavy">CORE</text>
+  </g>
+  
+  <!-- Title Animation -->
+  <text x="600" y="50" fill="white" font-family="Segoe UI, Roboto, sans-serif" font-size="42" text-anchor="middle" font-weight="bold">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="5s" repeatCount="indefinite" />
+    N E B U L A
+  </text>
+  <text x="600" y="80" fill="#00F0FF" font-family="Segoe UI, Roboto, sans-serif" font-size="14" text-anchor="middle" letter-spacing="4">MULTI-CLOUD ORCHESTRATION</text>
+
+</svg>"""
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+    print(f"SVG generated at {output_path}")
+
+if __name__ == "__main__":
+    create_nebula_svg("docs/images/nebula_3d_banner.svg")

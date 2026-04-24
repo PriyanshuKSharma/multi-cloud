@@ -1,45 +1,198 @@
-% Front Matter for Multi-Cloud Project Blackbook
+% --- Title Page ---
 \begin{titlepage}
+    \thispagestyle{empty}
     \centering
     \vspace*{1cm}
     
     {\Huge \textbf{NEBULA: THE MULTI-CLOUD COMMAND CENTER}} \\[0.5cm]
-    {\Large \textit{A Unified Orchestration Engine for AWS, Azure, and Google Cloud Platform}} \\[2cm]
+    {\Large \textit{A Unified Orchestration Engine for AWS, Azure, and Google Cloud Platform}} \\[1.5cm]
     
-    {\Large A Project Report Submitted to [UNIVERSITY NAME]} \\[0.5cm]
-    {\Large In Partial Fulfilment of the Requirements for the Degree of} \\[0.5cm]
-    {\Large \textbf{BACHELOR OF TECHNOLOGY}} \\[0.5cm]
-    {\Large IN COMPUTER SCIENCE AND ENGINEERING} \\[2cm]
+    {\Large Thesis submitted in partial fulfilment of the requirements of the degree of} \\[0.5cm]
+    {\Large \textbf{Bachelor of Technology}} \\[0.5cm]
+    {\Large in} \\[0.5cm]
+    {\Large \textbf{Information Technology (Cloud Technology)}} \\[1.5cm]
     
-    {\Large \textbf{By: Priyanshu K Sharma}} \\[0.5cm]
-    {\Large [UNIVERSITY ROLL NO.]} \\[2cm]
+    {\Large by} \\[0.5cm]
+    {\Large \textbf{Priyanshu Kumar Sharma}} \\
+    {\Large \textbf{Vaishnavi Jadhav}} \\
+    {\Large \textbf{Vaibhav Gulge}} \\[1.5cm]
+    
+    {\Large Under the Supervision of} \\[0.5cm]
+    {\Large \textbf{Dr. Sandeep Kulkarni}} \\
     
     \vfill
     
-    \IfFileExists{college_logo.pdf}{
-        \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
-    }{
-        \IfFileExists{college_logo.png}{
-            \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
-        }{
-            \IfFileExists{college_logo.jpg}{
-                \includegraphics[width=0.4\textwidth]{college_logo} \\[1cm]
-            }{
-                \fbox{\parbox[c][3cm][c]{0.4\textwidth}{\centering College Logo Placeholder}} \\[1cm]
-            }
-        }
-    }
+    \includegraphics[width=6cm]{adypu-logo.png} \\[1cm]
     
-    {\Large \textbf{DEPARTMENT OF COMPUTER SCIENCE}} \\
-    {\Large [COLLEGE NAME]} \\
-    {\Large [YEAR]}
+    {\Large School of Engineering} \\
+    {\scshape Ajeenkya DY Patil University, Pune} \\[0.5cm]
+    {\Large April 2026}
+    
 \end{titlepage}
 
 \newpage
-\begin{abstract}
-The transition from traditional on-premise infrastructure to cloud computing has been revolutionary, providing unparalleled scalability and cost-efficiency. However, as organizations grow, the reliance on a single cloud vendor often leads to "vendor lock-in," escalating costs, and single-point-of-failure risks. This has prompted a strategic shift toward Multi-Cloud architectures. While Multi-Cloud offers redundancy and strategic flexibility, it introduces significant operational complexity, fragmented management interfaces, and a steep learning curve for developers.
+% --- Set Header with Centered Logo for Certificates and Declaration ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\includegraphics[height=0.8cm]{adypu-logo.png}} % CENTERED LOGO
+\fancyhead[R]{} % Right header is empty
+\fancyfoot[C]{\thepage}
 
-This project introduces \textbf{Nebula: The Multi-Cloud Command Center}, a high-performance orchestration engine designed to unify the management of infrastructure across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula abstracts these providers into a single control plane, leveraging Infrastructure as Code (IaC) through Terraform and an asynchronous execution engine powered by FastAPI and Celery. 
+% ---------------- CERTIFICATE ----------------
+\chapter*{Certificate}
+\addcontentsline{toc}{chapter}{Certificate}
 
-Key innovations include an \textbf{AI-driven Troubleshooting Copilot} that parses Terraform execution logs to provide deterministic remediation steps, a \textbf{Security Vault} for encrypted credential management, and \textbf{Real-time Inventory Syncing}. The resulting platform empowers developers to provision, monitor, and troubleshoot resources across different clouds without switching between disparate consoles.
-\end{abstract}
+\begin{flushright}
+Date: April 25, 2026
+\end{flushright}
+
+This is to certify that the dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} is a bonafide work of \textbf{``Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge''} submitted to the School of Engineering, Ajeenkya DY Patil University, Pune in partial fulfilment of the requirement for the award of the degree of \textbf{``Bachelor of Technology in Information Technology''}.
+
+\vspace{3cm}
+
+\begin{flushleft}
+\textbf{Dr. (Dean Name)} \hfill \textbf{Dr. Sandeep Kulkarni}\\
+Dean \hfill Supervisor
+\end{flushleft}
+
+\vspace{3cm}
+
+\begin{flushleft}
+Internal Examiner \hfill External Examiner
+\end{flushleft}
+
+\newpage
+
+% ---------------- SUPERVISOR CERTIFICATE ----------------
+\chapter*{Supervisor's Certificate}
+\addcontentsline{toc}{chapter}{Supervisor's Certificate}
+
+\begin{flushright}
+Date: April 25, 2026
+\end{flushright}
+
+This is to certify that the dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} submitted by \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, is a record of original work carried out by them under my supervision and guidance in partial fulfilment of the requirements of the degree \textbf{Bachelor of Technology in Information Technology} at School of Engineering, Ajeenkya DY Patil University, Pune, Maharashtra-412105. 
+
+Neither this dissertation nor any part of it has been submitted earlier for any degree or diploma to any institute or university in India or abroad.
+
+\vspace{4cm}
+
+\begin{flushright}
+\textbf{Dr. Sandeep Kulkarni}\\
+Supervisor
+\end{flushright}
+
+\newpage
+
+% ---------------- DECLARATION OF ORIGINALITY ----------------
+\chapter*{Declaration of Originality}
+\addcontentsline{toc}{chapter}{Declaration of Originality}
+
+We, \textbf{Priyanshu Kumar Sharma, Vaishnavi Jadhav \& Vaibhav Gulge}, hereby declare that this dissertation entitled \textbf{``Nebula: The Multi-Cloud Command Center''} presents our original work carried out as bachelor students of School of Engineering, Ajeenkya D Y Patil University, Pune, Maharashtra.
+
+To the best of our knowledge, this dissertation contains no material previously published or written by another person, nor any material presented by us for the award of any degree or diploma of Ajeenkya DY Patil University, Pune or any other institution. We also declare that we have adhered to all principles of academic honesty and integrity and have not misrepresented or fabricated or falsified any idea/data/fact/source in our submission.
+
+\vspace{2cm}
+
+\begin{flushleft}
+Date: 25 April, 2026 \\
+Place: Lohegaon, Pune
+\end{flushleft}
+
+\vspace{2cm}
+
+\begin{flushright}
+Priyanshu Kumar Sharma \\ Vaishnavi Jadhav \\ Vaibhav Gulge
+\end{flushright}
+
+% --- REMOVE LOGO FROM HERE ONWARDS ---
+\newpage
+\fancyhead[C]{} % Clear the center logo
+\fancyhead[R]{} % Ensure right header is empty
+
+% ---------------- ACKNOWLEDGEMENT ----------------
+\chapter*{Acknowledgement}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+
+We would like to express our sincere gratitude to all those who have contributed to the successful completion of this thesis. First and foremost, we are deeply grateful to our supervisor, \textbf{Dr. Sandeep Kulkarni}, for his invaluable guidance, continuous support, and encouragement throughout this research work. His expertise and insight have been instrumental in shaping this project. 
+
+\vspace{3cm}
+
+\begin{flushright}
+Priyanshu Kumar Sharma \\ Vaishnavi Jadhav \\ Vaibhav Gulge
+\end{flushright}
+
+\newpage
+
+% ---------------- ABSTRACT ----------------
+\chapter*{Abstract}
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Abstract}
+
+The transition from traditional on-premise infrastructure to cloud computing has significantly transformed how organizations design, deploy, and scale applications by offering enhanced flexibility, scalability, and cost efficiency. However, reliance on a single cloud provider introduces challenges such as vendor lock-in, increased costs, limited interoperability, and risks of service outages. These limitations have driven the adoption of multi-cloud architectures, where workloads are distributed across multiple platforms to improve resilience and performance. Despite its benefits, multi-cloud environments introduce complexities in infrastructure management, monitoring, security, and operational consistency due to differences in provider-specific interfaces and APIs. This project presents Nebula: The Multi-Cloud Command Center, a unified orchestration platform designed to simplify the management of resources across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Nebula provides a centralized control plane that abstracts cloud-specific complexities, enabling seamless provisioning and management through Infrastructure as Code (IaC) using Terraform. The platform integrates an asynchronous execution framework powered by FastAPI and Celery for efficient and responsive operations. A key feature is an AI-driven Troubleshooting Copilot, which analyzes execution logs to provide accurate remediation suggestions, reducing debugging time and operational effort. Additionally, Nebula includes a Security Vault for secure credential management and a real-time inventory syncing system to maintain an updated view of resources across clouds. The system is designed to be scalable, modular, and extensible, making it suitable for both enterprise and research applications. Overall, Nebula enhances operational efficiency and reduces complexity by enabling users to provision, monitor, and troubleshoot multi-cloud resources through a unified interface, eliminating the need to navigate multiple cloud consoles.
+
+
+
+% ---------------- ABBREVIATIONS ----------------
+\newpage
+% --- List of Abbreviations (Continued) ---
+\begin{center}
+    {\Huge \textbf{List of Abbreviations}}
+\end{center}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\vspace{1.5cm}
+
+\begin{center}
+\begin{tabular}{l l}
+AES & Advanced Encryption Standard \\
+AI & Artificial Intelligence \\
+API & Application Programming Interface \\
+AWS & Amazon Web Services \\
+Azure & Microsoft Azure Cloud \\
+CBC & Cipher Block Chaining \\
+CLI & Command Line Interface \\
+CPU & Central Processing Unit \\
+EC2 & Elastic Compute Cloud \\
+GCP & Google Cloud Platform \\
+GDPR & General Data Protection Regulation \\
+GUI & Graphical User Interface \\
+HCL & HashiCorp Configuration Language \\
+HLD & High Level Design \\
+HMAC & Hash-based Message Authentication Code \\
+HTTP & Hypertext Transfer Protocol \\
+IaC & Infrastructure as Code \\
+IAM & Identity and Access Management \\
+IEEE & Institute of Electrical and Electronics Engineers \\
+JSON & JavaScript Object Notation \\
+\end{tabular}
+\end{center}
+
+\newpage
+\begin{center}
+    {\Huge \textbf{List of Abbreviations}}
+\end{center}
+\vspace{1.5cm}
+
+\begin{center}
+\begin{tabular}{l l}
+JWT & JSON Web Token \\
+LLM & Large Language Model \\
+ML & Machine Learning \\
+NIST & National Institute of Standards and Technology \\
+NSG & Network Security Group \\
+OS & Operating System \\
+PaaS & Platform as a Service \\
+RBAC & Role-Based Access Control \\
+RDS & Relational Database Service \\
+RTM & Requirement Traceability Matrix \\
+SaaS & Software as a Service \\
+SDLC & Software Development Life Cycle \\
+SLA & Service Level Agreement \\
+SLO & Service Level Objective \\
+SQL & Structured Query Language \\
+SRS & Software Requirements Specification \\
+UML & Unified Modeling Language \\
+VPC & Virtual Private Cloud \\
+YAML & Yet Another Markup Language \\
+\end{tabular}
+\end{center}

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEBULA Poster</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'IBM Plex Sans',sans-serif;
+  background:#f1f5f9;
+  display:flex;justify-content:center;padding:20px;
+}
+
+.poster{
+  width:841px;min-height:1189px;
+  background:#ffffff;
+  color:#0f172a;
+  position:relative;overflow:hidden;
+  box-shadow:0 10px 50px rgba(0,0,0,0.08);
+  display:flex;flex-direction:column;
+}
+
+.poster::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(56,189,248,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 75%, rgba(99,102,241,0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16,185,129,0.02) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+.grid-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;z-index:0;
+}
+.poster > *{position:relative;z-index:1}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 50%,#f8fafc 100%);
+  border-bottom:3px solid #38bdf8;
+  padding:15px 25px;
+  display:flex;align-items:center;gap:25px;
+}
+.logo-box{
+  flex-shrink:0;
+  background:#fff;
+  border-radius:10px;
+  padding:8px;
+  width:130px;height:130px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+  border: 1px solid #e2e8f0;
+}
+.logo-box img{width:100%;height:100%;object-fit:contain;}
+.header-text{flex:1}
+.header-text h2{font-size:12px;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.header-text h1{
+  font-size:32px;font-weight:700;letter-spacing:2px;
+  background:linear-gradient(90deg,#0284c7,#4f46e5,#059669);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1.1;
+}
+.header-meta{text-align:right;font-size:12px;line-height:1.8;color:#64748b;flex-shrink:0}
+.header-meta strong{color:#0f172a}
+.accent-bar{
+  height:5px;
+  background:linear-gradient(90deg,#38bdf8,#818cf8,#34d399,#f59e0b);
+}
+
+/* ── SECTION LABEL ── */
+.sec-label{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(90deg,#e0f2fe,#e0f2fe00);
+  border-left:5px solid #38bdf8;
+  padding:6px 20px 6px 15px;
+  font-size:16px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:#0369a1;
+  margin-bottom:12px;
+}
+.sec-label.purple{border-color:#818cf8;color:#4338ca;background:linear-gradient(90deg,#eef2ff,#eef2ff00)}
+.sec-label.green{border-color:#34d399;color:#047857;background:linear-gradient(90deg,#f0fdf4,#f0fdf400)}
+.sec-label.amber{border-color:#f59e0b;color:#b45309;background:linear-gradient(90deg,#fffbeb,#fffbeb00)}
+.sec-label.rose{border-color:#fb7185;color:#be123c;background:linear-gradient(90deg,#fff1f2,#fff1f200)}
+
+/* ── BODY ── */
+.body{
+  display:flex;flex-direction:column;
+  gap:15px;
+  padding:15px 20px;
+  flex:1;
+}
+
+/* ── ROW ── */
+.row{display:grid;gap:15px;}
+.row-3{grid-template-columns:1fr 1fr 1fr;}
+.row-21{grid-template-columns:2fr 1fr;}
+.row-12{grid-template-columns:1fr 2fr;}
+
+/* ── CARDS ── */
+.card{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:15px 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.card.purple-border{border-color:#e0e7ff; border-top: 2px solid #818cf8;}
+.card.green-border{border-color:#dcfce7; border-top: 2px solid #34d399;}
+.card.amber-border{border-color:#fef3c7; border-top: 2px solid #f59e0b;}
+.card.rose-border{border-color:#ffe4e6; border-top: 2px solid #fb7185;}
+
+.card ul{padding-left:25px;margin-top:8px}
+.card ul li{font-size:14px;line-height:1.6;color:#334155;margin-bottom:6px}
+.card ul li strong{color:#0f172a}
+.card p{font-size:14px;line-height:1.6;color:#64748b}
+
+/* ── ARCH ── */
+.arch-flow{
+  display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:3px;margin-top:5px;
+}
+.arch-node{
+  background:linear-gradient(135deg,#f8fafc,#f1f5f9);
+  border:1px solid #cbd5e1;
+  border-radius:8px;padding:8px 12px;
+  text-align:center;min-width:90px;
+}
+.arch-node.purple{border-color:#818cf8; background: #f5f3ff;}
+.arch-node.green{border-color:#34d399; background: #f0fdf4;}
+.arch-node.amber{border-color:#f59e0b; background: #fffbeb;}
+.arch-node .node-icon{font-size:20px;display:block}
+.arch-node .node-label{font-size:11px;color:#334155;font-weight:600;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.arch-arrow{color:#0284c7;font-size:20px;font-weight:bold;flex-shrink:0}
+
+.callouts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.callout-tag{
+  background:#f0f9ff;
+  border:1px solid #bae6fd;
+  border-radius:20px;
+  font-size:11px;padding:4px 12px;color:#0369a1;
+  font-family:'IBM Plex Mono',monospace;
+}
+.callout-tag.purple{background:#f5f3ff;border-color:#ddd6fe;color:#4338ca}
+.callout-tag.green{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}
+
+/* ── MODULE GRID ── */
+.mod-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;}
+.mod-item{
+  background:#f8fafc;
+  border-left:4px solid #38bdf8;
+  border-radius:0 8px 8px 0;
+  padding:10px 15px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.mod-item.purple{border-color:#818cf8; background:#f5f3ff;}
+.mod-item.green{border-color:#34d399; background:#f0fdf4;}
+.mod-item.amber{border-color:#f59e0b; background:#fffbeb;}
+.mod-item .mod-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.mod-item .mod-text{font-size:13px;color:#334155;line-height:1.5}
+.mod-item .mod-text strong{font-size:14px;color:#0f172a;display:block;margin-bottom:2px}
+
+/* ── WORKFLOW ── */
+.wf-flow{display:flex;flex-direction:column;gap:3px;margin-top:5px;}
+.wf-step{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:8px;
+  font-size:12px;color:#334155;
+  padding:8px 12px;text-align:center;
+  font-family:'IBM Plex Mono',monospace;
+  line-height:1.4;
+}
+.wf-step.highlight{border-color:#86efac;color:#15803d;background:#f0fdf4}
+.wf-step.highlight2{border-color:#fcd34d;color:#b45309;background:#fffbeb}
+.wf-arrow-v{text-align:center;color:#0284c7;font-size:16px;line-height:1;margin:4px 0}
+
+/* ── RESULTS ── */
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px}
+.metric-card{
+  background:linear-gradient(135deg,#ffffff,#f8fafc);
+  border:1px solid #e2e8f0;
+  border-radius:10px;padding:12px 15px;text-align:center;
+}
+.metric-card .val{font-size:32px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:#0284c7;line-height:1}
+.metric-card .unit{font-size:14px;color:#0369a1;font-family:'IBM Plex Mono',monospace}
+.metric-card .desc{font-size:11px;color:#64748b;margin-top:6px;line-height:1.4}
+.metric-card.green .val{color:#059669}.metric-card.green .unit{color:#15803d}
+.metric-card.amber .val{color:#d97706}.metric-card.amber .unit{color:#b45309}
+.metric-card.purple .val{color:#4f46e5}.metric-card.purple .unit{color:#4338ca}
+
+.honesty-note{
+  background:#fffbeb;
+  border:1px solid #fde68a;
+  border-radius:8px;padding:12px 15px;margin-top:12px;
+  font-size:12px;color:#92400e;line-height:1.6;
+}
+
+/* ── ROADMAP ── */
+.roadmap-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.road-item{
+  display:flex;align-items:flex-start;gap:10px;
+  background:#f1f5f9;
+  border-radius:8px;padding:10px 15px;
+  border: 1px solid #e2e8f0;
+}
+.road-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.road-text{font-size:13px;color:#334155;line-height:1.5}
+
+/* ── FOOTER ── */
+.footer{
+  background:linear-gradient(135deg,#f8fafc,#f1f5f9);
+  border-top:3px solid #e2e8f0;
+  padding:15px 25px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.footer .footer-left{font-size:14px;color:#475569;line-height:1.8}
+.footer .footer-left strong{color:#0f172a}
+.footer .tagline{
+  font-size:18px;font-weight:700;
+  background:linear-gradient(90deg,#0284c7,#4f46e5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-align:right;font-family:'IBM Plex Mono',monospace;
+  letter-spacing:1px;
+}
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="grid-bg"></div>
+  <div class="accent-bar"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-box">
+      <img src="data:image/png;base64,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" alt="Ajeenkya DY Patil University">
+    </div>
+    <div class="header-text">
+      <h2>Ajeenkya D Y Patil University &mdash; School of Engineering &nbsp;|&nbsp; Final Year Project</h2>
+      <h1>NEBULA: THE MULTI-CLOUD COMMAND CENTER</h1>
+    </div>
+    <div class="header-meta">
+      <strong>Team:</strong> <strong style="font-weight:800">Priyanshu Kumar Sharma</strong><br>
+      <strong style="font-weight:800">Vaishnavi Jadhav &nbsp;|&nbsp; Vaibhav Gulge</strong><br>
+      <strong>Supervisor:</strong> <strong style="font-weight:800">Prof. Priti Rastogi</strong>
+    </div>
+  </div>
+  <div class="accent-bar"></div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- ROW 1: Objectives | Architecture (2fr) -->
+    <div class="row row-21" style="grid-template-columns:1fr 2fr">
+      <!-- Objectives -->
+      <div class="card">
+        <div class="sec-label">Objectives &amp; Significance</div>
+        <ul>
+          <li><strong>Problem:</strong> Fragmented cloud ops across AWS, Azure &amp; GCP</li>
+          <li>Multiple consoles increase operational complexity</li>
+          <li>Inconsistent workflows cause vendor lock-in</li>
+          <li>No unified visibility across providers</li>
+        </ul>
+        <div style="height:5px"></div>
+        <div class="sec-label green">Nebula Provides</div>
+        <ul>
+          <li><strong>Unified control plane</strong> for provisioning, monitoring &amp; billing</li>
+          <li>Standardized workflows across all cloud providers</li>
+          <li>Enhanced security via encrypted credential vault</li>
+          <li>AI-powered troubleshooting &amp; observability layer</li>
+          <li>Traceable lifecycle states &amp; execution transparency</li>
+        </ul>
+      </div>
+
+      <!-- Architecture + Conclusion -->
+      <div style="display:flex; flex-direction:column; gap:15px">
+        <div class="card purple-border">
+          <div class="sec-label purple">System Architecture</div>
+          <div class="arch-flow">
+            <div class="arch-node"><span class="node-icon"></span><span class="node-label">User</span></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node purple"><span class="node-icon"></span><span class="node-label">React 19<br>+ Vite</span></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node purple"><span class="node-icon"></span><span class="node-label">FastAPI<br>Backend</span></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node"><span class="node-icon"></span><span class="node-label">Postgres<br>+ Redis</span></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node green"><span class="node-icon"></span><span class="node-label">Celery<br>Worker</span></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node amber"><span class="node-icon"></span><span class="node-label">Terraform<br>Engine</span></div>
+            <div class="arch-arrow">→</div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div class="arch-node" style="border-color:rgba(255,153,0,0.5);min-width:52px"><span class="node-icon"></span><span class="node-label">AWS</span></div>
+              <div class="arch-node" style="border-color:rgba(0,120,212,0.5);min-width:52px"><span class="node-icon"></span><span class="node-label">Azure</span></div>
+              <div class="arch-node" style="border-color:rgba(66,133,244,0.5);min-width:52px"><span class="node-icon"></span><span class="node-label">GCP</span></div>
+            </div>
+          </div>
+          <div class="callouts">
+            <span class="callout-tag">🔐 JWT Auth</span>
+            <span class="callout-tag purple">📦 REST API</span>
+            <span class="callout-tag">🔒 Encrypted Credentials</span>
+            <span class="callout-tag green">⚡ Async Task Execution</span>
+            <span class="callout-tag green">🐳 Containerized Deploy</span>
+            <span class="callout-tag purple">☁️ Unified Cloud Abstraction</span>
+          </div>
+        </div>
+
+        <div class="card rose-border" style="background:rgba(251,113,133,0.02)">
+          <div class="sec-label rose">Conclusion</div>
+          <p style="font-size:14px;color:#9f1239;line-height:1.8;font-style:italic">
+            Nebula demonstrates that cloud operations can be made more <strong style="color:#be123c">reliable, auditable, secure,</strong> and <strong style="color:#be123c">user-friendly</strong> through a unified asynchronous orchestration architecture — bridging the gap between multi-cloud complexity and operational simplicity.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Key Modules FULL WIDTH -->
+    <div class="card green-border">
+      <div class="sec-label green">Key Modules &amp; Implementation</div>
+      <div class="mod-grid">
+        <div class="mod-item">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>Unified Dashboard</strong>Resource management UI across all clouds</div>
+        </div>
+        <div class="mod-item purple">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>Auth &amp; Credential Vault</strong>Secure login + encrypted secrets store</div>
+        </div>
+        <div class="mod-item green">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>Cloud Inventory Sync</strong>Real-time resource state reconciliation</div>
+        </div>
+        <div class="mod-item amber">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>Terraform Provisioning</strong>IaC-based infra creation &amp; teardown</div>
+        </div>
+        <div class="mod-item">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>Deployment Tracking</strong>Execution logs &amp; lifecycle tracing</div>
+        </div>
+        <div class="mod-item purple">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>Billing Visibility</strong>Operational cost tracking per provider</div>
+        </div>
+        <div class="mod-item green" style="grid-column:span 3">
+          <span class="mod-icon"></span>
+          <div class="mod-text"><strong>AI Troubleshooting Copilot</strong> — Failure analysis, readable log interpretation &amp; remediation guidance using AI-assisted diagnostics</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: Results | Applications + Conclusion -->
+    <div class="row" style="grid-template-columns:1fr 1fr">
+      <!-- Results -->
+      <div class="card">
+        <div class="sec-label">Results &amp; Interpretability</div>
+        <div class="results-grid">
+          <div class="metric-card">
+            <div class="val">&lt;100</div>
+            <div class="unit">ms</div>
+            <div class="desc">API Acknowledgement Latency</div>
+          </div>
+          <div class="metric-card green">
+            <div class="val">145</div>
+            <div class="unit">ms</div>
+            <div class="desc">Provider Health Check Latency</div>
+          </div>
+          <div class="metric-card amber">
+            <div class="val">25</div>
+            <div class="unit">resources</div>
+            <div class="desc">Tracked in AWS Implementation</div>
+          </div>
+          <div class="metric-card purple">
+            <div class="val">✓</div>
+            <div class="unit">Traceable</div>
+            <div class="desc">Lifecycle States &amp; Execution</div>
+          </div>
+        </div>
+        <div class="honesty-note">
+          <strong>Note:</strong> Validated on AWS. Architecture designed for Azure &amp; GCP expansion.
+          <div style="margin-top:12px; padding-top:10px; border-top:1px solid #fde68a; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#0369a1">
+            <strong>Source:</strong> github.com/PriyanshuKSharma/multi-cloud
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications -->
+      <div class="card green-border">
+        <div class="sec-label green">Applications &amp; Real-world Use</div>
+        <div style="display:grid; grid-template-columns:220px 1fr; gap:10px; margin-top:5px">
+          <div class="mod-item"><div class="mod-text"><strong>Academic Learning</strong>Lab environment for cloud education</div></div>
+          <div class="mod-item purple"><div class="mod-text"><strong>Startup Infra</strong>Lightweight multi-cloud operations</div></div>
+          <div class="mod-item green"><div class="mod-text"><strong>DevOps Dashboard</strong>Unified ops for engineering teams</div></div>
+          <div class="mod-item amber"><div class="mod-text"><strong>Cost Monitoring</strong>Billing visibility across providers</div></div>
+          <div class="mod-item" style="grid-column: span 2"><div class="mod-text"><strong>Guided Troubleshooting</strong>AI-assisted remediation &amp; log interpretation for distributed teams</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 4: Future Roadmap FULL WIDTH -->
+    <div class="card amber-border">
+      <div class="sec-label amber">Future Roadmap</div>
+      <div class="roadmap-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="road-item"><span class="road-icon"></span><div class="road-text"><strong style="color:#b45309;font-size:13px">WebSocket Logs</strong><br>Real-time streaming execution output</div></div>
+        <div class="road-item"><span class="road-icon"></span><div class="road-text"><strong style="color:#b45309;font-size:13px">Cost Intelligence</strong><br>Optimization recommendations engine</div></div>
+        <div class="road-item"><span class="road-icon"></span><div class="road-text"><strong style="color:#b45309;font-size:13px">Policy-as-Code</strong><br>Compliance checks &amp; governance rules</div></div>
+        <div class="road-item"><span class="road-icon"></span><div class="road-text"><strong style="color:#b45309;font-size:13px">Predictive Governance</strong><br>Anomaly detection via ML models</div></div>
+        <div class="road-item"><span class="road-icon"></span><div class="road-text"><strong style="color:#b45309;font-size:13px">Azure &amp; GCP Parity</strong><br>Full execution support for all providers</div></div>
+        <div class="road-item"><span class="road-icon"></span><div class="road-text"><strong style="color:#b45309;font-size:13px">Kubernetes &amp; Hybrid</strong><br>Container orchestration expansion</div></div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="sec-label purple" style="margin-top:4px">🛠️ Tech Stack</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        <span class="callout-tag">React 19</span>
+        <span class="callout-tag">FastAPI</span>
+        <span class="callout-tag purple">PostgreSQL</span>
+        <span class="callout-tag purple">Redis</span>
+        <span class="callout-tag green">Celery</span>
+        <span class="callout-tag green">Terraform</span>
+        <span class="callout-tag">Docker</span>
+        <span class="callout-tag">JWT</span>
+        <span class="callout-tag purple">Python</span>
+        <span class="callout-tag green">AWS SDK</span>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <strong>Team:</strong> <strong style="font-weight:800">Priyanshu Kumar Sharma &nbsp;|&nbsp; Vaishnavi Jadhav &nbsp;|&nbsp; Vaibhav Gulge</strong><br>
+      <strong>Supervisor:</strong> <strong style="font-weight:800">Prof. Priti Rastogi</strong> &nbsp;•&nbsp; Ajeenkya DY Patil University — School of Engineering
+    </div>
+    <div class="tagline">NEBULA<br>Multi-Cloud Command Center</div>
+  </div>
+
+</div>
+</body>
+</html>

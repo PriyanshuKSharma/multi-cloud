@@ -1,70 +1,70 @@
-% Chapter 12: Use Cases, Case Studies, and Cost Scenarios
-\chapter{USE CASES, CASE STUDIES, AND COST SCENARIOS}
+% Chapter 7: Conclusion (Expanded for 80+ Page Project)
+\chapter{CONCLUSION}
 
-The value of a multi-cloud orchestration platform becomes clearer when it is evaluated in concrete operating scenarios. This chapter presents representative use cases that show how Nebula can support different organizational contexts. The objective is not to claim universal optimality, but to demonstrate how a unified control plane helps teams reason about infrastructure decisions, deployment models, and cost trade-offs.
+The emergence of Nebula shows that multi-cloud orchestration can become much more accessible if infrastructure automation, security, observability, and debugging are considered as a single challenge. Instead of constructing a shallow interface on top of the cloud provider’s APIs, the project creates a full execution pipeline consisting of the following components: the user-facing control tower, the credential storage, the asynchronous task executor, the Terraform-driven provisioning stage, and the artificial intelligence-driven debugging component.
 
-\section{Use Case 1: Startup SaaS Platform}
-Consider a startup building a customer-facing SaaS application with a small engineering team. The team wants to launch quickly, keep costs visible, and avoid becoming dependent on a single provider too early. In this context, Nebula can simplify experimentation by exposing a unified workflow for creating development virtual machines, object storage buckets, and regional test environments. Instead of learning three portals at once, the team can standardize its provisioning requests through the control plane and compare outcomes side by side.
+\section{Summary of the Work Accomplished}
+The project emerged out of a concrete need. Today’s firms operate within an environment where multiple vendors provide services for their operations; Amazon Web Services are chosen for coverage, Microsoft Azure for enterprise connectivity, and Google Cloud Platform for analysis and abstraction. While this helps in being resilient and having more negotiating leverage, it leads to the problem of operational fragmentation. This is why the engineers have to deal with a variety of naming conventions, authentication schemes, and logging practices.
 
-For this type of organization, the main benefit is cognitive efficiency. The team is usually small, and the same engineers often handle both product features and infrastructure work. Nebula reduces context switching, shortens onboarding time for new team members, and preserves a record of what was provisioned and why.
 
-\section{Use Case 2: Enterprise Department With Microsoft Alignment}
-Now consider an enterprise department that already uses Microsoft identity and collaboration tooling heavily but wants selected analytics or external-facing workloads to run elsewhere. Azure may remain the primary provider because of organizational alignment, yet AWS or GCP may offer better fits for specialized workloads. Nebula is useful here because it allows the department to keep Azure-centered governance while still exposing controlled access to other providers for approved cases.
+Throughout the report, we established the conceptual basis for cloud comput- ing, reviewed available tools, highlighted the discrepancy between native provider solutions and cross-cloud processes, and ultimately translated this knowledge into a practical software architecture. The resulting framework creates a resource model that enables the user to conceptualize their actions in terms of their intentionality instead of their implementation details through various vendors. A virtual machine, storage bucket, or network perimeter becomes just another element in this normalized model instead of a tool chain for each vendor.
 
-In this environment, the orchestration platform acts as a policy boundary as much as a convenience tool. Provider onboarding, tag enforcement, region restrictions, and audit visibility become just as important as raw provisioning speed. A unified dashboard helps because the department can see where resources live without forcing every operator to become an expert in each provider's management console.
+From an implementation standpoint, some tangible results have been reached. A FastAPI backend ensures consistency in the API for any actions performed by the user and the manipulation of resources. Celery workers handle long-running operations outside of the request-response cycle to keep the user interface snappy. Persistent state is kept using PostgreSQL databases, whereas the queueing layer uses Redis. Terraform operates as the execution mechanism, ensuring auditability and consistency. In addition to these components, the dashboard aggregates all information about the inventory, tasks, and suggestions for troubleshooting into one cockpit.
 
-\section{Use Case 3: Research Laboratory or Academic Institution}
-Academic environments often have bursty demand patterns. A research lab may need temporary compute clusters, storage for large datasets, and reproducible infrastructure for student projects or experiments. Budget visibility and repeatability are especially important because team members change frequently and infrastructure knowledge can become fragmented across batches of students.
 
-Nebula supports this environment well because its workflows can be documented, reused, and observed centrally. The control plane allows a lab supervisor or technical lead to standardize setup steps, provide curated infrastructure templates, and review what has been created across providers. This reduces the chance that students accumulate unmanaged or forgotten resources over time.
+Moreover, security was not considered an afterthought. Credential data is encrypted before being stored and decrypted within the specific execution environment where it is required. Such an approach decreases the exposure area in case of a breach of the database and creates a more pronounced distinction between the state of the application and the state of secrets. Additionally, the AI copilot was presented as an assistant rather than an independent entity. Logging is sanitized, the scope of the analysis is confined to the operation environment, and the final decision is left for the human operator.
 
-\section{Use Case 4: Seasonal E-Commerce Expansion}
-An e-commerce platform with seasonal demand may want to maintain a primary cloud footprint while keeping a secondary provider available for contingency or regional performance reasons. During normal traffic periods, only part of the multi-cloud estate may be active. During seasonal spikes, the organization may provision overflow resources in a second cloud.
 
-The operational challenge here is coordination. The team must know which resources are primary, which are standby, how inventory stays synchronized, and how failures are diagnosed quickly under pressure. Nebula's asynchronous task tracking and centralized inventory view directly support that need.
+\section{Validation Against Project Objectives}
+Each of the stated objectives can be revisited, one after another, to determine how well their vision was implemented.
 
-\section{Illustrative Cost Scenario Comparison}
-The following table provides an example of how Nebula can support workload-oriented decision-making. The values are illustrative rather than vendor quotes; the goal is to show how the control plane can structure comparison.
+\begin{enumerate}
+    \item \textbf{Unified visibility across cloud providers}: The project proposes a unified inventory view for multiple cloud providers. Even though the internal name differs among them, the resource is displayed in a universal form of Provider > Type > Region > State > Metadata on the dashboard. Thus, the objective of minimizing the switch cost for the operator is fulfilled.
+    \item \textbf{Standardized provisioning workflows}: Nebula transforms a user command into a cloud provider-specific Terraform invocation but keeps the frontend consistent. The user invokes the infrastructure using a single portal; however, the semantic of the invocation is different from one cloud provider to another.
+    \item \textbf{Reduced troubleshooting time}: The AI copilot minimizes the gap between raw error logs and remediation actions. Instead of asking the operator to manually review hundreds of lines of logs generated by the provider, the system identifies the possible failure type and suggests a resolution.
+    \item \textbf{Secure credential handling}:The provider secrets are stored in an encrypted vault and are never materialized in plain text. They are only decrypted temporarily for a single operation to satisfy the system's security needs.
+    \item \textbf{Responsive user experience}: Provider secrets are kept in an encrypted vault and are never stored in plaintext form. They are decrypted temporarily only for one-time use to meet the system’s security requirements.
 
-\begin{table}[H]
-\centering
-\caption{Illustrative Cost and Fit Comparison by Scenario}
-\label{tab:cost_scenario}
-\begin{tabular}{|p{4.0cm}|p{2.0cm}|p{2.0cm}|p{3.0cm}|}
-\hline
-\textbf{Scenario} & \textbf{Primary Goal} & \textbf{Suggested Cloud Bias} & \textbf{Nebula Value} \\ \hline
-Student development sandbox & low cost & burstable mixed cloud & one workflow for repeat setup \\ \hline
-Enterprise internal app & identity alignment & Azure-first & governance and inventory unification \\ \hline
-Data-heavy analytics prototype & fast experimentation & GCP-first & compare supporting infrastructure centrally \\ \hline
-Broad service integration platform & service breadth & AWS-first & consistent provisioning and failure handling \\ \hline
-Disaster recovery standby & resilience & dual-provider & coordinated fallback orchestration \\ \hline
-\end{tabular}
-\end{table}
+\end{enumerate}
 
-\section{Case Study: Failed Provisioning With Guided Recovery}
-One of the most practical situations for Nebula is a deployment failure during a time-sensitive release. Suppose a team attempts to create infrastructure in AWS but receives a permissions-related error from Terraform. In a conventional workflow, an engineer may need to parse provider logs, identify the relevant missing permission, open a separate IAM console, and then verify whether the failure is due to credentials, policy scope, or region restrictions.
+Overall, these findings indicate that the project achieves its main academic and engineering goals. It is not an idealized mockup but an actual cloud automation framework based on practical limitations in asynchronous execution, secrets management, reconciliation, error handling, and provider differences.
 
-In Nebula, the same event follows a more structured path. The task is recorded with a clear state transition, the execution log is stored centrally, the AI copilot summarizes the likely root cause, and the operator can review the suggested fix. Even when the copilot is not perfectly correct, it still reduces the search space. This is valuable because incident pressure often comes from time lost in ambiguity rather than from the technical difficulty of the final fix.
+\section{Key Engineering Lessons}
+\subsection{Abstraction Must Be Honest}
+One of the key lessons learned during the project implementation was that a good abstraction did not eliminate differences but rather managed them properly. Although the three providers had similar services, their interfaces were still different enough to make a simple layer misleading if some limitations specific to each of the providers were ignored. Consequently, a two-layer approach was beneficial for the platform as it allowed for simplification without distortion.
 
-\section{Case Study: Inventory Drift Detection}
-Another recurring cloud problem is inventory drift. A resource may be deleted manually in a provider console or altered outside the expected automation path. When that happens, local records and real infrastructure diverge. Nebula's periodic synchronization process reduces the duration of this inconsistency by reconciling actual provider state with the platform database.
+\subsection{Asynchronous Architecture Is Not Optional}
+Cloud orchestration tasks can take vastly different lengths of time to complete. For instance, creating a network, attaching a volume, waiting for an IP address, or dealing with provider metadata cannot be executed in the request-response loop without greatly compromising the user experience. Thus, the use of Celery and Redis was not merely an imperative from the performance perspective but a logical necessity.
 
-For a team using multiple clouds, this feature becomes disproportionately valuable. Manual verification across three portals is tedious and error-prone. Centralized reconciliation gives the team a more trustworthy picture of its estate and helps ensure that dashboards, reports, and cost assumptions remain closer to reality.
+\subsection{Security Design Should Begin With Secret Boundaries}
+Credential handling rapidly becomes the most critical issue when building a multi-cloud controller plane. A universal dashboard has tremendous utility because it brings everything together under one roof, but doing so comes with its own risks. It became clear during the development process how important it is to have clear boundaries around the storage and usage of secrets, specifically: encrypt everything on ingress, store the encrypted values only, decrypt only in a minimal scope of execution, and structure the log messages such that no credential material can be recovered from them.
 
-\section{Organizational Benefits Beyond Provisioning}
-The long-term value of a system like Nebula is not limited to provisioning speed. It also creates benefits in:
-\begin{itemize}
-    \item \textbf{training}: new engineers learn one operational workflow first,
-    \item \textbf{documentation}: a single report or manual can describe cross-cloud actions consistently,
-    \item \textbf{governance}: audit trails and approval patterns become easier to define,
-    \item \textbf{support}: failures are easier to triage through centralized task records,
-    \item \textbf{planning}: teams can compare provider choices from a shared interface.
-\end{itemize}
+\subsection{Observability Improves Design Quality}
+It should also be pointed out that instrumentation is not only beneficial after implementation; it actually helps optimize architecture. When task identifiers, log entries, state changes, and error types are exposed, architecture problems are more easily recognized. Retry storms, outdated inventories, slow provider invocations, and invalid payloads become evident, whereas before, they may have been merely anecdotal concerns. Thus, observability serves as an engineering feedback loop in a similar fashion.
 
-\section{Limitations of Scenario-Based Evaluation}
-These case studies are intentionally representative, not exhaustive. Real organizations may have more complex security boundaries, networking requirements, data laws, or procurement constraints than an academic prototype can simulate fully. Nevertheless, scenario-based analysis remains useful because it translates the abstract architecture of the earlier chapters into recognizable operational outcomes.
+\section{Limitations of the Present Work}
+It would be unrealistic to expect an academic endeavor to cover all aspects of cloud operations in its entirety, and this applies to the project at hand as well. There are several limitations inherent to the current state of the project which must be considered. First, the provider coverage is purposely limited. The system aims to address a subset of high-value infrastructure objects like compute, storage, and network primitives. Managed databases, identity federation, containerization systems, and event-driven systems receive only cursory treatment. Second, resource abstraction suffices for most cases but is provider-specific in others.
 
-\section{Discussion}
-The case studies reinforce the central thesis of the report: multi-cloud operations are as much about coordination and cognitive load as they are about raw API connectivity. Nebula adds value by reducing fragmentation. It gives teams one place to describe intent, view status, analyze failures, and compare provider behavior. For startups, that means faster learning. For enterprises, it means stronger governance. For academic and research environments, it means reproducibility and visibility. These scenario outcomes strengthen the practical argument for the system and help explain why the architecture described in this blackbook is relevant beyond a classroom exercise.
+
+Third, while the AI copilot is helpful in diagnostics, it cannot provide absolute accuracy. It can only be as good as the log data fed to it, sanitization policies used, and clarity of prompts. In this regard, the final decision to make about remediation must still come from humans. Fourth, Terraform execution is done through isolated actions using local workspaces, which is appropriate for an academic prototype but may require better state management, policy adherence, and concurrent execution controls at the scale of a real-world deployment.
+
+
+Lastly, while the evaluation done is more inclined towards checking architectural and process soundness, rather than assessing load at internet scale or enterprise certification, it does not mean that there is less value added by the Nebula prototype presented here. In actuality, Nebula is a practically oriented, soundly built multi-cloud infrastructure orchestration system prototype.
+
+\section{Academic and Industrial Relevance}
+This work is important to academia since it combines multiple concepts, which usually remain separate. Namely, this project considers distributed systems, Infrastructure as Code, secure software design, Human Computer 
+Interaction, and applications of AI. Student projects usually only focus on some particular layer of the technology stack. Nebula differs because it looks at interactions between all these layers together. The performance of a control plane is not determined by the API routes alone but rather by the security characteristics of the credential flow, long-running task behavior, and user interaction feedback mechanisms.
+
+
+Second, the project is also applicable in an industry setting since small and medium companies frequently use several different cloud providers without having a specialized platform team for each one. This means that the overhead of managing such a setup is no longer technological but rather cognitive. It takes engineers time to switch mental models and reconcile terminology in case of different providers. By adopting a workflow-first approach, Nebula tackles this problem and saves time for onboarding, recovery, and maintenance.
+
+
+\section{Concluding Remarks}
+With Nebula, we have demonstrated that there is no reason why multi-cloud management has to stay fragmented, black-boxed, and overly complicated. Through the combination of deterministic infrastructure execution, asynchronous orchestration, and remediation guidance, the Nebula project serves as a compelling vision for what cloud management systems of tomorrow may look like, in terms of their architecture. The final takeaway is thus not just the implementation code snippets or the architectural diagrams provided above but, more importantly, the architectural argumentation behind them—namely, that a unified control plane can be made both secure, observable, extensible, and user-friendly with enough thought put into the design up front.
+
+
+In summary, our conclusion could not be more straightforward. Multi-cloud management is more than a mere deployment model—it is a complex integration challenge. To overcome it, one needs a solid set of abstractions, proper management of secrets, robust background job execution, and clear operator guidance. Nebula offers a promising basis in all four aspects, while the upcoming chapters of this paper will explore further advances in each direction.
+
 
 \newpage
+
