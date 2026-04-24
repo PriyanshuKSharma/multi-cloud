@@ -46,6 +46,12 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
+variable "admin_ssh_public_key" {
+  description = "Public SSH key for the admin user"
+  type        = string
+  default     = ""
+}
+
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.rg.name
@@ -58,8 +64,9 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   admin_ssh_key {
     username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub") # Simplification for MVP
+    public_key = var.admin_ssh_public_key != "" ? var.admin_ssh_public_key : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCv... default-safe-key" # Fallback to a placeholder or required validation
   }
+
 
   os_disk {
     caching              = "ReadWrite"
