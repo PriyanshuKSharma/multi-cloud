@@ -21,8 +21,8 @@
   <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 15 badge" />
   <img src="https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis 7 badge" />
   <img src="https://img.shields.io/badge/Terraform-1.5+-844FBA?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform 1.5+ badge" />
-  <img src="https://img.shields.io/badge/License-Proprietary-555555?style=for-the-badge" alt="Proprietary license badge" />
-  
+  <img src="https://img.shields.io/badge/DOI-10.56975%2Fijcrt.v14i4.305033-blue?style=for-the-badge&logo=doi&logoColor=white" alt="DOI badge" />
+  <img src="https://img.shields.io/badge/Research-Published-success?style=for-the-badge&logo=read-the-docs&logoColor=white" alt="Research Published badge" />
 </p>
 
 Nebula is a high-performance, API-first orchestration engine designed to unify the fragmented multi-cloud landscape. It abstracts **AWS, Azure, and GCP** into a single control plane, enabling developers to provision, monitor, and troubleshoot infrastructure without leaving their cockpit.
@@ -46,6 +46,17 @@ Troubleshoot deployment failures in real-time. Our integrated AI analyzes Terraf
 ### ⚡ Async Provisioning Engine
 
 Leveraging **Celery + Redis**, Nebula executes resource-intensive Terraform workflows in the background, providing live streaming status updates to the UI via a polling-optimized state machine.
+
+---
+
+## 🎓 Scientific Foundation
+
+Nebula is more than just a tool; it is a peer-reviewed research project exploring the boundaries of cloud orchestration and infrastructure-as-code.
+
+> [!NOTE] > **Research Paper:** _Nebula: A Multi-Cloud Provisioning and Orchestration Engine_ > **Published in:** International Journal of Creative Research Thoughts (IJCRT)
+> **Volume:** 14 | **Issue:** 4 | **Date:** April 2026
+>
+> 🔗 [View Full Paper](http://www.ijcrt.org/viewfull.php?&p_id=IJCRT2604384) | 📄 [DOI: 10.56975/ijcrt.v14i4.305033](https://doi.org/10.56975/ijcrt.v14i4.305033)
 
 ---
 
@@ -108,7 +119,6 @@ Core backend routers:
 
 - `auth`, `credentials`, `dashboard`, `inventory`, `billing`
 - `resources`, `projects`, `deployments`, `blueprints`
-
 
 ---
 
@@ -176,6 +186,7 @@ multi-cloud/
 |-- docker-compose.yml
 `-- docker-compose.prod.yml
 ```
+
 ---
 
 ## 🗺️ Roadmap & Beyond
