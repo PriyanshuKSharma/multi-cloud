@@ -50,7 +50,7 @@ const Onboarding: React.FC = () => {
 
     const loadConnectedAccounts = async () => {
       try {
-        const response = await api.get('/credentials/');
+        const response = await api.get('/credentials/list');
         const items = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response.data?.items)
@@ -75,7 +75,7 @@ const Onboarding: React.FC = () => {
     setLoading(true);
     setSubmitError(null);
     try {
-      await api.post('/credentials/', {
+      await api.post('/credentials/create', {
         provider: 'aws',
         name: 'My AWS Account',
         data: {
@@ -109,7 +109,7 @@ const Onboarding: React.FC = () => {
     setLoading(true);
     setSubmitError(null);
     try {
-      await api.post('/credentials/', {
+      await api.post('/credentials/create', {
         provider: 'azure',
         name: 'My Azure Account',
         data: {
