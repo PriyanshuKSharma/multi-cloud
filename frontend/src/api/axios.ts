@@ -29,23 +29,18 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const status = error?.response?.status;
-    const requestUrl = String(error?.config?.url ?? '');
-    const isAuthEndpoint =
-      requestUrl.includes('/auth/login') ||
-      requestUrl.includes('/auth/register') ||
-      requestUrl.includes('/auth/me');
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem('token');
 
-    if (status === 401 && !isAuthEndpoint && isBrowser) {
-      localStorage.removeItem('token');
-      window.dispatchEvent(new CustomEvent(AUTH_INVALID_EVENT));
-    }
-
-    return Promise.reject(error);
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`);
   }
-);
+
+  config.headers.set('Bypass-Tunnel-Reminder', 'true');
+  config.headers.set('ngrok-skip-browser-warning', 'true');
+
+  return config;
+});
+
 
 export default api;
