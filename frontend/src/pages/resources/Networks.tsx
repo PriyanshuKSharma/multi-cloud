@@ -1,10 +1,11 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
 import PageHero from '../../components/ui/PageHero';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
   Network,
   Plus,
@@ -13,8 +14,11 @@ import {
   Globe,
   Trash2,
   Settings,
+  AlertCircle,
+  CheckCircle2,
+  X
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface NetworkResource {
   id: number;
@@ -23,6 +27,7 @@ interface NetworkResource {
   provider: string;
   region: string;
   status: string;
+  source: 'inventory' | 'provisioning';
   metadata: {
     cidr_block?: string;
     subnet_count?: number;
@@ -36,7 +41,17 @@ interface NetworkResource {
   last_synced: string;
 }
 
-const normalizeNetwork = (item: any): NetworkResource => {
+interface ProvisionedResource {
+  id: number;
+  name: string;
+  provider: string;
+  type: string;
+  status: string;
+  configuration?: Record<string, unknown>;
+  created_at: string;
+}
+
+const normalizeInventoryNetwork = (item: any): NetworkResource => {
   const metadata = item.metadata ?? {};
   
   return {
@@ -46,6 +61,7 @@ const normalizeNetwork = (item: any): NetworkResource => {
     provider: String(item.provider ?? '').toLowerCase(),
     region: item.region ?? 'unknown',
     status: item.status ?? 'unknown',
+    source: 'inventory',
     metadata: {
       cidr_block: metadata.cidr_block ?? item.cidr_block,
       subnet_count: metadata.subnet_count ?? item.subnet_count,
@@ -60,12 +76,47 @@ const normalizeNetwork = (item: any): NetworkResource => {
   };
 };
 
+const normalizeProvisionedNetwork = (item: ProvisionedResource): NetworkResource => {
+  const config = item.configuration ?? {};
+  const regionValue = config.region ?? config.location;
+
+  return {
+    id: item.id,
+    resource_id: String(item.id),
+    resource_name: item.name || 'Unnamed Network',
+    provider: String(item.provider ?? '').toLowerCase(),
+    region: typeof regionValue === 'string' ? regionValue : 'unknown',
+    status: item.status || 'pending',
+    source: 'provisioning',
+    metadata: {
+      cidr_block: typeof config.cidr === 'string' ? config.cidr : (typeof config.cidr_block === 'string' ? config.cidr_block : undefined),
+      subnet_count: undefined,
+      vpc_id: undefined,
+      internet_gateway: undefined,
+      nat_gateway: typeof config.nat_gateway === 'boolean' ? config.nat_gateway : undefined,
+      dns_enabled: typeof config.dns_enabled === 'boolean' ? config.dns_enabled : undefined,
+      tags: undefined,
+    },
+    created_at: item.created_at ?? '',
+    last_synced: item.created_at ?? '',
+  };
+};
+
 const NetworksPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [filters, setFilters] = React.useState({
     provider: '',
     region: '',
     search: '',
   });
+
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
+  const [networkToDelete, setNetworkToDelete] = React.useState<NetworkResource | null>(null);
+  const [networkConfigModalOpen, setNetworkConfigModalOpen] = React.useState<NetworkResource | null>(null);
+  const [actionMessage, setActionMessage] = React.useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const { data: networks, isLoading, error, refetch } = useQuery<NetworkResource[]>({
     queryKey: ['inventory', 'networks', filters],
@@ -74,10 +125,52 @@ const NetworksPage: React.FC = () => {
       if (filters.provider) params.append('provider', filters.provider);
       if (filters.region) params.append('region', filters.region);
       
-      const response = await axios.get(`/inventory/networks?${params.toString()}`);
-      const payload = response.data;
-      const items = Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : [];
-      return items.map(normalizeNetwork);
+      const [inventoryResponse, resourcesResponse] = await Promise.all([
+        axios.get(`/inventory/networks?${params.toString()}`),
+        axios.get('/resources/?limit=500'),
+      ]);
+
+      const inventoryPayload = inventoryResponse.data;
+      const inventoryItems = (
+        Array.isArray(inventoryPayload)
+          ? inventoryPayload
+          : Array.isArray(inventoryPayload?.items)
+            ? inventoryPayload.items
+            : []
+      ).map(normalizeInventoryNetwork);
+
+      const resourcesPayload = resourcesResponse.data;
+      const provisionedResources = (
+        Array.isArray(resourcesPayload)
+          ? resourcesPayload
+          : Array.isArray(resourcesPayload?.items)
+            ? resourcesPayload.items
+            : []
+      ) as ProvisionedResource[];
+
+      const provisionedItems = provisionedResources
+        .filter((item) => ['network', 'vpc', 'resource_group'].includes(String(item.type).toLowerCase()))
+        .map(normalizeProvisionedNetwork)
+        .filter((item: NetworkResource) => (filters.provider ? item.provider === filters.provider : true))
+        .filter((item: NetworkResource) => (filters.region ? item.region === filters.region : true));
+
+      const mergedMap = new Map<string, NetworkResource>();
+      for (const item of inventoryItems) {
+        const key = `${item.provider}:${item.resource_name}`.toLowerCase();
+        mergedMap.set(key, item);
+      }
+      for (const item of provisionedItems) {
+        const key = `${item.provider}:${item.resource_name}`.toLowerCase();
+        if (!mergedMap.has(key)) {
+          mergedMap.set(key, item);
+        }
+      }
+
+      return [...mergedMap.values()].sort((a, b) => {
+        const aDate = Date.parse(a.last_synced || a.created_at || '') || 0;
+        const bDate = Date.parse(b.last_synced || b.created_at || '') || 0;
+        return bDate - aDate;
+      });
     },
     refetchInterval: 30000,
   });
@@ -85,6 +178,46 @@ const NetworksPage: React.FC = () => {
   const filteredNetworks = (networks ?? []).filter((item) =>
     item.resource_name.toLowerCase().includes(filters.search.toLowerCase())
   );
+
+  const deleteMutation = useMutation({
+    mutationFn: async (item: NetworkResource) => {
+      if (item.source === 'provisioning') {
+        await axios.delete(`/resources/${item.id}`);
+      } else {
+        // Mock fallback if user tries to delete inventory via network API
+        // Real platforms might not allow deleting synced resources without un-syncing
+        throw new Error('Deletion of synced inventory networks is not supported via this console yet. Please delete via cloud provider.');
+      }
+    },
+    onMutate: (item) => {
+      setDeletingId(item.id);
+      setActionMessage(null);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'networks'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
+      setActionMessage({ type: 'success', text: 'Network scheduled for deletion' });
+    },
+    onError: (error: any) => {
+      const detail = error?.response?.data?.detail || error.message;
+      setActionMessage({ type: 'error', text: typeof detail === 'string' ? detail : 'Failed to delete network.' });
+    },
+    onSettled: () => {
+      setDeletingId(null);
+      setNetworkToDelete(null);
+    },
+  });
+
+  const confirmDelete = () => {
+    if (networkToDelete) {
+      deleteMutation.mutate(networkToDelete);
+    }
+  };
+
+  const handleConfigure = (item: NetworkResource) => {
+    setNetworkConfigModalOpen(item);
+  };
 
   return (
     <div className="p-8 space-y-6">
@@ -129,6 +262,34 @@ const NetworksPage: React.FC = () => {
         }
       />
 
+      <AnimatePresence>
+        {actionMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={`p-4 rounded-xl flex items-center space-x-3 mb-4 ${
+              actionMessage.type === 'error'
+                ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+                : 'bg-green-500/10 border border-green-500/20 text-green-400'
+            }`}
+          >
+            {actionMessage.type === 'error' ? (
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            )}
+            <div className="flex-1 text-sm font-medium">{actionMessage.text}</div>
+            <button
+              onClick={() => setActionMessage(null)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              &times;
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Filters */}
       <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -163,6 +324,7 @@ const NetworksPage: React.FC = () => {
             <option value="us-east-1">us-east-1</option>
             <option value="us-west-2">us-west-2</option>
             <option value="eu-west-1">eu-west-1</option>
+            <option value="ap-south-1">ap-south-1</option>
           </select>
         </div>
       </div>
@@ -182,11 +344,11 @@ const NetworksPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredNetworks.map((item, index) => (
             <motion.div
-              key={item.id}
+              key={`${item.source}-${item.id}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6 hover:border-gray-700/50 transition-all duration-300 group"
+              className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6 hover:border-gray-700/50 transition-all duration-300 group relative"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start space-x-4 flex-1">
@@ -194,10 +356,18 @@ const NetworksPage: React.FC = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-white truncate">
+                      <button 
+                        onClick={() => handleConfigure(item)} 
+                        className="text-lg font-semibold text-white truncate hover:text-cyan-400 hover:underline cursor-pointer text-left"
+                      >
                         {item.resource_name}
-                      </h3>
+                      </button>
                       <StatusBadge status={item.status as any} size="sm" />
+                      {item.source === 'provisioning' && (
+                        <span className="px-1.5 py-0.5 bg-cyan-500/10 text-cyan-400 text-[10px] uppercase font-bold rounded border border-cyan-500/20">
+                          Provisioned
+                        </span>
+                      )}
                     </div>
                     
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
@@ -221,7 +391,7 @@ const NetworksPage: React.FC = () => {
                 <div>
                   <p className="text-xs text-gray-500">Internet Gateway</p>
                   <p className="text-sm font-medium text-gray-300">
-                    {item.metadata.internet_gateway ? (
+                    {item.metadata.internet_gateway === true || item.metadata.internet_gateway?.toString() === 'true' ? (
                       <span className="text-green-400">✓ Yes</span>
                     ) : (
                       <span className="text-gray-500">✗ No</span>
@@ -231,7 +401,7 @@ const NetworksPage: React.FC = () => {
                 <div>
                   <p className="text-xs text-gray-500">NAT Gateway</p>
                   <p className="text-sm font-medium text-gray-300">
-                    {item.metadata.nat_gateway ? (
+                    {item.metadata.nat_gateway === true || item.metadata.nat_gateway?.toString() === 'true' ? (
                       <span className="text-green-400">✓ Yes</span>
                     ) : (
                       <span className="text-gray-500">✗ No</span>
@@ -240,26 +410,48 @@ const NetworksPage: React.FC = () => {
                 </div>
               </div>
 
-              {item.metadata.tags && Object.keys(item.metadata.tags).length > 0 && (
+              {Array.isArray(item.metadata.tags) && item.metadata.tags.length > 0 ? (
+                <div className="flex items-center space-x-2 mb-4">
+                  {item.metadata.tags.slice(0, 3).map((tag: any, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
+                    >
+                      {tag.key}: {tag.value}
+                    </span>
+                  ))}
+                </div>
+              ) : item.metadata.tags && typeof item.metadata.tags === 'object' && Object.keys(item.metadata.tags).length > 0 ? (
                 <div className="flex items-center space-x-2 mb-4">
                   {Object.entries(item.metadata.tags).slice(0, 3).map(([key, value]) => (
                     <span
                       key={key}
                       className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
                     >
-                      {key}: {value}
+                      {key}: {String(value)}
                     </span>
                   ))}
                 </div>
-              )}
+              ) : null}
 
-              <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-xs text-gray-300 transition-colors">
+              <div className="flex items-center justify-start space-x-2 pt-4 border-t border-gray-800/50">
+                <button 
+                  onClick={() => handleConfigure(item)}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-xs text-gray-300 transition-colors cursor-pointer"
+                >
                   <Settings className="w-3 h-3" />
                   <span>Configure</span>
                 </button>
-                <button className="flex items-center space-x-1 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-xs text-red-400 transition-colors">
-                  <Trash2 className="w-3 h-3" />
+                <button 
+                  onClick={() => setNetworkToDelete(item)}
+                  disabled={deletingId === item.id}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-xs text-red-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deletingId === item.id ? (
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3 h-3" />
+                  )}
                   <span>Delete</span>
                 </button>
               </div>
@@ -286,6 +478,54 @@ const NetworksPage: React.FC = () => {
           Showing {filteredNetworks.length} of {networks?.length || 0} networks
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!networkToDelete}
+        onCancel={() => setNetworkToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Network"
+        message={`Are you sure you want to delete "${networkToDelete?.resource_name}"? This action cannot be undone.`}
+        confirmLabel="Delete Network"
+        tone="danger"
+        isLoading={deleteMutation.isPending}
+      />
+
+      <AnimatePresence>
+        {networkConfigModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-[2px]" onClick={() => setNetworkConfigModalOpen(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl overflow-hidden rounded-2xl bg-[#0f0f11] border border-gray-800/70 shadow-[0_20px_38px_-24px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh]"
+            >
+              <div className="border-b border-gray-800/70 px-6 py-4 flex items-center justify-between shrink-0">
+                <h3 className="text-lg font-semibold text-white">Network Configuration ({networkConfigModalOpen.resource_name})</h3>
+                <button
+                  onClick={() => setNetworkConfigModalOpen(null)}
+                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto">
+                <pre className="text-xs text-green-400 font-mono bg-[#050505] rounded-lg p-4 border border-gray-800/50 overflow-x-auto shadow-inner">
+                  {JSON.stringify(networkConfigModalOpen.metadata, null, 2)}
+                </pre>
+              </div>
+              <div className="border-t border-gray-800/70 px-6 py-4 flex items-center justify-end shrink-0">
+                <button
+                  onClick={() => setNetworkConfigModalOpen(null)}
+                  className="rounded-xl border border-gray-700 bg-gray-800/70 px-4 py-2 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-700 cursor-pointer"
+                >
+                  Close Configuration
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
