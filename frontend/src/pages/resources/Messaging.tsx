@@ -856,15 +856,32 @@ const MessagingPage: React.FC = () => {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                 <div className="flex items-start space-x-4 min-w-0">
                   <ProviderIcon provider={resource.provider as any} size="lg" />
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-semibold text-white truncate">{resource.name}</h3>
-                    <p className="text-xs text-gray-500 uppercase mt-1">
-                      {resource.type} • {resource.region} • {resource.fifo ? 'fifo' : 'standard'}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-white truncate">{resource.name}</h3>
+                      <StatusBadge status={resource.status as any} size="sm" />
+                      {resource.fifo && (
+                        <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-300 text-[10px] uppercase font-bold rounded border border-amber-500/20">
+                          FIFO
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                      <div className="col-span-2">
+                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Cloud Resource ID / ARN</p>
+                        <p className="text-[10px] font-mono text-gray-400 break-all leading-tight mt-0.5" title={String(resource.configuration?.arn || resource.configuration?.resource_id || 'N/A')}>
+                          {String(resource.configuration?.arn || resource.configuration?.resource_id || 'N/A')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Region</p>
+                        <p className="text-sm font-medium text-gray-300">{resource.region}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={resource.status as any} size="sm" />
                   <Link
                     to={`/deployments/${resource.id}`}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-500/20"
