@@ -148,7 +148,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
       path: '/settings',
       icon: <Settings className="h-4.5 w-4.5" />,
     },
+    {
+      name: 'Research Paper',
+      path: 'http://www.ijcrt.org/viewfull.php?&p_id=IJCRT2604384',
+      icon: <FileCode className="h-4.5 w-4.5 text-amber-400" />,
+    },
   ];
+
 
   const toggleGroup = (name: string) => {
     setExpandedGroups((prev) =>
@@ -259,7 +265,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-800/50">
+      <div className="p-4 space-y-3 border-t border-gray-800/50">
         <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-200/90">Documentation</p>
           <p className="mt-1 text-xs text-gray-400">Use implementation guides and API docs to onboard teams faster.</p>
@@ -271,7 +277,24 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '', onNavigate }) => {
             Open Docs {'->'}
           </Link>
         </div>
+
+        <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-3">
+          <div className="flex items-center gap-2">
+            <Zap className="h-3 w-3 text-amber-300" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-200/90">Peer Reviewed</p>
+          </div>
+          <p className="mt-1 text-xs text-gray-400">Read our published paper on Multi-Cloud Orchestration.</p>
+          <a
+            href="https://doi.org/10.56975/ijcrt.v14i4.305033"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex text-sm font-semibold text-amber-300 hover:text-amber-200 transition-colors"
+          >
+            View Publication {'->'}
+          </a>
+        </div>
       </div>
+
     </aside>
   );
 };
