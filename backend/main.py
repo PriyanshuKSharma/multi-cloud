@@ -7,17 +7,20 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 from app.api.endpoints import auth
 from app.db.base import engine, Base
+import logging
+import os
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import JSONResponse
+from app.api.endpoints import auth
+from app.db.base import engine, Base
 from app.db.migrate import ensure_user_columns, ensure_project_columns, ensure_resource_columns
 
 from app.models import user, resource, credential
 from app.models import resource_inventory  # Import new models
 from app.models import blueprint
-
-# Create tables
-Base.metadata.create_all(bind=engine)
-ensure_user_columns()
-ensure_project_columns()
-ensure_resource_columns()
 
 app = FastAPI(title="Nebula API")
 
@@ -28,6 +31,16 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+# GLOBAL ERROR LOGGER for CloudWatch
+@app.middleware("http")
+async def log_errors(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        logger.exception("Unhandled server exception")
+        raise e
+
 logger = logging.getLogger(__name__)
 
 # CORS Middleware
