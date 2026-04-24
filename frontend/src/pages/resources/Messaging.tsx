@@ -389,7 +389,7 @@ const SnsOperations: React.FC<{ resource: NormalizedMessagingResource }> = ({ re
   const [subject, setSubject] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [publishAttributesJson, setPublishAttributesJson] = React.useState('{}');
-  const [protocol, setProtocol] = React.useState('email');
+  const [protocol, setProtocol] = React.useState(resource.fifo ? 'sqs' : 'email');
   const [endpoint, setEndpoint] = React.useState('');
   const [subscriptions, setSubscriptions] = React.useState<SnsSubscriptionRecord[]>([]);
   const [feedback, setFeedback] = React.useState<string | null>(null);
@@ -534,13 +534,26 @@ const SnsOperations: React.FC<{ resource: NormalizedMessagingResource }> = ({ re
             onChange={(event) => setProtocol(event.target.value)}
             className="w-full rounded-lg border border-gray-700/60 bg-gray-950/60 px-3 py-2 text-sm text-gray-200"
           >
-            <option value="email">email</option>
-            <option value="https">https</option>
-            <option value="http">http</option>
+            {!resource.fifo && (
+              <>
+                <option value="email">email</option>
+                <option value="https">https</option>
+                <option value="http">http</option>
+              </>
+            )}
             <option value="sqs">sqs</option>
-            <option value="lambda">lambda</option>
-            <option value="sms">sms</option>
+            {!resource.fifo && (
+              <>
+                <option value="lambda">lambda</option>
+                <option value="sms">sms</option>
+              </>
+            )}
           </select>
+          {resource.fifo && (
+            <p className="mt-1 text-[10px] text-amber-400 font-medium leading-tight">
+              FIFO Topics only support SQS protocols.
+            </p>
+          )}
         </div>
         <div className="md:col-span-2">
           <label className="block text-xs text-gray-500 mb-1">Endpoint</label>
