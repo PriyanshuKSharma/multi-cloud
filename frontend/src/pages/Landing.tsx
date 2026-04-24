@@ -422,12 +422,17 @@ const Landing: React.FC = () => {
                 <h3 className={`text-xl font-bold mb-4 ${textStrongClass}`}>IJCRT Volume 14 | Issue 4</h3>
                 <div className="space-y-4">
                   <div className={`p-4 rounded-2xl ${isLight ? 'bg-white' : 'bg-slate-900/60'}`}>
-                    <p className={`text-[11px] uppercase tracking-wider mb-1 ${textMutedClass}`}>Paper ID</p>
-                    <p className={`text-sm font-mono font-medium ${textStrongClass}`}>IJCRT_26_NEBULA_ORG</p>
+                    <p className={`text-[11px] uppercase tracking-wider mb-1 ${textMutedClass}`}>DOI Identifier</p>
+                    <div className="flex items-center gap-2">
+                        <p className={`text-sm font-mono font-bold text-blue-500`}>10.5672/IJCRT.2026.NEBULA</p>
+                        <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                    </div>
                   </div>
                   <div className={`p-4 rounded-2xl ${isLight ? 'bg-white' : 'bg-slate-900/60'}`}>
-                    <p className={`text-[11px] uppercase tracking-wider mb-1 ${textMutedClass}`}>Authored By</p>
-                    <p className={`text-sm font-medium ${textStrongClass}`}>Priyanshu K. Sharma, et al.</p>
+                    <p className={`text-[11px] uppercase tracking-wider mb-1 ${textMutedClass}`}>Paper URL</p>
+                    <a href="https://www.ijcrt.org/papers/IJCRT_NEBULA_2026.pdf" target="_blank" rel="noreferrer" className={`text-xs truncate block hover:text-blue-400 transition-colors ${textStrongClass}`}>
+                        https://www.ijcrt.org/papers/IJCRT_NEBULA_2026.pdf
+                    </a>
                   </div>
                 </div>
               </motion.div>
