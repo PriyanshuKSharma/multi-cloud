@@ -1,6 +1,6 @@
 from mangum import Mangum
 from app.db.base import Base, engine
-from app.main import app
+from main import app
 
 # Ensure tables exist (Lambda warm-up)
 try:
