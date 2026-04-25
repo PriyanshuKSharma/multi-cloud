@@ -6,6 +6,7 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { formatDisplayValue } from '../../utils/displayValue';
 import {
   Network,
   Plus,
@@ -58,16 +59,16 @@ const normalizeInventoryNetwork = (item: any): NetworkResource => {
   
   return {
     id: item.id,
-    resource_id: item.resource_id ?? '',
-    resource_name: item.resource_name ?? item.name ?? 'Unnamed Network',
-    provider: String(item.provider ?? '').toLowerCase(),
-    region: item.region ?? 'unknown',
-    status: item.status ?? 'unknown',
+    resource_id: formatDisplayValue(item.resource_id ?? '', ''),
+    resource_name: formatDisplayValue(item.resource_name ?? item.name ?? 'Unnamed Network', 'Unnamed Network'),
+    provider: formatDisplayValue(item.provider ?? '', '').toLowerCase(),
+    region: formatDisplayValue(item.region ?? 'unknown', 'unknown'),
+    status: formatDisplayValue(item.status ?? 'unknown', 'unknown'),
     source: 'inventory',
     metadata: {
-      cidr_block: metadata.cidr_block ?? item.cidr_block,
+      cidr_block: formatDisplayValue(metadata.cidr_block ?? item.cidr_block, ''),
       subnet_count: metadata.subnet_count ?? item.subnet_count,
-      vpc_id: metadata.vpc_id ?? item.vpc_id,
+      vpc_id: formatDisplayValue(metadata.vpc_id ?? item.vpc_id, ''),
       internet_gateway: metadata.internet_gateway ?? item.internet_gateway,
       nat_gateway: metadata.nat_gateway ?? item.nat_gateway,
       dns_enabled: metadata.dns_enabled ?? item.dns_enabled,
@@ -85,13 +86,16 @@ const normalizeProvisionedNetwork = (item: ProvisionedResource): NetworkResource
   return {
     id: item.id,
     resource_id: String(item.id),
-    resource_name: item.name || 'Unnamed Network',
-    provider: String(item.provider ?? '').toLowerCase(),
-    region: typeof regionValue === 'string' ? regionValue : 'unknown',
-    status: item.status || 'pending',
+    resource_name: formatDisplayValue(item.name || 'Unnamed Network', 'Unnamed Network'),
+    provider: formatDisplayValue(item.provider ?? '', '').toLowerCase(),
+    region: formatDisplayValue(regionValue ?? 'unknown', 'unknown'),
+    status: formatDisplayValue(item.status || 'pending', 'pending'),
     source: 'provisioning',
     metadata: {
-      cidr_block: typeof config.cidr === 'string' ? config.cidr : (typeof config.cidr_block === 'string' ? config.cidr_block : undefined),
+      cidr_block: formatDisplayValue(
+        typeof config.cidr === 'string' ? config.cidr : (typeof config.cidr_block === 'string' ? config.cidr_block : undefined),
+        ''
+      ),
       subnet_count: undefined,
       vpc_id: undefined,
       internet_gateway: undefined,
@@ -373,11 +377,11 @@ const NetworksPage: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center space-x-4 text-xs text-gray-500 mb-2">
-                      <span>{item.region}</span>
+                      <span>{formatDisplayValue(item.region, 'Unknown')}</span>
                       {item.metadata.cidr_block && (
                         <>
                           <span>•</span>
-                          <span className="font-mono">{item.metadata.cidr_block}</span>
+                          <span className="font-mono">{formatDisplayValue(item.metadata.cidr_block, 'Not specified')}</span>
                         </>
                       )}
                     </div>
@@ -426,7 +430,7 @@ const NetworksPage: React.FC = () => {
                       key={idx}
                       className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
                     >
-                      {tag.key}: {tag.value}
+                      {formatDisplayValue(tag.key, 'tag')}: {formatDisplayValue(tag.value, '')}
                     </span>
                   ))}
                 </div>
@@ -437,7 +441,7 @@ const NetworksPage: React.FC = () => {
                       key={key}
                       className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
                     >
-                      {key}: {String(value)}
+                      {key}: {formatDisplayValue(value, '')}
                     </span>
                   ))}
                 </div>

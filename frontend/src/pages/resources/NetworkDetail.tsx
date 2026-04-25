@@ -5,6 +5,7 @@ import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { formatDisplayValue } from '../../utils/displayValue';
 import {
   Network,
   ArrowLeft,
@@ -73,13 +74,16 @@ const useNetworkDetail = (id: string | undefined) => {
         return {
           id: item.id,
           resource_id: String(item.id),
-          resource_name: item.name || 'Unnamed Network',
-          provider: String(item.provider ?? '').toLowerCase(),
-          region: typeof regionValue === 'string' ? regionValue : 'unknown',
-          status: item.status || 'pending',
+          resource_name: formatDisplayValue(item.name || 'Unnamed Network', 'Unnamed Network'),
+          provider: formatDisplayValue(item.provider ?? '', '').toLowerCase(),
+          region: formatDisplayValue(regionValue ?? 'unknown', 'unknown'),
+          status: formatDisplayValue(item.status || 'pending', 'pending'),
           source: 'provisioning' as const,
           metadata: {
-            cidr_block: typeof config.cidr === 'string' ? config.cidr : typeof config.cidr_block === 'string' ? config.cidr_block : undefined,
+            cidr_block: formatDisplayValue(
+              typeof config.cidr === 'string' ? config.cidr : typeof config.cidr_block === 'string' ? config.cidr_block : undefined,
+              ''
+            ),
             nat_gateway: typeof config.nat_gateway === 'boolean' ? config.nat_gateway : undefined,
             dns_enabled: typeof config.dns_enabled === 'boolean' ? config.dns_enabled : undefined,
             tags: config.tags,
@@ -97,16 +101,16 @@ const useNetworkDetail = (id: string | undefined) => {
         const metadata = raw.metadata ?? {};
         return {
           id: raw.id,
-          resource_id: raw.resource_id ?? '',
-          resource_name: raw.resource_name ?? raw.name ?? 'Unnamed Network',
-          provider: String(raw.provider ?? '').toLowerCase(),
-          region: raw.region ?? 'unknown',
-          status: raw.status ?? 'unknown',
+          resource_id: formatDisplayValue(raw.resource_id ?? '', ''),
+          resource_name: formatDisplayValue(raw.resource_name ?? raw.name ?? 'Unnamed Network', 'Unnamed Network'),
+          provider: formatDisplayValue(raw.provider ?? '', '').toLowerCase(),
+          region: formatDisplayValue(raw.region ?? 'unknown', 'unknown'),
+          status: formatDisplayValue(raw.status ?? 'unknown', 'unknown'),
           source: 'inventory' as const,
           metadata: {
-            cidr_block: metadata.cidr_block ?? raw.cidr_block,
+            cidr_block: formatDisplayValue(metadata.cidr_block ?? raw.cidr_block, ''),
             subnet_count: metadata.subnet_count ?? raw.subnet_count,
-            vpc_id: metadata.vpc_id ?? raw.vpc_id,
+            vpc_id: formatDisplayValue(metadata.vpc_id ?? raw.vpc_id, ''),
             internet_gateway: metadata.internet_gateway ?? raw.internet_gateway,
             nat_gateway: metadata.nat_gateway ?? raw.nat_gateway,
             dns_enabled: metadata.dns_enabled ?? raw.dns_enabled,
@@ -490,14 +494,14 @@ const NetworkDetailPage: React.FC = () => {
             <div className="mb-5">
               <p className="text-xs text-gray-500 mb-1.5">VPC / CIDR Block</p>
               <span className="font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 rounded-md px-3 py-1.5 text-sm">
-                {network.metadata.cidr_block || 'Not specified'}
+                {formatDisplayValue(network.metadata.cidr_block, 'Not specified')}
               </span>
             </div>
 
             {network.metadata.vpc_id && (
               <div className="mb-5">
                 <p className="text-xs text-gray-500 mb-1.5">VPC ID</p>
-                <p className="font-mono text-gray-300 text-sm">{network.metadata.vpc_id}</p>
+                <p className="font-mono text-gray-300 text-sm">{formatDisplayValue(network.metadata.vpc_id, 'N/A')}</p>
               </div>
             )}
 
@@ -557,7 +561,7 @@ const NetworkDetailPage: React.FC = () => {
                       {tag.key}
                     </span>
                     <span className="bg-gray-900/80 text-cyan-300 px-3 py-2 font-mono flex-1 break-all">
-                      {tag.value}
+                      {formatDisplayValue(tag.value, '')}
                     </span>
                   </div>
                 ))}

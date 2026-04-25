@@ -17,7 +17,6 @@ import {
   Loader,
   Plus,
   Trash2,
-  CheckCircle
 } from 'lucide-react';
 
 const regions = {

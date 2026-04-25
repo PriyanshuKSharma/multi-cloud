@@ -1,269 +1,108 @@
-from app.core.celery_app import celery_app
-from app.services.terraform_runner import TerraformRunner
+import os
+import shutil
+import json
+import logging
+from celery import shared_task
 from app.db.base import SessionLocal
 from app.models.resource import Resource
-from app.models.resource_inventory import ResourceInventory
-from datetime import datetime
-import os
-import json
+from app.services.terraform_runner import TerraformRunner
 
+logger = logging.getLogger(__name__)
 
-
-def _extract_gcp_service_account_info(cred_data: dict):
-    if not isinstance(cred_data, dict):
-        return None
-
-    inline = cred_data.get("service_account_json")
-    if isinstance(inline, dict):
-        return inline
-    if isinstance(inline, str) and inline.strip():
-        try:
-            parsed = json.loads(inline)
-            if isinstance(parsed, dict):
-                return parsed
-        except json.JSONDecodeError:
-            return None
-
-    # Support storing full service account payload directly.
-    if cred_data.get("type") == "service_account" and cred_data.get("private_key"):
-        return cred_data
-
-    return None
-
-
-@celery_app.task
+@shared_task(name="provision_resource_task")
 def provision_resource_task(resource_id: str, provider: str, module_name: str, variables: dict):
-    print(f"--- [DEBUG] Starting Task: {resource_id} {provider} {module_name} ---")
-    logs = ""
-    # For debugging key consensus (safe)
-    sk = os.getenv("SECRET_KEY", "MISSING")
-    logs += f"[Debug] Using SECRET_KEY starting with: {sk[:4]}...\n"
+    """
+    Background task to provision cloud resources using Terraform.
+    """
     db = SessionLocal()
-    resource = db.query(Resource).filter(Resource.id == int(resource_id)).first()
-    
-    if not resource:
-        print("--- [DEBUG] Resource not found! ---")
-        db.close()
-        return {"status": "failed", "error": "Resource not found"}
-
     try:
-        # Update status to provisioning
+        resource = db.query(Resource).filter(Resource.id == resource_id).first()
+        if not resource:
+            logger.error(f"Resource {resource_id} not found")
+            return
+
+        # Update status
         resource.status = "provisioning"
         db.commit()
 
-        # 1. Create a workspace
-        # Use a cross-platform temp directory or a dedicated local folder
-        import tempfile
-        base_work_dir = os.path.join(tempfile.gettempdir(), "nebula_terraform")
-        workspace_dir = os.path.join(base_work_dir, str(resource_id))
-        os.makedirs(workspace_dir, exist_ok=True)
-        
-        # --- COPY MODULE FILES ---
-        import shutil
-        # Assuming we are running from 'backend' dir or similar locally
-        # Use flexible path finding
-        current_dir = os.getcwd()
-        # Look for terraform/modules relative to current_dir
-        # Standard structure: d:\SEM-8\multi-cloud\backend (cwd) -> d:\SEM-8\multi-cloud\terraform
-        possible_paths = [
-            os.path.join(current_dir, "..", "terraform", "modules", module_name),
-            os.path.join(current_dir, "terraform", "modules", module_name),
-            f"/app/terraform/modules/{module_name}" # Docker fallback
-        ]
-        
-        module_source = None
-        for p in possible_paths:
-            if os.path.exists(p):
-                module_source = p
-                break
-                
-        if module_source:
-             # Copy all files from module directory to workspace
-             for item in os.listdir(module_source):
-                s = os.path.join(module_source, item)
-                d = os.path.join(workspace_dir, item)
-                if os.path.isfile(s):
-                    shutil.copy2(s, d)
-                elif os.path.isdir(s):
-                    shutil.copytree(s, d, dirs_exist_ok=True)
-        else:
-             logs += f"[Error] Module not found. Searched in: {possible_paths}\n"
-             resource.status = "failed"
-             resource.terraform_output = {"logs": logs}
-             db.commit()
-             return {"status": "failed", "logs": logs}
+        # Workspace directory for this run
+        # Note: In a production environment, this should be a robust temp directory or persistent volume
+        base_dir = os.path.abspath(os.path.join(os.getcwd(), "terraform_runs"))
+        os.makedirs(base_dir, exist_ok=True)
+        run_dir = os.path.join(base_dir, f"run_{resource_id}")
 
-        # 2. Write variables
-        tfvars_path = os.path.join(workspace_dir, "terraform.tfvars.json")
-        with open(tfvars_path, "w") as f:
+        if os.path.exists(run_dir):
+            shutil.rmtree(run_dir)
+        os.makedirs(run_dir)
+
+        # Copy Terraform module files
+        module_src = os.path.abspath(os.path.join(os.getcwd(), "terraform", "modules", module_name))
+        if not os.path.exists(module_src):
+            raise Exception(f"Terraform module {module_name} not found at {module_src}")
+
+        for item in os.listdir(module_src):
+            s = os.path.join(module_src, item)
+            d = os.path.join(run_dir, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d)
+            else:
+                shutil.copy2(s, d)
+
+        # Create terraform.tfvars.json
+        with open(os.path.join(run_dir, "terraform.tfvars.json"), "w") as f:
             json.dump(variables, f)
-            
-        # 3. Initialize Runner
-        runner = TerraformRunner(workspace_dir)
-        
-        # --- Credential Injection ---
-        from app.models.credential import CloudCredential
-        from app.core.security import decrypt_data
-        
-        env_vars = {}
-        
-        # Find the LATEST credential for this user & provider
-        cred = db.query(CloudCredential).filter(
-            CloudCredential.user_id == resource.project.user_id,
-            CloudCredential.provider == provider
-        ).order_by(CloudCredential.id.desc()).first()
 
-        if cred:
-             try:
-                decrypted_json = decrypt_data(cred.encrypted_data)
-                cred_data = json.loads(decrypted_json)
-                
-                if provider == "aws":
-                    env_vars["AWS_ACCESS_KEY_ID"] = cred_data.get("access_key")
-                    env_vars["AWS_SECRET_ACCESS_KEY"] = cred_data.get("secret_key")
-                    env_vars["AWS_DEFAULT_REGION"] = cred_data.get("region", "us-east-1")
-                elif provider == "azure":
-                    env_vars["ARM_CLIENT_ID"] = cred_data.get("client_id")
-                    env_vars["ARM_CLIENT_SECRET"] = cred_data.get("client_secret")
-                    env_vars["ARM_SUBSCRIPTION_ID"] = cred_data.get("subscription_id")
-                    env_vars["ARM_TENANT_ID"] = cred_data.get("tenant_id")
-                elif provider == "gcp":
-                    gcp_service_account = _extract_gcp_service_account_info(cred_data)
-                    if gcp_service_account:
-                        credentials_path = os.path.join(workspace_dir, "gcp_credentials.json")
-                        with open(credentials_path, "w", encoding="utf-8") as gcp_file:
-                            json.dump(gcp_service_account, gcp_file)
-                        env_vars["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-                        env_vars["GOOGLE_CREDENTIALS"] = json.dumps(gcp_service_account)
-                
-                # Verify we actually got the essential keys
-                if provider == "aws" and not env_vars.get("AWS_ACCESS_KEY_ID"):
-                     raise ValueError("AWS Access Key missing in decrypted data")
-                if provider == "gcp" and not env_vars.get("GOOGLE_APPLICATION_CREDENTIALS"):
-                     raise ValueError("GCP service account credentials missing in decrypted data")
-                     
-             except Exception as e:
-                 import traceback
-                 logs += f"\n[Error] Failed to decrypt credentials: {type(e).__name__}: {str(e)}\n"
-                 # logs += f"{traceback.format_exc()}\n" # Uncomment for deep debug
-                 resource.status = "failed"
-                 resource.terraform_output = {"logs": logs}
-                 db.commit()
-                 return {"status": "failed", "logs": logs}
-        else:
-             logs += f"\n[Error] No credentials found for {provider}. Cannot proceed.\n"
-             resource.status = "failed"
-             resource.terraform_output = {"logs": logs}
-             db.commit()
-             return {"status": "failed", "logs": logs}
+        # Execute Terraform
+        runner = TerraformRunner(run_dir)
+        
+        # 1. Init
+        init_output = runner.init()
+        logger.info(f"Terraform Init [{resource_id}]: {init_output[:200]}...")
 
-        # 4. Execute Terraform
-        
-        # Init
-        init_out = runner.init(env_vars)
-        logs += f"--- INIT ---\n{init_out}\n"
-        
-        if "Error" in init_out:
-            resource.status = "failed"
-            resource.terraform_output = {"logs": logs}
-            db.commit()
-            return {"status": "failed", "logs": logs}
-            
-        # Plan
-        plan_out = runner.plan(env_vars)
-        logs += f"\n--- PLAN ---\n{plan_out}\n"
-        
-        if "Error" in plan_out:
-            resource.status = "failed"
-            resource.terraform_output = {"logs": logs}
-            db.commit()
-            return {"status": "failed", "logs": logs}
+        # 2. Apply
+        apply_output = runner.apply()
+        logger.info(f"Terraform Apply [{resource_id}]: {apply_output[:200]}...")
 
-        # Apply
-        apply_out = runner.apply(env_vars)
-        logs += f"\n--- APPLY ---\n{apply_out}\n"
-        
-        if "Error" in apply_out:
-            resource.status = "failed"
-        else:
-            resource.status = "active"
-            
-        # Save logs and simple output parsing
-        output_data = {"logs": logs}
-        
-        # Capture and parse actual outputs if successful
-        if resource.status == "active":
-            try:
-                tf_output_raw = runner.output(env_vars)
-                if not tf_output_raw.startswith("Error:"):
-                    parsed_outputs = json.loads(tf_output_raw)
-                    output_data["outputs"] = parsed_outputs
-                    
-                    # --- SYNC TO INVENTORY ---
-                    res_name = resource.name
-                    res_provider = provider.lower()
-                    res_type = resource.type.lower()
-                    
-                    res_id = None
-                    public_ip = None
-                    private_ip = None
-                    instance_type = variables.get("instance_type") or variables.get("size") or variables.get("machine_type")
-                    region = env_vars.get("AWS_DEFAULT_REGION") or variables.get("location") or variables.get("region") or "us-east-1"
-                    
-                    for key, val in parsed_outputs.items():
-                        v = val.get("value")
-                        if "id" in key.lower() or "arn" in key.lower() or "resource_id" in key.lower():
-                            res_id = str(v)
-                        if "public_ip" in key.lower() or "nat_ip" in key.lower() or "external_ip" in key.lower():
-                            public_ip = str(v)
-                        if "private_ip" in key.lower() or "internal_ip" in key.lower():
-                            private_ip = str(v)
-                    
-                    if not res_id:
-                        res_id = f"{res_type}-{resource.id}"
-                        
-                    inv_item = db.query(ResourceInventory).filter(
-                        ResourceInventory.user_id == resource.project.user_id,
-                        ResourceInventory.resource_id == res_id
-                    ).first()
-                    
-                    if not inv_item:
-                        inv_item = ResourceInventory(
-                            user_id=resource.project.user_id,
-                            resource_id=res_id,
-                            resource_name=res_name,
-                            provider=res_provider,
-                            resource_type=res_type,
-                            status="active",
-                            region=region,
-                            instance_type=instance_type,
-                            public_ip=public_ip,
-                            private_ip=private_ip,
-                            created_at=datetime.utcnow(),
-                            last_synced_at=datetime.utcnow(),
-                            resource_metadata=parsed_outputs
-                        )
-                        db.add(inv_item)
-                    else:
-                        inv_item.status = "active"
-                        inv_item.last_synced_at = datetime.utcnow()
-                        inv_item.resource_metadata = parsed_outputs
-                        inv_item.public_ip = public_ip or inv_item.public_ip
-                        inv_item.private_ip = private_ip or inv_item.private_ip
-            except Exception as sync_err:
-                logs += f"\n[Warning] Post-provisioning sync failed: {sync_err}\n"
-        
-        resource.terraform_output = output_data
-        db.commit()
+        # 3. Capture Output
+        output_json_str = runner.output()
+        output_data = {}
+        try:
+            if output_json_str and not output_json_str.strip().startswith("Error"):
+                output_data = json.loads(output_json_str)
+        except Exception as e:
+            logger.warning(f"Failed to parse terraform output for {resource_id}: {e}")
 
+        # Update resource record
+        resource.status = "active"
+        # Store stdout and parsed JSON output
+        resource.terraform_output = {
+            "stdout": apply_output,
+            "data": output_data
+        }
         
-        return {"status": resource.status, "logs": logs}
-        
+        # Extract some common fields if they exist in output
+        # (Assuming the terraform modules define these outputs)
+        if output_data:
+            if "public_ip" in output_data:
+                resource.public_ip = output_data["public_ip"].get("value")
+            if "private_ip" in output_data:
+                resource.private_ip = output_data["private_ip"].get("value")
+            if "instance_id" in output_data:
+                resource.cloud_resource_id = output_data["instance_id"].get("value")
+            elif "id" in output_data:
+                resource.cloud_resource_id = output_data["id"].get("value")
+
+        logger.info(f"Successfully provisioned resource {resource_id}")
+
     except Exception as e:
-        print(f"--- [DEBUG] EXCEPTION: {e} ---")
-        resource.status = "failed"
-        resource.terraform_output = {"logs": str(e)}
-        db.commit()
-        raise e
+        logger.exception(f"Error provisioning resource {resource_id}")
+        if 'resource' in locals() and resource:
+            resource.status = "failed"
+            resource.terraform_output = {
+                "error": str(e),
+                "detail": "Failed during background execution. Check worker logs."
+            }
     finally:
+        db.add(resource)
+        db.commit()
         db.close()

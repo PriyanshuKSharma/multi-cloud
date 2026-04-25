@@ -19,9 +19,6 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
-import { Quote, ExternalLink, Award } from 'lucide-react';
-
-
 interface MetricChange {
   value: number;
   label: string;

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../api/axios';
 import StatusBadge from '../../components/ui/StatusBadge';
 import PageHero from '../../components/ui/PageHero';
+import { formatDisplayValue } from '../../utils/displayValue';
 import {
   ArrowLeft,
   Server,
@@ -53,7 +54,27 @@ const VMDetailPage: React.FC = () => {
     queryKey: ['inventory', 'vm', id],
     queryFn: async () => {
       const response = await axios.get(`/inventory/${id}`);
-      return response.data;
+      const data = response.data;
+      return {
+        ...data,
+        resource_name: formatDisplayValue(data.resource_name ?? data.name ?? 'Unnamed VM', 'Unnamed VM'),
+        resource_id: formatDisplayValue(data.resource_id ?? '', ''),
+        provider: formatDisplayValue(data.provider ?? '', '').toLowerCase(),
+        region: formatDisplayValue(data.region ?? 'unknown', 'unknown'),
+        status: formatDisplayValue(data.status ?? 'unknown', 'unknown'),
+        metadata: {
+          ...data.metadata,
+          instance_type: formatDisplayValue(data.metadata?.instance_type ?? data.instance_type, ''),
+          public_ip: formatDisplayValue(data.metadata?.public_ip ?? data.public_ip, ''),
+          private_ip: formatDisplayValue(data.metadata?.private_ip ?? data.private_ip, ''),
+          vpc_id: formatDisplayValue(data.metadata?.vpc_id ?? data.vpc_id, ''),
+          subnet_id: formatDisplayValue(data.metadata?.subnet_id ?? data.subnet_id, ''),
+          launch_time: formatDisplayValue(data.metadata?.launch_time ?? data.launch_time, ''),
+          cost_per_hour: data.metadata?.cost_per_hour ?? data.cost_per_hour,
+          security_groups: data.metadata?.security_groups ?? data.security_groups,
+          tags: data.metadata?.tags ?? data.tags,
+        },
+      };
     },
     refetchInterval: 30000,
   });
@@ -185,13 +206,13 @@ const VMDetailPage: React.FC = () => {
           <div className="space-y-4">
             <div>
               <p className="text-xs text-gray-500 mb-1">Instance Type</p>
-              <p className="text-sm font-medium text-gray-300">{vm.metadata.instance_type || 'N/A'}</p>
+              <p className="text-sm font-medium text-gray-300">{formatDisplayValue(vm.metadata.instance_type, 'N/A')}</p>
             </div>
 
             <div>
               <p className="text-xs text-gray-500 mb-1">Public IP</p>
               <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium text-gray-300">{vm.metadata.public_ip || 'N/A'}</p>
+                <p className="text-sm font-medium text-gray-300">{formatDisplayValue(vm.metadata.public_ip, 'N/A')}</p>
                 {vm.metadata.public_ip && (
                   <button
                     onClick={() => copyToClipboard(vm.metadata.public_ip!)}
@@ -206,10 +227,10 @@ const VMDetailPage: React.FC = () => {
             <div>
               <p className="text-xs text-gray-500 mb-1">Private IP</p>
               <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium text-gray-300">{vm.metadata.private_ip || 'N/A'}</p>
+                <p className="text-sm font-medium text-gray-300">{formatDisplayValue(vm.metadata.private_ip, 'N/A')}</p>
                 {vm.metadata.private_ip && (
                   <button
-                    onClick={() => copyToClipboard(vm.metadata.private_ip!)}
+                    onClick={() => copyToClipboard(formatDisplayValue(vm.metadata.private_ip, ''))}
                     className="p-1 hover:bg-gray-800/50 rounded transition-colors"
                   >
                     <Copy className="w-3 h-3 text-gray-500" />
@@ -231,14 +252,14 @@ const VMDetailPage: React.FC = () => {
             <div>
               <p className="text-xs text-gray-500 mb-1">Launch Time</p>
               <p className="text-sm font-medium text-gray-300">
-                {vm.metadata.launch_time ? new Date(vm.metadata.launch_time).toLocaleString() : 'N/A'}
+                {vm.metadata.launch_time ? new Date(formatDisplayValue(vm.metadata.launch_time, '')).toLocaleString() : 'N/A'}
               </p>
             </div>
 
             <div>
               <p className="text-xs text-gray-500 mb-1">Cost per Hour</p>
               <p className="text-sm font-medium text-gray-300">
-                ${vm.metadata.cost_per_hour?.toFixed(4) || '0.0000'}
+                ${typeof vm.metadata.cost_per_hour === 'number' ? vm.metadata.cost_per_hour.toFixed(4) : '0.0000'}
               </p>
             </div>
           </div>
@@ -266,7 +287,7 @@ const VMDetailPage: React.FC = () => {
                       key={index}
                       className="px-3 py-2 bg-gray-800/30 rounded-lg text-sm text-gray-300"
                     >
-                      {sg}
+                      {formatDisplayValue(sg, '')}
                     </div>
                   ))}
                 </div>
@@ -314,7 +335,7 @@ const VMDetailPage: React.FC = () => {
               return (
                 <div key={key} className="px-4 py-3 bg-gray-800/30 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">{key}</p>
-                  <p className="text-sm font-medium text-gray-300">{displayValue}</p>
+                <p className="text-sm font-medium text-gray-300">{formatDisplayValue(displayValue, '')}</p>
                 </div>
               );
             })}

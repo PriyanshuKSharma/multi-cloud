@@ -43,7 +43,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', showDot 
     lg: 'px-3 py-1.5 text-base',
   };
 
-  const normalizedStatus = status?.toLowerCase() as keyof typeof statusConfig;
+  const normalizedStatus = String(status ?? '').toLowerCase() as keyof typeof statusConfig;
   const config = statusConfig[normalizedStatus] || statusConfig.inactive;
 
   return (
@@ -55,7 +55,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', showDot 
       {showDot && (
         <span className={`w-1.5 h-1.5 rounded-full ${config.dot} ${status === 'running' || status === 'provisioning' ? 'animate-pulse' : ''}`}></span>
       )}
-      <span className="capitalize">{status}</span>
+      <span className="capitalize">{String(status ?? 'unknown')}</span>
     </motion.span>
   );
 };
