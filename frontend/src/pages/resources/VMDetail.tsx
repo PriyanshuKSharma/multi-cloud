@@ -307,12 +307,17 @@ const VMDetailPage: React.FC = () => {
           </h3>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(vm.metadata.tags).map(([key, value]) => (
-              <div key={key} className="px-4 py-3 bg-gray-800/30 rounded-lg">
-                <p className="text-xs text-gray-500 mb-1">{key}</p>
-                <p className="text-sm font-medium text-gray-300">{value}</p>
-              </div>
-            ))}
+            {Object.entries(vm.metadata.tags).map(([key, rawValue]) => {
+              const displayValue = typeof rawValue === 'object' && rawValue !== null && 'value' in rawValue 
+                ? String((rawValue as any).value) 
+                : String(rawValue);
+              return (
+                <div key={key} className="px-4 py-3 bg-gray-800/30 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">{key}</p>
+                  <p className="text-sm font-medium text-gray-300">{displayValue}</p>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
       )}
