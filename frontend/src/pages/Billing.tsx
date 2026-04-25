@@ -107,7 +107,7 @@ const BillingPage: React.FC = () => {
       {billing?.cost_by_provider && billing.cost_by_provider.length > 0 && (
         <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-6">Cost by Provider</h3>
-          <div className="h-64 min-w-0">
+          <div className="h-64 min-w-0" style={{ height: 256, minHeight: 256 }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <BarChart data={billing?.cost_by_provider || []}>
                 <XAxis dataKey="provider" stroke="#6b7280" />
@@ -130,7 +130,7 @@ const BillingPage: React.FC = () => {
       {billing?.cost_trend && billing.cost_trend.length > 0 && (
         <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-6">Cost Trend (Last 30 Days)</h3>
-          <div className="h-64 min-w-0">
+          <div className="h-64 min-w-0" style={{ height: 256, minHeight: 256 }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <LineChart data={billing?.cost_trend || []}>
                 <XAxis dataKey="date" stroke="#6b7280" />

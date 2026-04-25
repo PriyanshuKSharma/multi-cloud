@@ -452,14 +452,19 @@ const VirtualMachinesPage: React.FC = () => {
 
                       {vm.metadata.tags && Object.keys(vm.metadata.tags).length > 0 && (
                         <div className="flex items-center space-x-2 mt-4">
-                          {Object.entries(vm.metadata.tags).slice(0, 3).map(([key, value]) => (
-                            <span
-                              key={key}
-                              className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
-                            >
-                              {key}: {value}
-                            </span>
-                          ))}
+                          {Object.entries(vm.metadata.tags).slice(0, 3).map(([key, rawValue]) => {
+                            const displayValue = typeof rawValue === 'object' && rawValue !== null && 'value' in rawValue 
+                              ? String((rawValue as any).value) 
+                              : String(rawValue);
+                            return (
+                              <span
+                                key={key}
+                                className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
+                              >
+                                {key}: {displayValue}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
 

@@ -220,7 +220,7 @@ const DashboardPage: React.FC = () => {
               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="w-full h-[300px] min-w-0">
+            <div className="w-full h-[300px] min-w-0" style={{ height: 300, minHeight: 300 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
                 <PieChart>
                   <Pie
@@ -272,7 +272,7 @@ const DashboardPage: React.FC = () => {
               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="w-full h-[300px] min-w-0">
+            <div className="w-full h-[300px] min-w-0" style={{ height: 300, minHeight: 300 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
                 <BarChart data={stats?.cost_by_provider || []}>
                   <XAxis dataKey="provider" stroke="#6b7280" />
