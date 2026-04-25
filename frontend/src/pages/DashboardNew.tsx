@@ -381,50 +381,7 @@ const DashboardPage: React.FC = () => {
           Last updated: {new Date(stats.last_updated).toLocaleString()}
         </div>
       )}
-
-
-      {/* Scientific Foundation Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10 rounded-2xl p-8 relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Award className="w-32 h-32 text-amber-500" />
-        </div>
-        
-        <div className="relative z-10 max-w-4xl">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-amber-500/20 rounded-lg">
-              <Quote className="w-5 h-5 text-amber-400" />
-            </div>
-            <h3 className="text-xl font-bold text-white tracking-tight">Scientific Foundation</h3>
-          </div>
-          
-          <p className="text-gray-400 text-lg leading-relaxed mb-6">
-            Nebula is built on peer-reviewed research exploring autonomous multi-cloud orchestration. 
-            The research, titled <strong>"Democratizing AWS Cloud Operations: A Unified Orchestration Approach to Standardized Infrastructure Management"</strong>, was recently published in the <strong>International Journal of Creative Research Thoughts (IJCRT)</strong>.
-          </p>
-          
-          <div className="flex flex-wrap gap-4">
-            <a 
-              href="http://www.ijcrt.org/viewfull.php?&p_id=IJCRT2604384"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-xl border border-amber-500/20 transition-all font-medium flex items-center space-x-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Read Full Paper</span>
-            </a>
-            <div className="px-5 py-2.5 bg-gray-800/30 text-gray-400 rounded-xl border border-gray-700/30 font-mono text-sm flex items-center">
-              DOI: 10.56975/ijcrt.v14i4.305033
-            </div>
-          </div>
-        </div>
-      </motion.div>
     </div>
-
   );
 };
 
