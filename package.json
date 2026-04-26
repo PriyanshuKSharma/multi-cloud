@@ -4,6 +4,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
-    "vercel": "^28.18.5"
+    "vercel": "^50.41.0"
   }
 }

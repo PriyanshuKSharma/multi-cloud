@@ -165,72 +165,64 @@ def get_cost_summary(
         logger.error(f"Error fetching cost summary: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching cost summary: {str(e)}")
 
+
 @router.get("/overview")
 def get_billing_overview(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Consolidated billing data for charts and dashboard summary
+    """
     try:
         now = datetime.utcnow()
-
-        # -------- CURRENT MONTH --------
+        thirty_days_ago = now - timedelta(days=30)
+        
+        # 1. Monthly costs for summary
         current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
         current_costs = db.query(CostData).filter(
             CostData.user_id == current_user.id,
             CostData.period_start >= current_month_start
         ).all()
-
-        current_month_total = sum(c.cost_amount for c in current_costs)
-
-        # -------- LAST MONTH --------
+        current_total = sum(c.cost_amount for c in current_costs)
+        
         last_month_end = current_month_start - timedelta(days=1)
         last_month_start = last_month_end.replace(day=1)
-
         last_costs = db.query(CostData).filter(
             CostData.user_id == current_user.id,
             CostData.period_start >= last_month_start,
             CostData.period_end <= last_month_end
         ).all()
-
-        last_month_total = sum(c.cost_amount for c in last_costs)
-
-        # -------- COST BY PROVIDER --------
-        provider_map = {}
-        for c in current_costs:
-            p = (c.provider or "unknown").upper()
-            provider_map[p] = provider_map.get(p, 0) + c.cost_amount
-
-        cost_by_provider = [
-            {"provider": k, "cost": round(v, 2)}
-            for k, v in provider_map.items()
-        ]
-
-        # -------- COST TREND (LAST 30 DAYS) --------
-        thirty_days_ago = now - timedelta(days=30)
-
-        trend_data = db.query(CostData).filter(
+        last_total = sum(c.cost_amount for c in last_costs)
+        
+        # 2. Daily Trend for charts
+        trend_records = db.query(CostData).filter(
             CostData.user_id == current_user.id,
             CostData.period_start >= thirty_days_ago
-        ).all()
-
+        ).order_by(CostData.period_start.asc()).all()
+        
         daily_map = {}
-        for c in trend_data:
-            date = c.period_start.strftime("%Y-%m-%d")
-            daily_map[date] = daily_map.get(date, 0) + c.cost_amount
-
-        cost_trend = [
-            {"date": d, "cost": round(v, 2)}
-            for d, v in sorted(daily_map.items())
-        ]
-
+        for r in trend_records:
+            day_str = r.period_start.strftime('%m-%d')
+            daily_map[day_str] = daily_map.get(day_str, 0) + r.cost_amount
+            
+        cost_trend = [{"date": d, "cost": round(c, 2)} for d, c in daily_map.items()]
+        
+        # 3. Provider breakdown
+        prov_map = {}
+        for r in trend_records:
+            p = r.provider.upper()
+            prov_map[p] = prov_map.get(p, 0) + r.cost_amount
+            
+        cost_by_provider = [{"provider": p, "cost": round(c, 2)} for p, c in prov_map.items()]
+        
         return {
-            "current_month_cost": round(current_month_total, 2),
-            "last_month_cost": round(last_month_total, 2),
+            "current_month_cost": round(current_total, 2),
+            "last_month_cost": round(last_total, 2),
             "cost_by_provider": cost_by_provider,
             "cost_trend": cost_trend,
+            "currency": "USD"
         }
-
     except Exception as e:
-        logger.error(f"Billing overview error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching billing overview: {e}")
+        raise HTTPException(status_code=500, detail="Error generating billing report")

@@ -43,3 +43,7 @@ class TerraformRunner:
 
     def destroy(self, env_vars: Dict[str, str] = None):
         return self.run_command("terraform destroy -auto-approve", env_vars)
+
+    def output(self, env_vars: Dict[str, str] = None):
+        return self.run_command("terraform output -json", env_vars)
+

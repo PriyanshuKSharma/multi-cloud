@@ -1,0 +1,119 @@
+% Appendix F: API Data Schemas
+\chapter{API DATA SCHEMAS}
+
+This appendix provides the formal Pydantic (Python) models and TypeScript (React) interfaces used for data validation across the platform.
+
+\section{Generic Resource Schema (Python)}
+\begin{lstlisting}[language=Python]
+class ResourceBase(BaseModel):
+    name: str = Field(..., max_length=100)
+    provider: ProviderEnum
+    resource_type: str
+    region: Optional[str] = "us-east-1"
+    variables: dict = {}
+
+class ResourceCreate(ResourceBase):
+    pass
+
+class ResourceSchema(ResourceBase):
+    id: int
+    status: str
+    provider_id: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+\end{lstlisting}
+
+\section{Security Schema (TypeScript)}
+\begin{lstlisting}[language=SQL]
+interface AuthToken {
+    access_token: string;
+    token_type: string;
+}
+
+interface UserProfile {
+    id: number;
+    username: string;
+    email: string;
+    is_active: boolean;
+}
+\end{lstlisting}
+
+\section{Task and Analysis Schemas (Python)}
+\begin{lstlisting}[language=Python]
+class TaskSummary(BaseModel):
+    task_id: str
+    resource_id: int
+    status: str
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
+
+class AIAnalysisSchema(BaseModel):
+    task_id: str
+    category: str
+    summary: str
+    remedy: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    auto_fix: bool = False
+\end{lstlisting}
+
+\section{Frontend Resource Types (TypeScript)}
+\begin{lstlisting}[language=SQL]
+interface CloudResource {
+    id: number;
+    name: string;
+    provider: "AWS" | "Azure" | "GCP";
+    resource_type: string;
+    region: string;
+    status: "pending" | "running" | "active" | "failed";
+    provider_id?: string;
+}
+
+interface TaskStatusResponse {
+    task_id: string;
+    status: string;
+    execution_log?: string;
+    analysis?: {
+        category: string;
+        summary: string;
+        remedy: string;
+        confidence: number;
+    };
+}
+\end{lstlisting}
+
+\newpage
+% Appendix G: Project Glossary
+\chapter{PROJECT GLOSSARY}
+
+\section{Cloud Terms}
+\begin{itemize}
+    \item \textbf{AWS (Amazon Web Services)}: A subsidiary of Amazon providing on-demand cloud computing platforms and APIs.
+    \item \textbf{Azure}: A cloud computing service created by Microsoft for building, testing, deploying, and managing applications.
+    \item \textbf{GCP (Google Cloud Platform)}: A suite of cloud computing services that runs on the same infrastructure that Google uses internally.
+    \item \textbf{Multi-Cloud}: The use of multiple cloud computing and storage services in a single heterogeneous architecture.
+    \item \textbf{Vendor Lock-in}: A situation in which a customer is dependent on a vendor for products and services and cannot switch to another vendor without substantial costs.
+\end{itemize}
+
+\section{Technical Terms}
+\begin{itemize}
+    \item \textbf{FastAPI}: A modern, high-performance web framework for building APIs with Python 3.7+ based on standard Python type hints.
+    \item \textbf{Terraform}: An open-source infrastructure as code software tool created by HashiCorp.
+    \item \textbf{Celery}: An asynchronous task queue/job queue based on distributed message passing.
+    \item \textbf{Redis}: An in-memory data structure store used as a distributed, in-memory key-value database, cache, and message broker.
+    \item \textbf{JWT (JSON Web Token)}: An open standard that defines a compact and \\ self-contained way for securely transmitting information between parties as a JSON object.
+    \item \textbf{AES-128}: Advanced Encryption Standard with a 128-bit key length, used for securing cloud credentials in the Nebula vault.
+\end{itemize}
+
+\section{Operational Terms}
+\begin{itemize}
+    \item \textbf{Inventory Drift}: The mismatch between the state stored in Nebula and the actual state in a cloud provider.
+    \item \textbf{Control Plane}: The logical layer responsible for coordination, automation, and management decisions.
+    \item \textbf{Worker}: The asynchronous execution process that performs long-running cloud actions.
+    \item \textbf{Canonical Model}: A normalized internal representation used to hide \\ provider-specific payload differences.
+    \item \textbf{Runbook}: A documented set of actions used to respond to an operational issue.
+\end{itemize}
+
+
+\newpage

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Poster</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="export-toolbar">
+        <div class="export-copy">
+            <strong>Poster Tools</strong>
+            <span>Upload the college logo, download PNG/PDF, or open print preview.</span>
+        </div>
+        <div class="export-actions">
+            <button type="button" class="tool-button tool-button-secondary" id="uploadLogoButton">Upload Logo</button>
+            <button type="button" class="tool-button tool-button-secondary" id="clearLogoButton">Reset Logo</button>
+            <button type="button" class="tool-button" id="downloadPng">Download PNG</button>
+            <button type="button" class="tool-button" id="downloadPdf">Download PDF</button>
+            <button type="button" class="tool-button tool-button-secondary" id="printPoster">Print / Save PDF</button>
+        </div>
+        <p class="export-status" id="exportStatus" aria-live="polite"></p>
+    </div>
+    <input type="file" id="logoUpload" accept="image/*" hidden>
+
+    <article class="poster-page" id="poster">
+        <div class="poster-noise" aria-hidden="true"></div>
+        <div class="poster-orb poster-orb-a" aria-hidden="true"></div>
+        <div class="poster-orb poster-orb-b" aria-hidden="true"></div>
+
+        <header class="poster-header">
+            <div class="title-block">
+                <div class="logo-box" id="logoBox" aria-label="College logo placeholder" role="button" tabindex="0" title="Click to upload college logo">
+                    <img id="collegeLogoImage" class="logo-image" alt="College logo preview" hidden>
+                    <span id="logoPlaceholder">Click to upload college logo</span>
+                </div>
+                <div class="title-copy">
+                    <p class="eyebrow">Final Year B.Tech Project Poster</p>
+                    <h1>NEBULA: THE MULTI-CLOUD COMMAND CENTER</h1>
+                    <p class="subtitle">A Unified Orchestration Engine for AWS, Azure, and Google Cloud Platform</p>
+                    <p class="thesis">
+                        Nebula provides a unified control plane for cloud provisioning, inventory synchronization,
+                        monitoring, billing visibility, and AI-assisted troubleshooting through one secure,
+                        asynchronous workflow.
+                    </p>
+                </div>
+            </div>
+
+            <aside class="meta-panel">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span>Team Name</span>
+                        <strong contenteditable="true">Nebula Core Team</strong>
+                    </div>
+                    <div class="meta-item meta-item-wide">
+                        <span>Team Members</span>
+                        <strong contenteditable="true">Priyanshu Kumar Sharma, Vaishnavi Jadhav, Vaibhav Gulge</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>Class</span>
+                        <strong contenteditable="true">[Your Class]</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>Program</span>
+                        <strong contenteditable="true">B.Tech in Computer Science and Engineering</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>College</span>
+                        <strong contenteditable="true">Ajeenkya D Y Patil University</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>Guide</span>
+                        <strong contenteditable="true">[Guide Name]</strong>
+                    </div>
+                </div>
+
+                <div class="provider-strip" aria-label="Cloud providers and core stack">
+                    <span class="provider-chip provider-aws">AWS</span>
+                    <span class="provider-chip provider-azure">Azure</span>
+                    <span class="provider-chip provider-gcp">GCP</span>
+                    <span class="provider-chip provider-core">React</span>
+                    <span class="provider-chip provider-core">FastAPI</span>
+                    <span class="provider-chip provider-core">Terraform</span>
+                </div>
+            </aside>
+        </header>
+
+        <section class="summary-band">
+            <div class="summary-card">
+                <span class="summary-label">Problem</span>
+                <p>Cloud operations become fragmented when teams switch between multiple provider consoles, credentials, and deployment workflows.</p>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Approach</span>
+                <p>Use a layered control-plane architecture with React, FastAPI, PostgreSQL, Redis, Celery, and Terraform.</p>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Validation</span>
+                <p>Measured implementation evidence is AWS-backed today, while the architecture remains ready for broader multi-cloud expansion.</p>
+            </div>
+        </section>
+
+        <main class="poster-grid">
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">01</span>
+                    <h2>Objectives &amp; Significance</h2>
+                </div>
+                <ul class="feature-list">
+                    <li>Unify provisioning, monitoring, billing visibility, and troubleshooting across fragmented cloud workflows.</li>
+                    <li>Reduce operational inconsistency caused by separate AWS, Azure, and GCP interfaces.</li>
+                    <li>Preserve user responsiveness by shifting long-running tasks to Redis and Celery workers.</li>
+                    <li>Protect provider credentials through encrypted storage and short-lived worker-side usage.</li>
+                    <li>Improve observability with explicit lifecycle states, logs, health checks, and synchronized inventory data.</li>
+                </ul>
+                <div class="significance-note">
+                    Nebula is significant because it changes cloud management from provider-centric execution to workflow-centric execution.
+                </div>
+            </section>
+
+            <section class="panel panel-architecture">
+                <div class="panel-heading">
+                    <span class="panel-number">02</span>
+                    <h2>System Architecture</h2>
+                </div>
+                <p class="panel-intro">
+                    The platform follows a modular, containerized, asynchronous architecture. The current runtime is validated on AWS, while Azure and GCP remain first-class targets in the orchestration design.
+                </p>
+                <svg class="diagram" viewBox="0 0 920 480" role="img" aria-label="Nebula system architecture diagram">
+                    <defs>
+                        <linearGradient id="panelFill" x1="0" x2="1">
+                            <stop offset="0%" stop-color="#ffffff" />
+                            <stop offset="100%" stop-color="#eef4ff" />
+                        </linearGradient>
+                        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                            <path d="M0,0 L12,6 L0,12 z" fill="#285a9b"></path>
+                        </marker>
+                    </defs>
+
+                    <rect x="40" y="180" width="120" height="64" rx="18" fill="#0f2f58"></rect>
+                    <text x="100" y="207" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">User</text>
+                    <text x="100" y="232" text-anchor="middle" fill="#d6e7ff" font-size="16">Browser</text>
+
+                    <rect x="220" y="70" width="190" height="84" rx="22" fill="url(#panelFill)" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="315" y="104" text-anchor="middle" fill="#10213d" font-size="25" font-weight="700">React 19 + Vite</text>
+                    <text x="315" y="129" text-anchor="middle" fill="#52627c" font-size="16">Unified dashboard UI</text>
+
+                    <rect x="220" y="196" width="190" height="84" rx="22" fill="url(#panelFill)" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="315" y="230" text-anchor="middle" fill="#10213d" font-size="25" font-weight="700">FastAPI Backend</text>
+                    <text x="315" y="255" text-anchor="middle" fill="#52627c" font-size="16">JWT + validation + APIs</text>
+
+                    <rect x="220" y="322" width="190" height="84" rx="22" fill="url(#panelFill)" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="315" y="356" text-anchor="middle" fill="#10213d" font-size="25" font-weight="700">PostgreSQL</text>
+                    <text x="315" y="381" text-anchor="middle" fill="#52627c" font-size="16">State, logs, credentials</text>
+
+                    <rect x="490" y="120" width="150" height="72" rx="18" fill="#ecfdf5" stroke="#15803d" stroke-width="3"></rect>
+                    <text x="565" y="149" text-anchor="middle" fill="#114c2d" font-size="24" font-weight="700">Redis</text>
+                    <text x="565" y="172" text-anchor="middle" fill="#326b4a" font-size="15">Task queue</text>
+
+                    <rect x="490" y="235" width="150" height="72" rx="18" fill="#fff7ed" stroke="#c05621" stroke-width="3"></rect>
+                    <text x="565" y="264" text-anchor="middle" fill="#7b341e" font-size="24" font-weight="700">Celery</text>
+                    <text x="565" y="287" text-anchor="middle" fill="#9a5a38" font-size="15">Async worker</text>
+
+                    <rect x="490" y="350" width="150" height="72" rx="18" fill="#f5f3ff" stroke="#6d28d9" stroke-width="3"></rect>
+                    <text x="565" y="379" text-anchor="middle" fill="#4c1d95" font-size="24" font-weight="700">Terraform</text>
+                    <text x="565" y="402" text-anchor="middle" fill="#6c4ea9" font-size="15">Init / Plan / Apply</text>
+
+                    <rect x="710" y="70" width="160" height="70" rx="18" fill="#fff7ed" stroke="#f97316" stroke-width="3"></rect>
+                    <text x="790" y="113" text-anchor="middle" fill="#9a3412" font-size="25" font-weight="700">AWS</text>
+
+                    <rect x="710" y="190" width="160" height="70" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="3"></rect>
+                    <text x="790" y="233" text-anchor="middle" fill="#1d4ed8" font-size="25" font-weight="700">Azure</text>
+
+                    <rect x="710" y="310" width="160" height="70" rx="18" fill="#f0fdf4" stroke="#16a34a" stroke-width="3"></rect>
+                    <text x="790" y="353" text-anchor="middle" fill="#15803d" font-size="25" font-weight="700">GCP</text>
+
+                    <line x1="160" y1="212" x2="220" y2="112" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="160" y1="212" x2="220" y2="238" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="315" y1="154" x2="315" y2="196" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="410" y1="238" x2="490" y2="156" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="410" y1="238" x2="490" y2="271" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="315" y1="280" x2="315" y2="322" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="565" y1="192" x2="565" y2="235" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="565" y1="307" x2="565" y2="350" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="640" y1="386" x2="710" y2="105" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="640" y1="386" x2="710" y2="225" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                    <line x1="640" y1="386" x2="710" y2="345" stroke="#285a9b" stroke-width="4" marker-end="url(#arrow)"></line>
+                </svg>
+                <div class="tag-row">
+                    <span>JWT Authentication</span>
+                    <span>Encrypted Credentials</span>
+                    <span>Async Queueing</span>
+                    <span>Containerized Deployment</span>
+                    <span>Unified Cloud Abstraction</span>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">03</span>
+                    <h2>Key Modules &amp; Implementation</h2>
+                </div>
+                <div class="module-grid">
+                    <article class="module-card">
+                        <h3>Unified Dashboard</h3>
+                        <p>React 19 and Vite power one interface for cloud accounts, resources, dashboards, billing, and deployments.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>Secure Credential Vault</h3>
+                        <p>Provider credentials are encrypted at the application layer and only materialized inside task execution scope.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>Inventory Synchronization</h3>
+                        <p>Scheduled sync jobs collect provider-side inventory and normalize it into a consistent internal model.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>Provisioning Engine</h3>
+                        <p>Terraform modules map abstract user requests to provider-native infrastructure resources.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>Lifecycle Tracking</h3>
+                        <p>Requests move through explicit states such as pending, provisioning, and active with execution evidence.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>AI Troubleshooting Copilot</h3>
+                        <p>Log-semantic analysis supports failure interpretation and remediation guidance for operator workflows.</p>
+                    </article>
+                </div>
+                <figure class="ui-shot">
+                    <img src="assets/nebula-interface.png" alt="Nebula command center screenshot" onerror="this.closest('figure').classList.add('ui-shot-fallback'); this.remove();">
+                    <figcaption>Nebula command center interface used for operator-facing orchestration workflows.</figcaption>
+                </figure>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">04</span>
+                    <h2>Workflow Diagram</h2>
+                </div>
+                <svg class="diagram" viewBox="0 0 920 520" role="img" aria-label="Nebula workflow diagram">
+                    <defs>
+                        <marker id="workflow-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                            <path d="M0,0 L12,6 L0,12 z" fill="#285a9b"></path>
+                        </marker>
+                    </defs>
+
+                    <rect x="40" y="50" width="150" height="64" rx="18" fill="#10213d"></rect>
+                    <text x="115" y="88" text-anchor="middle" fill="#ffffff" font-size="21" font-weight="700">User Request</text>
+
+                    <rect x="220" y="50" width="160" height="64" rx="18" fill="#eef4ff" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="300" y="88" text-anchor="middle" fill="#10213d" font-size="20" font-weight="700">API Validation</text>
+
+                    <rect x="410" y="50" width="200" height="64" rx="18" fill="#eef4ff" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="510" y="79" text-anchor="middle" fill="#10213d" font-size="20" font-weight="700">Persist Pending State</text>
+                    <text x="510" y="101" text-anchor="middle" fill="#52627c" font-size="14">Database record created</text>
+
+                    <rect x="640" y="50" width="160" height="64" rx="18" fill="#ecfdf5" stroke="#15803d" stroke-width="3"></rect>
+                    <text x="720" y="88" text-anchor="middle" fill="#114c2d" font-size="20" font-weight="700">Queue in Redis</text>
+
+                    <rect x="130" y="180" width="180" height="64" rx="18" fill="#fff7ed" stroke="#c05621" stroke-width="3"></rect>
+                    <text x="220" y="218" text-anchor="middle" fill="#7b341e" font-size="20" font-weight="700">Celery Worker</text>
+
+                    <rect x="360" y="180" width="200" height="64" rx="18" fill="#f5f3ff" stroke="#6d28d9" stroke-width="3"></rect>
+                    <text x="460" y="207" text-anchor="middle" fill="#4c1d95" font-size="20" font-weight="700">Terraform Lifecycle</text>
+                    <text x="460" y="229" text-anchor="middle" fill="#6c4ea9" font-size="14">Init / Plan / Apply</text>
+
+                    <rect x="610" y="180" width="180" height="64" rx="18" fill="#fff7ed" stroke="#f97316" stroke-width="3"></rect>
+                    <text x="700" y="218" text-anchor="middle" fill="#9a3412" font-size="20" font-weight="700">Cloud Provider</text>
+
+                    <rect x="70" y="320" width="200" height="64" rx="18" fill="#eef4ff" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="170" y="347" text-anchor="middle" fill="#10213d" font-size="20" font-weight="700">Logs + Metadata</text>
+                    <text x="170" y="369" text-anchor="middle" fill="#52627c" font-size="14">Execution evidence stored</text>
+
+                    <rect x="320" y="320" width="220" height="64" rx="18" fill="#eef4ff" stroke="#2b6cb0" stroke-width="3"></rect>
+                    <text x="430" y="347" text-anchor="middle" fill="#10213d" font-size="20" font-weight="700">Lifecycle Update</text>
+                    <text x="430" y="369" text-anchor="middle" fill="#52627c" font-size="14">pending to provisioning to active</text>
+
+                    <rect x="590" y="320" width="220" height="64" rx="18" fill="#10213d"></rect>
+                    <text x="700" y="347" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="700">Dashboard Feedback</text>
+                    <text x="700" y="369" text-anchor="middle" fill="#d6e7ff" font-size="14">Operator sees latest status</text>
+
+                    <line x1="190" y1="82" x2="220" y2="82" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="380" y1="82" x2="410" y2="82" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="610" y1="82" x2="640" y2="82" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="720" y1="114" x2="220" y2="180" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="310" y1="212" x2="360" y2="212" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="560" y1="212" x2="610" y2="212" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="700" y1="244" x2="170" y2="320" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="270" y1="352" x2="320" y2="352" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                    <line x1="540" y1="352" x2="590" y2="352" stroke="#285a9b" stroke-width="4" marker-end="url(#workflow-arrow)"></line>
+                </svg>
+                <p class="workflow-note">
+                    Asynchronous dispatch keeps the API responsive while resource creation, synchronization, and failure handling proceed in background execution workers.
+                </p>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">05</span>
+                    <h2>Results &amp; Interpretability</h2>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <span class="metric-value">10 min</span>
+                        <span class="metric-label">Inventory sync cadence</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">25</span>
+                        <span class="metric-label">AWS resources discovered</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">8</span>
+                        <span class="metric-label">Active AWS VMs observed</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">145 ms</span>
+                        <span class="metric-label">Provider-health latency</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">&lt;100 ms</span>
+                        <span class="metric-label">API acknowledgement under load</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value">5 min</span>
+                        <span class="metric-label">Sample VM lifecycle duration</span>
+                    </div>
+                </div>
+
+                <div class="interpretability-box">
+                    <h3>Interpretability</h3>
+                    <ul class="compact-list">
+                        <li>Lifecycle states are explicit and traceable from pending to provisioning to active.</li>
+                        <li>Execution logs and metadata are preserved for diagnostics and auditability.</li>
+                        <li>Billing outputs provide service-level cost interpretation instead of disconnected console views.</li>
+                        <li>AI-assisted remediation turns raw provisioning errors into readable operator guidance.</li>
+                    </ul>
+                </div>
+
+                <p class="results-note">
+                    Measured results are drawn from the AWS-backed implementation environment. The control-plane design remains intentionally extensible for Azure and GCP.
+                </p>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">06</span>
+                    <h2>Applications</h2>
+                </div>
+                <div class="application-grid">
+                    <article class="application-card">
+                        <h3>Academic Labs</h3>
+                        <p>Provision cloud experiments and teach orchestration concepts through one guided interface.</p>
+                    </article>
+                    <article class="application-card">
+                        <h3>Startup Platforms</h3>
+                        <p>Centralize resource provisioning, visibility, and cost monitoring for small engineering teams.</p>
+                    </article>
+                    <article class="application-card">
+                        <h3>DevOps Operations</h3>
+                        <p>Track deployments, infrastructure state, and failures without switching between provider consoles.</p>
+                    </article>
+                    <article class="application-card">
+                        <h3>Guided Troubleshooting</h3>
+                        <p>Support operators with readable logs, remediation hints, and consistent workflow evidence.</p>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <section class="bottom-grid">
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">07</span>
+                    <h2>Conclusion</h2>
+                </div>
+                <p class="conclusion-text">
+                    Nebula demonstrates that cloud operations can be made more reliable, auditable, secure, and user-friendly through a unified asynchronous orchestration architecture. Rather than hiding cloud complexity, the platform structures it into repeatable workflows with clear states, visible logs, and consistent control-plane behavior.
+                </p>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <span class="panel-number">08</span>
+                    <h2>Future Work</h2>
+                </div>
+                <div class="roadmap">
+                    <div class="roadmap-item">
+                        <span>1</span>
+                        <p>WebSocket-based real-time logs and richer live operational feedback.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <span>2</span>
+                        <p>Cost intelligence for idle assets, right-sizing, and budget alerts.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <span>3</span>
+                        <p>Policy-as-code and compliance checks before infrastructure creation.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <span>4</span>
+                        <p>Predictive governance, anomaly scoring, and risk-prioritized actions.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <span>5</span>
+                        <p>Stronger Azure and GCP execution coverage after AWS baseline hardening.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <span>6</span>
+                        <p>Kubernetes, hybrid-cloud, and advanced multi-environment orchestration.</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <footer class="poster-footer">
+            <p>Technology stack: React 19, Vite, FastAPI, PostgreSQL, Redis, Celery, Terraform, Docker</p>
+        </footer>
+    </article>
+    <script>
+        const exportStatus = document.getElementById('exportStatus');
+
+        const setStatus = (message, type = 'info') => {
+            if (!exportStatus) return;
+            exportStatus.textContent = message;
+            exportStatus.dataset.type = type;
+        };
+
+        const setBusyState = (button, busy, busyLabel) => {
+            if (!button) return;
+            if (!button.dataset.defaultLabel) {
+                button.dataset.defaultLabel = button.textContent;
+            }
+            button.disabled = busy;
+            button.textContent = busy ? busyLabel : button.dataset.defaultLabel;
+        };
+
+        const downloadBlob = (blob, filename) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+
+        const canvasToBlob = (canvas) => new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    resolve(blob);
+                    return;
+                }
+                reject(new Error('Canvas conversion failed.'));
+            }, 'image/png');
+        });
+
+        const blobToDataUrl = (blob) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                    return;
+                }
+                reject(new Error('Blob conversion failed.'));
+            };
+            reader.onerror = () => reject(reader.error || new Error('Blob conversion failed.'));
+            reader.readAsDataURL(blob);
+        });
+
+        const inlineCloneImages = async (originalRoot, cloneRoot) => {
+            const originalImages = Array.from(originalRoot.querySelectorAll('img'));
+            const cloneImages = Array.from(cloneRoot.querySelectorAll('img'));
+
+            for (const [index, img] of cloneImages.entries()) {
+                const originalImg = originalImages[index];
+                const src = originalImg?.currentSrc || originalImg?.getAttribute('src') || img.getAttribute('src') || '';
+                const isSafeInlineImage = src.startsWith('data:') || src.startsWith('blob:');
+
+                if (isSafeInlineImage) {
+                    img.src = src;
+                    img.hidden = false;
+                    continue;
+                }
+
+                try {
+                    const absoluteSrc = new URL(src, window.location.href).href;
+                    const response = await fetch(absoluteSrc);
+                    if (!response.ok) {
+                        throw new Error(`Image fetch failed: ${response.status}`);
+                    }
+                    const blob = await response.blob();
+                    img.src = await blobToDataUrl(blob);
+                    img.hidden = false;
+                } catch (error) {
+                    const figure = img.closest('.ui-shot');
+                    if (figure) {
+                        figure.classList.add('ui-shot-fallback');
+                    }
+                    img.remove();
+                }
+            }
+        };
+
+        const createExportClone = async () => {
+            const poster = document.getElementById('poster');
+            if (!poster) return null;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'export-sandbox';
+
+            const clone = poster.cloneNode(true);
+            clone.id = 'posterExportClone';
+            clone.classList.add('poster-export-clone');
+            clone.style.width = `${poster.offsetWidth}px`;
+            clone.style.maxWidth = 'none';
+
+            clone.querySelectorAll('[contenteditable]').forEach((element) => {
+                element.removeAttribute('contenteditable');
+            });
+
+            clone.querySelectorAll('.poster-noise, .poster-orb').forEach((element) => {
+                element.remove();
+            });
+
+            await inlineCloneImages(poster, clone);
+
+            wrapper.appendChild(clone);
+            document.body.appendChild(wrapper);
+
+            return { wrapper, clone };
+        };
+
+        const capturePosterCanvas = async (scale = 1.25) => {
+            arrangePosterColumns();
+
+            if (!window.html2canvas) {
+                throw new Error('html2canvas unavailable');
+            }
+
+            const exportClone = await createExportClone();
+            if (!exportClone) {
+                throw new Error('Poster not found');
+            }
+
+            try {
+                await new Promise((resolve) => window.requestAnimationFrame(resolve));
+                return await window.html2canvas(exportClone.clone, {
+                    backgroundColor: '#f3f7fb',
+                    scale,
+                    useCORS: false,
+                    windowWidth: exportClone.clone.scrollWidth,
+                    windowHeight: exportClone.clone.scrollHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    imageTimeout: 15000,
+                });
+            } finally {
+                exportClone.wrapper.remove();
+            }
+        };
+
+        const logoInput = document.getElementById('logoUpload');
+        const logoBox = document.getElementById('logoBox');
+        const logoImage = document.getElementById('collegeLogoImage');
+        const logoPlaceholder = document.getElementById('logoPlaceholder');
+        const uploadLogoButton = document.getElementById('uploadLogoButton');
+        const clearLogoButton = document.getElementById('clearLogoButton');
+
+        const applyLogo = (src) => {
+            if (!logoImage || !logoPlaceholder || !logoBox) return;
+
+            if (src) {
+                logoImage.src = src;
+                logoImage.hidden = false;
+                logoPlaceholder.hidden = true;
+                logoBox.classList.add('has-logo');
+                try {
+                    localStorage.setItem('nebulaPosterLogo', src);
+                } catch (error) {
+                    console.warn('Unable to save logo locally.', error);
+                }
+                return;
+            }
+
+            logoImage.hidden = true;
+            logoImage.removeAttribute('src');
+            logoPlaceholder.hidden = false;
+            logoBox.classList.remove('has-logo');
+            if (logoInput) {
+                logoInput.value = '';
+            }
+            try {
+                localStorage.removeItem('nebulaPosterLogo');
+            } catch (error) {
+                console.warn('Unable to clear saved logo.', error);
+            }
+        };
+
+        const arrangePosterColumns = () => {
+            const main = document.querySelector('.poster-grid');
+            const bottom = document.querySelector('.bottom-grid');
+            if (!main || !bottom) return;
+            if (main.querySelector('.poster-columns')) return;
+
+            const layout = document.createElement('div');
+            layout.className = 'poster-columns';
+
+            const left = document.createElement('div');
+            const middle = document.createElement('div');
+            const right = document.createElement('div');
+            left.className = middle.className = right.className = 'poster-column';
+
+            layout.append(left, middle, right);
+
+            const placement = {
+                '01': left,
+                '04': left,
+                '07': left,
+                '08': left,
+                '02': middle,
+                '05': middle,
+                '03': right,
+                '06': right,
+            };
+
+            const sections = [
+                ...Array.from(main.children).filter((node) => node.matches('section.panel')),
+                ...Array.from(bottom.children).filter((node) => node.matches('section.panel'))
+            ];
+
+            sections.forEach((section) => {
+                const number = section.querySelector('.panel-number')?.textContent?.trim();
+                const target = placement[number] || right;
+                target.appendChild(section);
+            });
+
+            main.replaceChildren(layout);
+            bottom.remove();
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', arrangePosterColumns);
+        } else {
+            arrangePosterColumns();
+        }
+
+        try {
+            const savedLogo = localStorage.getItem('nebulaPosterLogo');
+            if (savedLogo) {
+                applyLogo(savedLogo);
+            }
+        } catch (error) {
+            console.warn('Unable to read saved logo.', error);
+        }
+
+        if (window.location.protocol === 'file:') {
+            setStatus('For reliable PNG/PDF export, open this poster through a local server or hosted URL instead of file://.', 'warning');
+        }
+
+        window.addEventListener('beforeprint', arrangePosterColumns);
+
+        uploadLogoButton?.addEventListener('click', () => logoInput?.click());
+        logoBox?.addEventListener('click', () => logoInput?.click());
+        logoBox?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                logoInput?.click();
+            }
+        });
+        clearLogoButton?.addEventListener('click', () => applyLogo(''));
+        logoInput?.addEventListener('change', () => {
+            const file = logoInput.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => applyLogo(typeof reader.result === 'string' ? reader.result : '');
+            reader.readAsDataURL(file);
+        });
+
+        const exportPosterAsPng = async () => {
+            arrangePosterColumns();
+            const poster = document.getElementById('poster');
+            const button = document.getElementById('downloadPng');
+            if (!poster) return;
+
+            if (!window.html2canvas) {
+                setStatus('PNG export library did not load. Refresh once with internet access and try again.', 'error');
+                return;
+            }
+
+            try {
+                setStatus('Preparing PNG export...', 'info');
+                setBusyState(button, true, 'Rendering PNG...');
+                const canvas = await capturePosterCanvas(1.15);
+                const blob = await canvasToBlob(canvas);
+                downloadBlob(blob, 'nebula-poster-a0.png');
+                setStatus('PNG downloaded successfully.', 'success');
+            } catch (error) {
+                console.error(error);
+                setStatus('PNG export failed. Open this page via localhost or a hosted URL and try again.', 'error');
+            } finally {
+                setBusyState(button, false);
+            }
+        };
+
+        const exportPosterAsPdf = async () => {
+            arrangePosterColumns();
+            const poster = document.getElementById('poster');
+            const button = document.getElementById('downloadPdf');
+            if (!poster) return;
+
+            if (!window.html2pdf) {
+                setStatus('PDF library did not load. Opening print dialog instead.', 'warning');
+                window.print();
+                return;
+            }
+
+            try {
+                setStatus('Preparing PDF export...', 'info');
+                setBusyState(button, true, 'Rendering PDF...');
+                const canvas = await capturePosterCanvas(1);
+                const imageData = canvas.toDataURL('image/jpeg', 0.96);
+                const jsPDFConstructor = window.jspdf?.jsPDF || window.jsPDF || window.html2pdf?.jsPDF;
+
+                if (!jsPDFConstructor) {
+                    throw new Error('jsPDF unavailable');
+                }
+
+                const pdf = new jsPDFConstructor({
+                    unit: 'mm',
+                    format: 'a0',
+                    orientation: 'portrait'
+                });
+
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                pdf.addImage(imageData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+                const pdfBlob = pdf.output('blob');
+                downloadBlob(pdfBlob, 'nebula-poster-a0.pdf');
+                setStatus('PDF downloaded successfully.', 'success');
+            } catch (error) {
+                console.error(error);
+                setStatus('PDF export failed. Opening Print / Save PDF as fallback...', 'warning');
+                window.print();
+            } finally {
+                setBusyState(button, false);
+            }
+        };
+
+        document.getElementById('downloadPng')?.addEventListener('click', exportPosterAsPng);
+        document.getElementById('downloadPdf')?.addEventListener('click', exportPosterAsPdf);
+        document.getElementById('printPoster')?.addEventListener('click', () => {
+            arrangePosterColumns();
+            setStatus('Opening print dialog...', 'info');
+            window.print();
+        });
+    </script>
+</body>
+</html>

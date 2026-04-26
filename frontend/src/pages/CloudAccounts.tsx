@@ -97,7 +97,7 @@ const CloudAccountsPage: React.FC = () => {
   const { data: accounts, isLoading, refetch } = useQuery<CloudAccount[]>({
     queryKey: ['cloud-accounts'],
     queryFn: async () => {
-      const response = await axios.get('/credentials');
+      const response = await axios.get('/credentials/list');
       const payload = response.data;
       const items: unknown[] = Array.isArray(payload)
         ? payload

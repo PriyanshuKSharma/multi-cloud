@@ -1,0 +1,229 @@
+% Appendix H: Data Flow Diagrams (DFD) Level 0, 1, 2
+\chapter{DATA FLOW DIAGRAMS (DFD)}
+
+This appendix provides a detailed narrative and structural description of the data flow across the Nebula platform, from the initial user request to the final cloud state persistence.
+
+\section{DFD Level 0: Global Context Diagram}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=4.0cm, auto, scale=0.7, every node/.style={scale=0.7}]
+    \tikzstyle{entity} = [rectangle, draw, rounded corners, fill=blue!8, text centered, minimum width=8em, minimum height=3em]
+    \tikzstyle{process} = [rectangle, draw, rounded corners, fill=green!10, text centered, minimum width=10em, minimum height=3.4em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [entity] (user) {User Browser};
+    \node [process, right=of user] (nebula) {Nebula Control Plane};
+    \node [entity, right=of nebula] (cloud) {AWS / Azure / GCP APIs};
+
+    \draw [line] (user) -- node[above] {Infrastructure Intent} (nebula);
+    \draw [line] (nebula) -- node[below] {Inventory, Logs, Status} (user);
+    \draw [line] (nebula) -- node[above] {Authenticated API Requests} (cloud);
+    \draw [line] (cloud) -- node[below] {Resource Metadata} (nebula);
+\end{tikzpicture}
+\caption{DFD Level 0 for the Nebula Multi-Cloud Platform}
+\label{fig:dfd_level0}
+\end{figure}
+
+1) \textbf{Entities}: User Browser, Nebula Control Plane, Cloud Provider APIs \\ (AWS/Azure/GCP). \\
+2) \textbf{Primary Flow}: The user sends "Infrastructure Intent" to the Control Plane.  The Control Plane returns "Consolidated Inventory" and "Execution Logs." \\
+3) \textbf{Cloud Interaction}: The Control Plane sends "Authenticated API Requests" to the providers and receives "Resource Metadata."
+
+\section{DFD Level 1: Service Decomposition}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=3.4cm, auto, scale=0.48, every node/.style={scale=0.48}]
+    \tikzstyle{service} = [rectangle, draw, rounded corners, fill=orange!10, text centered, minimum width=8em, minimum height=3em]
+    \tikzstyle{store} = [rectangle, draw, fill=gray!12, text centered, minimum width=7em, minimum height=2.8em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [service] (user) {User Browser};
+    \node [service, right=of user] (api) {API Gateway};
+    \node [store, below=of api] (db) {PostgreSQL};
+    \node [store, right=of api] (redis) {Redis Broker};
+    \node [service, below=of redis] (worker) {Worker Cluster};
+    \node [service, right=of redis] (cloud) {Cloud APIs};
+
+    \draw [line] (user) -- node[above] {REST / UI Actions} (api);
+    \draw [line] (api) -- node[left] {Auth / State} (db);
+    \draw [line] (api) -- node[above] {Queue Task} (redis);
+    \draw [line] (redis) -- node[right] {Dispatch} (worker);
+    \draw [line] (worker) -- node[above] {Terraform / SDK Calls} (cloud);
+    \draw [line] (cloud) -- node[below] {Provider Responses} (worker);
+    \draw [line] (worker) -- node[below] {Logs / Resource State} (db);
+    \draw [line] (api) -- node[below] {Inventory / Logs} (user);
+\end{tikzpicture}
+\caption{DFD Level 1 Showing Service Decomposition Inside Nebula}
+\label{fig:dfd_level1}
+\end{figure}
+
+The Level 1 DFD breaks down the Control Plane into its core services: API Gateway, Task Broker, and worker cluster. \\
+1) \textbf{Flow 1 (Auth)}: User -> API (Verification) -> Database. \\
+2) \textbf{Flow 2 (Provisioning)}: User -> API -> Redis (Task Queue) -> Worker (Terraform). \\
+3) \textbf{Flow 3 (Logging)}: Worker -> Database (Log Storage) -> API (WebSocket) -> User UI. \\
+
+\section{DFD Level 2: Task Runner Internal Flow}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=1.35cm, auto, scale=0.85, every node/.style={scale=0.85}]
+    \tikzstyle{step} = [rectangle, draw, rounded corners, fill=purple!10, text centered, minimum width=13em, minimum height=2.8em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [step] (a) {Receive Task ID};
+    \node [step, below=of a] (b) {Fetch and Decrypt Credentials};
+    \node [step, below=of b] (c) {Generate Terraform HCL};
+    \node [step, below=of c] (d) {Run terraform init};
+    \node [step, below=of d] (e) {Run terraform apply / capture logs};
+    \node [step, below=of e] (f) {Update Database and Final State};
+
+    \draw [line] (a) -- (b);
+    \draw [line] (b) -- (c);
+    \draw [line] (c) -- (d);
+    \draw [line] (d) -- (e);
+    \draw [line] (e) -- (f);
+\end{tikzpicture}
+\caption{DFD Level 2 for Internal Task Runner Execution}
+\label{fig:dfd_level2}
+\end{figure}
+
+This level focuses on the internal state transitions of the Celery Worker during a Terraform execution. \\
+- \textbf{Stage A}: Receive Task ID and Vault Key. \\
+- \textbf{Stage B}: Fetch Encrypted Credentials. \\
+- \textbf{Stage C}: Generate HCL Template. \\
+- \textbf{Stage D}: Initialize Terraform Backend. \\
+- \textbf{Stage E}: Execute 'Apply' and capture STDOUT/STDERR. \\
+- \textbf{Stage F}: Update Database and mark Task as 'Complete'. \\
+
+\section{DFD Level 3: AI Copilot Analysis Flow}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=1.8cm, auto, scale=0.82, every node/.style={scale=0.82}]
+    \tikzstyle{block} = [rectangle, draw, rounded corners, fill=teal!10, text centered, minimum width=8em, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex']
+
+    \node [block] (failed) {Failed Task Log};
+    \node [block, right=of failed] (sanitize) {Sanitization Layer};
+    \node [block, right=of sanitize] (context) {Context Builder};
+    \node [block, right=of context] (copilot) {AI Copilot};
+    \node [block, below=of context] (store) {Analysis Store};
+    \node [block, left=of store] (ui) {User Dashboard};
+
+    \draw [line] (failed) -- (sanitize);
+    \draw [line] (sanitize) -- (context);
+    \draw [line] (context) -- (copilot);
+    \draw [line] (copilot) -- (store);
+    \draw [line] (store) -- (ui);
+    \draw [line, dashed] (ui.north) |- (failed.south);
+\end{tikzpicture}
+\caption{DFD Level 3 for the Nebula AI Failure-Analysis Subsystem}
+\label{fig:dfd_level3}
+\end{figure}
+
+The Level 3 DFD zooms into the failure-analysis sub-flow:
+\begin{enumerate}
+    \item Worker stores raw execution log after a failed task.
+    \item API retrieves the failed task metadata and strips secrets or sensitive tokens.
+    \item Sanitized log excerpt is combined with provider, region, and resource context.
+    \item AI copilot receives the bounded prompt and returns a structured explanation.
+    \item The explanation is stored and made visible to the user in the dashboard.
+\end{enumerate}
+This decomposition is important because it highlights the separation between raw operational data, sanitized analysis input, and user-facing remediation output.
+
+\section{Data Stores and Trust Boundaries}
+Across all DFD levels, the following trust boundaries should be recognized:
+\begin{itemize}
+    \item \textbf{Browser to API}: authenticated but untrusted client boundary.
+    \item \textbf{API to Database}: trusted application boundary for persistent state.
+    \item \textbf{API to Broker}: asynchronous handoff boundary.
+    \item \textbf{Worker to Cloud APIs}: privileged execution boundary using decrypted provider credentials.
+    \item \textbf{Worker to AI Analyzer}: sanitized diagnostic boundary without raw secrets.
+\end{itemize}
+Mapping these trust boundaries helps explain why the architecture isolates credential handling and why logs must be filtered before external analysis.
+
+\newpage
+% Appendix I: Detailed Test Reports and Bug Tracking
+\chapter{DETAILED TEST REPORTS AND BUG TRACKING}
+
+This appendix provides a comprehensive record of the testing phase, including 100+ test cases (TC-01 through TC-100) and a historical log of solved bugs.
+
+\section{Exhaustive Test Case Matrix (TC-01 to TC-100)}
+\begin{table}[H]
+\centering
+\caption{Nebula 100-Item Test Matrix (Summary)}
+\label{tab:100_tests}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Test ID} & \textbf{Category} & \textbf{Description} & \textbf{Pass/Fail} & \textbf{Notes} \\ \hline
+TC-31 & UI & Dashboard Sidebar Collapse & PASS & - \\ \hline
+TC-45 & Security & Brute Force Protection & PASS & 5 attempts limit \\ \hline
+TC-52 & API & Invalid Resource Name Check & PASS & Returns 400 Bad Req \\ \hline
+TC-68 & Sync & AWS Multi-Region Discovery & PASS & Verified us-east-1/2 \\ \hline
+TC-75 & Vault & Key Rotation Logic & PASS & Atomic update \\ \hline
+TC-88 & Network & VNet Peering Success & PASS & Azure backbone confirmed \\ \hline
+TC-99 & Final & 24hr System Stability & PASS & 0 Memory leaks \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Test Execution Protocol}
+The testing process followed a layered order so that failures could be localized quickly:
+\begin{enumerate}
+    \item validate schemas and input constraints at the unit level,
+    \item test API routes with mocked database sessions,
+    \item verify queue delivery and worker execution using integration tests,
+    \item execute sandbox cloud tasks with low-cost resources,
+    \item review dashboard behavior and log presentation from an operator perspective.
+\end{enumerate}
+
+\section{Representative Detailed Test Extract}
+\begin{lstlisting}[language=SQL, caption=Detailed Test Extract]
+TC-01 | Auth    | Login with valid credentials                  | PASS | JWT issued
+TC-02 | Auth    | Login with invalid password                   | PASS | 401 returned
+TC-03 | Vault   | Encrypt AWS access key                        | PASS | ciphertext stored
+TC-04 | Vault   | Decrypt credential during worker execution    | PASS | plaintext not logged
+TC-05 | API     | Reject malformed resource payload             | PASS | schema validation hit
+TC-06 | Queue   | Enqueue provisioning task                     | PASS | broker accepted message
+TC-07 | Queue   | Worker picks queued task                      | PASS | status moved to running
+TC-08 | IaC     | Terraform init for AWS module                 | PASS | providers resolved
+TC-09 | IaC     | Terraform apply for sample VM                 | PASS | resource active
+TC-10 | Sync    | Refresh AWS inventory                         | PASS | canonical records updated
+TC-11 | Sync    | Refresh Azure inventory                       | PASS | canonical records updated
+TC-12 | Sync    | Refresh GCP inventory                         | PASS | canonical records updated
+TC-13 | AI      | Detect AccessDenied signature                 | PASS | mapped to IAM category
+TC-14 | AI      | Detect quota exhaustion                       | PASS | quota remediation shown
+TC-15 | UI      | Show running status badge                     | PASS | badge transitions correct
+TC-16 | UI      | Stop polling after task completion            | PASS | timer cleared
+TC-17 | Audit   | Log delete action                             | PASS | activity row written
+TC-18 | Recovery| Retry transient cloud timeout                 | PASS | next retry scheduled
+\end{lstlisting}
+
+\section{Historical Bug Log and Resolutions}
+The following log tracks critical bugs identified during the integration testing phase and their subsequent fixes.
+
+\begin{itemize}
+    \item \textbf{Bug ID: B-102 (Credential Scrambling)}
+        \begin{itemize}
+            \item \textit{Issue}: Special characters in Azure secrets were causing Fernet \\ decryption errors.
+            \item \textit{Fix}: Implemented Base64 encoding/decoding before encryption/decryption to ensure character integrity.
+        \end{itemize}
+    \item \textbf{Bug ID: B-205 (Redis Queue Congestion)}
+        \begin{itemize}
+            \item \textit{Issue}: Bulk provisioning of 20+ VMs caused the Redis broker to timeout.
+\item \textit{Fix}: Increased the \texttt{visibility\_timeout} in Celery and optimized the database connection pool in the worker cluster.
+        \end{itemize}
+    \item \textbf{Bug ID: B-309 (UI State Mismatch)}
+        \begin{itemize}
+            \item \textit{Issue}: Dashboard counts did not update automatically after a resource was deleted from the cloud portal directly.
+            \item \textit{Fix}: Implemented a periodic "background reconcile" task that triggers every 5 minutes to keep the database in sync with actual cloud state.
+        \end{itemize}
+    \item \textbf{Bug ID: B-411 (Task Retry Storm)}
+        \begin{itemize}
+            \item \textit{Issue}: Retryable provider errors caused too many workers to retry in parallel, amplifying queue depth.
+            \item \textit{Fix}: Added jitter to the exponential backoff calculation and reduced worker prefetch.
+        \end{itemize}
+    \item \textbf{Bug ID: B-507 (Unsafe Log Disclosure)}
+        \begin{itemize}
+            \item \textit{Issue}: Raw Terraform error output could include values that should not be forwarded to the AI analyzer.
+            \item \textit{Fix}: Added sanitization rules for secrets, access keys, endpoint tokens, and private IP patterns before analysis.
+        \end{itemize}
+\end{itemize}
+
+\newpage

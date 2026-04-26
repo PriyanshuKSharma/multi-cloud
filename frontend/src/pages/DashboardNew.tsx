@@ -15,9 +15,17 @@ import {
   RefreshCw,
   Terminal,
   AlertCircle,
+  Network,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
+interface MetricChange {
+  value: number;
+  label: string;
+  type: 'increase' | 'decrease' | 'neutral';
+  unit?: string;
+  prefix?: string;
+}
 
 interface DashboardStats {
   total_resources: number;
@@ -58,6 +66,13 @@ interface DashboardStats {
     region: string;
     last_synced: string;
   }>;
+  metrics?: {
+    resources_change: MetricChange;
+    vms_status: MetricChange;
+    storage_change: MetricChange;
+    networks_change: MetricChange;
+    cost_change: MetricChange;
+  };
   last_updated: string;
 }
 
@@ -112,6 +127,7 @@ const DashboardPage: React.FC = () => {
         chips={[
           { label: `${stats?.total_resources ?? 0} total resources`, tone: 'blue' },
           { label: `${stats?.active_vms ?? 0} active VMs`, tone: 'emerald' },
+          { label: `${stats?.total_networks ?? 0} networks`, tone: 'cyan' },
           { label: `$${stats?.estimated_monthly_cost?.toFixed(2) ?? '0.00'} monthly`, tone: 'orange' },
         ]}
         actions={
@@ -145,38 +161,46 @@ const DashboardPage: React.FC = () => {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <MetricCard
-          title="Total Resources"
-          value={stats?.total_resources || 0}
-          change={{ value: 5, label: 'added today', type: 'increase' }}
-          icon={Layers}
-          iconColor="text-blue-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Active VMs"
-          value={stats?.active_vms || 0}
-          change={{ value: 2, label: 'running', type: 'increase' }}
-          icon={Server}
-          iconColor="text-green-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Storage Resources"
-          value={stats?.total_storage || 0}
-          change={{ value: 1, label: 'bucket removed', type: 'decrease' }}
-          icon={Database}
-          iconColor="text-purple-500"
-          loading={isLoading}
-        />
-        <MetricCard
-          title="Monthly Cost"
-          value={`$${stats?.estimated_monthly_cost?.toFixed(2) || '0.00'}`}
-          change={{ value: 8.5, label: 'vs last month', type: 'increase' }}
-          icon={DollarSign}
-          iconColor="text-yellow-500"
-          loading={isLoading}
-        />
+            <MetricCard
+              title="Total Resources"
+              value={stats?.total_resources || 0}
+              change={stats?.metrics?.resources_change || { value: 0, label: 'added today', type: 'neutral' }}
+              icon={Layers}
+              iconColor="text-blue-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Active VMs"
+              value={stats?.active_vms || 0}
+              change={stats?.metrics?.vms_status || { value: 0, label: 'running', type: 'neutral' }}
+              icon={Server}
+              iconColor="text-green-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Storage Resources"
+              value={stats?.total_storage || 0}
+              change={stats?.metrics?.storage_change || { value: 0, label: 'added today', type: 'neutral' }}
+              icon={Database}
+              iconColor="text-purple-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Network Resources"
+              value={stats?.total_networks || 0}
+              change={stats?.metrics?.networks_change || { value: 0, label: 'created today', type: 'neutral' }}
+              icon={Network}
+              iconColor="text-emerald-500"
+              loading={isLoading}
+            />
+            <MetricCard
+              title="Monthly Cost"
+              value={`$${stats?.estimated_monthly_cost?.toFixed(2) || '0.00'}`}
+              change={stats?.metrics?.cost_change || { value: 0, label: 'vs last month', type: 'neutral' }}
+              icon={DollarSign}
+              iconColor="text-yellow-500"
+              loading={isLoading}
+            />
       </div>
 
       {/* Charts Row */}
@@ -193,7 +217,7 @@ const DashboardPage: React.FC = () => {
               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="w-full h-[300px] min-w-0">
+            <div className="w-full h-[300px] min-w-0" style={{ height: 300, minHeight: 300 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
                 <PieChart>
                   <Pie
@@ -245,7 +269,7 @@ const DashboardPage: React.FC = () => {
               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="w-full h-[300px] min-w-0">
+            <div className="w-full h-[300px] min-w-0" style={{ height: 300, minHeight: 300 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
                 <BarChart data={stats?.cost_by_provider || []}>
                   <XAxis dataKey="provider" stroke="#6b7280" />
@@ -323,7 +347,13 @@ const DashboardPage: React.FC = () => {
                   key={index}
                   className="flex items-start space-x-4 p-4 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors"
                 >
-                  <Activity className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  {activity.type === 'vm' ? (
+                    <Server className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  ) : activity.type === 'storage' ? (
+                    <Database className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <Network className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-300 truncate">{activity.resource_name}</p>
                     <div className="flex items-center space-x-2 mt-1">

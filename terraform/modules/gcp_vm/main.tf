@@ -34,6 +34,11 @@ resource "google_compute_network" "vpc_network" {
   name = "terraform-network"
 }
 
+data "google_compute_image" "debian_image" {
+  family  = "debian-11"
+  project = "debian-cloud"
+}
+
 resource "google_compute_instance" "vm_instance" {
   name         = var.instance_name
   machine_type = "e2-medium"
@@ -41,7 +46,7 @@ resource "google_compute_instance" "vm_instance" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-11"
+      image = data.google_compute_image.debian_image.self_link
     }
   }
 

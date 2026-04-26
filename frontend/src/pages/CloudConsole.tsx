@@ -394,8 +394,9 @@ const CloudConsole: React.FC = () => {
   const vmCount = resources?.filter((item) => item.type === 'vm').length ?? 0;
   const storageCount = resources?.filter((item) => item.type === 'storage').length ?? 0;
   const networkCount =
-    resources?.filter((item) => item.type === 'network' || item.type === 'vpc' || item.type === 'resource_group')
-      .length ?? 0;
+    resources?.filter((item) => ['network', 'vpc', 'resource_group', 'vnet'].includes(item.type)).length ?? 0;
+  const faasCount =
+    resources?.filter((item) => ['faas', 'function', 'lambda'].includes(item.type)).length ?? 0;
   const providerOptions =
     providerMeta?.available_providers?.length
       ? providerMeta.available_providers
@@ -450,7 +451,7 @@ const CloudConsole: React.FC = () => {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-4">
           <p className="text-xs text-gray-500">Total Resources</p>
           <p className="text-2xl font-semibold text-white mt-1">{resourcesCount}</p>
@@ -475,6 +476,13 @@ const CloudConsole: React.FC = () => {
             <p className="text-xl font-semibold text-white mt-1">{networkCount}</p>
           </div>
           <Network className="w-5 h-5 text-emerald-400" />
+        </div>
+        <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-gray-500">Functions</p>
+            <p className="text-xl font-semibold text-white mt-1">{faasCount}</p>
+          </div>
+          <Layers3 className="w-5 h-5 text-amber-400" />
         </div>
       </div>
 
@@ -595,13 +603,25 @@ const CloudConsole: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                (resources ?? []).slice(0, 20).map((resource) => (
+                (resources ?? []).slice(0, 50).map((resource) => (
                   <tr key={resource.id} className="border-t border-gray-800/50 hover:bg-gray-900/40 transition-colors">
                     <td className="px-4 py-3 text-gray-200">{resource.name}</td>
                     <td className="px-4 py-3">
                       <ProviderIcon provider={resource.provider as any} size="sm" showLabel />
                     </td>
-                    <td className="px-4 py-3 text-gray-300 capitalize">{resource.type}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize ${
+                        resource.type === 'vm' ? 'bg-blue-500/15 text-blue-300 border border-blue-500/20'
+                        : resource.type === 'storage' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/20'
+                        : resource.type === 'network' || resource.type === 'vpc' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/20'
+                        : resource.type === 'faas' || resource.type === 'function' ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20'
+                        : resource.type === 'sqs' ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/20'
+                        : resource.type === 'sns' ? 'bg-pink-500/15 text-pink-300 border border-pink-500/20'
+                        : 'bg-gray-500/15 text-gray-300 border border-gray-500/20'
+                      }`}>
+                        {resource.type}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={resource.status as any} size="sm" />
                     </td>

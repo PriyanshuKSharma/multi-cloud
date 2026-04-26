@@ -1,0 +1,567 @@
+% Appendix J: Imported Documentation Diagrams
+\chapter{DOCUMENTATION DIAGRAMS IMPORTED FROM docs/}
+This appendix consolidates the visual diagrams already present in the project's \texttt{docs/} directory and makes them part of the formal blackbook. The blocks below are adapted from the source documentation files so that the report preserves the same architectural views, flow descriptions, and structural summaries used by the engineering documentation.
+
+\subsection{Component Interaction Diagram}
+\textbf{Source:} \texttt{docs/README.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Component Interaction Diagram Adapted from docs/README.md}]
++--------------------------- FRONTEND ------------------------------+
+| +-----------+   +-------------+   +-------------+                 |
+| | Dashboard  |-->| React Query |-->| Axios API   |                |
+| | Component  |   |   Cache     |   |   Client    |                |
+| +-----------+   +-------------+   +------+------+                 |
++--------------------------------------------|----------------------+
+                                             | HTTP/JSON
+                                             v
++--------------------------- BACKEND -------------------------------+
+| +-------------------------------------------------------------+   |
+| | FastAPI Application                                         |   |
+| | +-----------+ +-----------+ +-------------+                 |   |
+| | |Middleware | | Routers   | |Dependencies |                 |   |
+| | | CORS      | | /auth     | | get_db()    |                 |   |
+| | | Auth      | | /dashboard| | get_user()  |                 |   |
+| | | Logging   | | /inventory| |             |                 |   |
+| | +-----------+ +-----------+ +-------------+                 |   |
+| | Endpoint handlers query and prepare response payloads       |   |
+| +-----------------------------+-------------------------------+   |
+|                               |                                   |
+|                               v                                   |
+|                    +---------------------------+                  |
+|                    | SQLAlchemy ORM            |                  |
+|                    | session.query(...).all()  |                  |
+|                    +-------------+-------------+                  |
++----------------------------------|--------------------------------+
+                                   v
++-------------------------- POSTGRESQL ------------------------------+
+| tables: users, credentials, resource_inventory, cost_data,         |
+| provider_health, terraform_states, resources                       |
++--------------------------------------------------------------------+
+
+CELERY WORKER INTERACTION: Celery Beat --> Redis Queue --> Celery Worker --> PostgreSQL
+
+
+\end{lstlisting}
+
+% \newpage
+\section{Diagrams from the Repository}
+
+\subsection{High-Level Architecture}
+\textbf{Source:} \texttt{docs/README.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={High-Level Architecture Adapted from docs/README.md}]
++-------------------------------------------------------------------+
+|                         CLOUD PROVIDERS                           |
+|                                                                   |
+|   +------------+    +------------+    +------------+              |
+|   |    AWS     |    |   Azure    |    |    GCP     |              |
+|   | - EC2      |    | - VMs      |    | - Compute  |              |
+|   | - S3       |    | - Storage  |    | - Storage  |              |
+|   | - VPC      |    | - VNet     |    | - VPC      |              |
+|   | - Cost API |    | - Cost Mgmt|    | - Billing  |              |
+|   +-----+------+    +-----+------+    +-----+------+              |
++---------+------------------+------------------+-------------------+
+          |                  |                  |
+          v                  v                  v
++-------------------------------------------------------------------+
+|                    BACKGROUND SYNC LAYER                          |
+|                                                                   |
+|   +-----------------------------------------------------------+   |
+|   | Celery Beat Scheduler (triggers sync every 10 minutes)    |   |
+|   +---------------------------+-------------------------------+   |
+|                               |                                   |
+|   +---------------------------v-------------------------------+   |
+|   | Celery Workers                                            |   |
+|   | - AWS Sync Service    - Azure Sync Service                |   |
+|   | - GCP Sync Service    - Terraform Provisioning Tasks      |   |
+|   +---------------------------+-------------------------------+   |
++-------------------------------+-----------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|                           DATA LAYER                              |
+|                                                                   |
+|   +-----------------------------------------------------------+   |
+|   | PostgreSQL: users, credentials, inventory, costs, health  |   |
+|   | Terraform states, deployment history                      |   |
+|   +-----------------------------------------------------------+   |
+|   +-----------------------------------------------------------+   |
+|   | Redis: task queue, session storage, cache                 |   |
+|   +-----------------------------------------------------------+   |
++-------------------------------+-----------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|                            API LAYER                              |
+|                                                                   |
+|   +-----------------------------------------------------------+   |
+|   | FastAPI Backend                                           |   |
+|   | - /auth    - /dashboard    - /inventory                   |   |
+|   | - /resources - /billing    - /credentials                 |   |
+|   | - JWT auth, request validation, CORS, error handling      |   |
+|   +-----------------------------------------------------------+   |
++-------------------------------+-----------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|                     PRESENTATION LAYER                            |
+|                                                                   |
+|   +-----------------------------------------------------------+   |
+|   | React Frontend: Dashboard, VMs, Storage, Deployments,     |   |
+|   | Costs, real-time updates, live logs, charts               |   |
+|   +-----------------------------------------------------------+   |
++-------------------------------------------------------------------+
+\end{lstlisting}
+
+\subsection{Data Flow Diagram}
+\textbf{Source:} \texttt{docs/README.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Data Flow Diagram Adapted from docs/README.md}]
++-----------+       1. HTTP Request        +----------------------+
+|   User    | ---------------------------> |    FastAPI Backend   |
+| (Browser) |                              | 2. Authenticate JWT  |
++-----+-----+                              | 3. Validate request  |
+      ^                                    | 4. Query database    |
+      | 10. JSON Response                  +----------+-----------+
+      |                                               |
+      |                                               | 5. SQL Query
+      |                                               v
++-----+-----+                               +----------------------+
+|  React UI  | <--------------------------- |     PostgreSQL       |
+| updates UI | 9. HTTP response formatted   | 6. Fetch cached data |
++-----------+                               +----------+-----------+
+                                                       |
+                                                       | 7. Return rows
+                                                       v
+                                             +----------------------+
+                                             |    FastAPI Backend   |
+                                             | 8. Format JSON       |
+                                             +----------------------+
+
+BACKGROUND SYNC FLOW
+
+Celery Beat Scheduler
+        |
+        | Enqueue task
+        v
+Celery Worker
+        |
+        | Call cloud APIs
+        v
+Cloud Provider APIs
+        |
+        | Return resources
+        v
+Celery Worker normalizes data
+        |
+        | INSERT / UPDATE
+        v
+PostgreSQL resource_inventory
+\end{lstlisting}
+
+
+\subsection{Dashboard Request Flow Example}
+\textbf{Source:} \texttt{docs/README.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Dashboard Request Flow Adapted from docs/README.md}]
+1. User opens browser -> http://localhost:5173
+2. React app loads -> Dashboard component mounts
+3. useQuery hook triggers -> api.get('/dashboard/stats')
+4. Axios sends GET /dashboard/stats with JWT token
+5. FastAPI verifies JWT, extracts user
+6. Route handler queries ResourceInventory and CostData
+7. SQLAlchemy executes SQL against PostgreSQL
+8. PostgreSQL returns results
+9. FastAPI formats JSON response
+10. Response sent to frontend
+11. React Query caches data
+12. Dashboard re-renders with real metrics and charts
+\end{lstlisting}
+
+\section{Diagrams for BACKEND}
+
+\subsection{Backend Project Structure}
+\textbf{Source:} \texttt{docs/BACKEND.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Backend Project Structure Adapted from docs/BACKEND.md}]
+backend/
+|-- app/
+|   |-- __init__.py
+|   |-- main.py                 # FastAPI app entry point
+|   |-- worker.py               # Celery worker entry point
+|   |
+|   |-- api/
+|   |   |-- __init__.py
+|   |   `-- endpoints/
+|   |       |-- auth.py
+|   |       |-- dashboard.py
+|   |       |-- inventory.py
+|   |       |-- billing.py
+|   |       |-- resources.py
+|   |       `-- credentials.py
+|   |
+|   |-- core/
+|   |   |-- __init__.py
+|   |   |-- config.py
+|   |   |-- security.py
+|   |   `-- celery_app.py
+|   |
+|   |-- db/
+|   |   |-- __init__.py
+|   |   |-- base.py
+|   |   `-- migrate.py
+|   |
+|   |-- models/
+|   |   |-- __init__.py
+|   |   |-- user.py
+|   |   |-- credential.py
+|   |   |-- resource.py
+|   |   `-- resource_inventory.py
+|   |
+|   |-- schemas/
+|   |   |-- __init__.py
+|   |   |-- user.py
+|   |   |-- resource.py
+|   |   `-- dashboard.py
+|   |
+|   |-- services/
+|   |   |-- __init__.py
+|   |   |-- aws_sync.py
+|   |   |-- azure_sync.py
+|   |   |-- gcp_sync.py
+|   |   |-- terraform_runner.py
+|   |   `-- cloud_sync.py
+|   |
+|   `-- tasks/
+|       |-- __init__.py
+|       |-- sync_tasks.py
+|       `-- terraform_tasks.py
+|
+|-- requirements.txt
+|-- Dockerfile
+`-- .env.example
+\end{lstlisting}
+
+\section{Diagrams for DATABASE}
+
+\subsection{Database Entity Relationship Diagram}
+\textbf{Source:} \texttt{docs/DATABASE.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Database ER Diagram Adapted from docs/DATABASE.md}]
++-------------+
+|   users     |
+|-------------|
+| id (PK)     |
+| email       |<-------------------------------+
+| password    |                                |
+| full_name   |                                |
+| created_at  |                                |
++-------------+                                |
+       | user_id (FK)                          |
+       +---------------+---------------+-------+-------------------+
+                       |               |                           |
+                       v               v                           v
+             +----------------+  +---------------+       +----------------+
+             | credentials    |  | resources     |       | cost_data      |
+             |----------------|  |---------------|       |----------------|
+             | id (PK)        |  | id (PK)       |       | id (PK)        |
+             | user_id (FK)   |  | user_id (FK)  |       | user_id (FK)   |
+             | provider       |  | name          |       | provider       |
+             | name           |  | provider      |       | service        |
+             | access_key(enc)|  | type          |       | resource_id    |
+             | secret_key(enc)|  | status        |       | cost           |
+             | region         |  | details       |       | currency       |
+             | is_active      |  | tf_output     |       | date           |
+             | created_at     |  | created_at    |       | billing_period |
+             +----------------+  | updated_at    |       | metadata       |
+                                 +-------+-------+       +----------------+
+                                         |
+                                         | resource_id (FK)
+                                         v
+                                 +-------------------+
+                                 | terraform_states  |
+                                 |-------------------|
+                                 | id (PK)           |
+                                 | resource_id (FK)  |
+                                 | state_data (JSON) |
+                                 | version           |
+                                 | created_at        |
+                                 +-------------------+
+
+Additional user-owned operational tables:
+- resource_inventory(user_id FK)
+- provider_health(user_id FK)
+\end{lstlisting}
+
+\newpage
+\section{Diagrams for CELERY}
+
+\subsection{Celery Architecture}
+\textbf{Source:} \texttt{docs/CELERY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Celery Architecture Adapted from docs/CELERY.md}]
++-----------------------------------------------------------+
+|                     CELERY BEAT                           |
+|                    (Scheduler)                            |
+| Periodic tasks:                                           |
+| - sync_all_users_resources() every 10 min                 |
+| - cleanup_old_logs() daily at midnight                    |
+| - update_provider_health() every 5 min                    |
++--------------------------+--------------------------------+
+                           |
+                           | Enqueue tasks
+                           v
++-----------------------------------------------------------+
+|                        REDIS                              |
+|                  (Message Broker)                         |
+| Queues:                                                   |
+| - celery              - celery:sync                       |
+| - celery:terraform    - celery:results                    |
++--------------------------+--------------------------------+
+                           |
+                           | Workers dequeue tasks
+                           v
++-----------------------------------------------------------+
+|                    CELERY WORKERS                         |
+| Worker pool:                                              |
+| +----------+  +----------+  +----------+                  |
+| | Worker 1 |  | Worker 2 |  | Worker 3 |                  |
+| | AWS Sync |  |Azure Sync|  | Idle     |                  |
+| +----------+  +----------+  +----------+                  |
+| Tasks:                                                    |
+| - sync_aws_resources()                                    |
+| - sync_azure_resources()                                  |
+| - sync_gcp_resources()                                    |
+| - provision_resource_task()                               |
+| - destroy_resource_task()                                 |
++--------------------------+--------------------------------+
+                           |
+                           | Read / write data
+                           v
++-----------------------------------------------------------+
+|                       POSTGRESQL                          |
+| - resource_inventory                                      |
+| - cost_data                                               |
+| - provider_health                                         |
+| - resources                                               |
++-----------------------------------------------------------+
+\end{lstlisting}
+
+\newpage
+
+
+\subsection{Security Layers}
+\textbf{Source:} \texttt{docs/SECURITY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Security Layers Adapted from docs/SECURITY.md}]
++-----------------------------------------------------------+
+|                     USER LAYER                            |
+| - JWT Authentication                                      |
+| - Password hashing (bcrypt)                               |
+| - Session management                                      |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                      API LAYER                            |
+| - HTTPS / TLS encryption                                  |
+| - CORS protection                                         |
+| - Rate limiting                                           |
+| - Input validation (Pydantic)                             |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                  APPLICATION LAYER                        |
+| - Credential encryption (AES-256)                         |
+| - Environment variable management                         |
+| - Secret key rotation                                     |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                    DATABASE LAYER                         |
+| - Encrypted connections (SSL)                             |
+| - User isolation                                          |
+| - Encrypted credentials at rest                           |
++-----------------------------------------------------------+
+\end{lstlisting}
+
+\subsection{Encryption and Decryption Flow}
+\textbf{Source:} \texttt{docs/SECURITY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Encryption and Decryption Flow Adapted from docs/SECURITY.md}]
+Encryption:
+Plain Credential -> AES-256 Encryption -> Encrypted Blob -> Database
+                    (with SECRET_KEY)
+
+Decryption:
+Database -> Encrypted Blob -> AES-256 Decryption -> Plain Credential
+                                   (with SECRET_KEY)
+\end{lstlisting}
+
+
+\subsection{High-Level Components}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={High-Level Components Adapted from docs/SUMMARY.md}]
++-----------------------------------------------------------+
+|                   CLOUD PROVIDERS                         |
+|                    AWS | Azure | GCP                      |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                BACKGROUND SYNC LAYER                      |
+|           Celery Workers + Beat Scheduler                 |
+|         (every 10 min: sync all resources)                |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                       DATA LAYER                          |
+|        PostgreSQL (resources, costs, health)              |
+|        Redis (task queue, cache)                          |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                        API LAYER                          |
+|                     FastAPI Backend                       |
+|      (Auth, Dashboard, Inventory, Billing, Resources)     |
++--------------------------+--------------------------------+
+                           |
+                           v
++-----------------------------------------------------------+
+|                 PRESENTATION LAYER                        |
+|                    React Frontend                         |
+|      (Dashboard, VMs, Storage, Deployments, Costs)        |
++-----------------------------------------------------------+
+\end{lstlisting}
+
+\subsection{Relationship Summary}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Relationship Summary Adapted from docs/SUMMARY.md}]
+users (1) ---- (N) credentials
+      (1) ---- (N) resource_inventory
+      (1) ---- (N) cost_data
+      (1) ---- (N) provider_health
+      (1) ---- (N) resources
+
+resources (1) ---- (N) terraform_states
+\end{lstlisting}
+
+\subsection{Task Flow}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Task Flow Adapted from docs/SUMMARY.md}]
+Celery Beat (every 10 min)
+    |
+    v
+sync_all_users_resources()
+    |
+    v
+For each user:
+    sync_user_resources(user_id)
+        |
+        v
+    For each credential:
+        sync_aws_resources() OR
+        sync_azure_resources() OR
+        sync_gcp_resources()
+            |
+            v
+        Fetch from cloud API
+            |
+            v
+        Upsert to database
+            |
+            v
+        Update provider health
+\end{lstlisting}
+
+\subsection{User Views Dashboard Flow}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={User Dashboard Flow Adapted from docs/SUMMARY.md}]
+1. User opens browser -> http://localhost:5173
+2. React app loads Dashboard component
+3. useQuery hook calls api.get('/dashboard/stats')
+4. Axios sends GET /dashboard/stats with JWT token
+5. FastAPI verifies JWT and extracts user
+6. Query database for inventory and billing statistics
+7. Format JSON response
+8. Send data to frontend
+9. React Query caches response
+10. Dashboard renders with real data
+\end{lstlisting}
+
+\subsection{Background Resource Sync Flow}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Background Resource Sync Flow Adapted from docs/SUMMARY.md}]
+1. Celery Beat triggers every 10 minutes
+2. sync_all_users_resources() starts
+3. Query all users with credentials
+4. For each user enqueue sync_user_resources(user_id)
+5. For each credential:
+   - If AWS: sync_aws_resources()
+   - If Azure: sync_azure_resources()
+   - If GCP: sync_gcp_resources()
+6. Sync task executes:
+   a. Decrypt credentials
+   b. Initialize cloud SDK client
+   c. Call provider API
+   d. Transform to ResourceInventory model
+   e. Upsert to database
+   f. Update provider_health
+7. Task completes and fresh data becomes available to the API
+\end{lstlisting}
+
+\subsection{Terraform Provisioning Flow}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Terraform Provisioning Flow Adapted from docs/SUMMARY.md}]
+1. User submits POST /resources/ with configuration
+2. Create Resource record with status='pending'
+3. Enqueue provision_resource_task(resource_id)
+4. Celery worker picks up task
+5. Generate Terraform .tf file from config
+6. Run terraform init
+7. Run terraform plan
+8. Run terraform apply -auto-approve
+9. Parse outputs (instance_id, public_ip, etc.)
+10. Update Resource record:
+    - status='active'
+    - terraform_output={...}
+11. Store Terraform state in terraform_states
+12. User polls GET /resources/{id} for status
+\end{lstlisting}
+
+\subsection{Repository Project Structure}
+\textbf{Source:} \texttt{docs/SUMMARY.md}
+\begin{lstlisting}[numbers=none,basicstyle=\ttfamily\tiny,caption={Repository Project Structure Adapted from docs/SUMMARY.md}]
+multi-cloud/
+|-- backend/
+|   |-- app/
+|   |   |-- api/endpoints/
+|   |   |-- core/
+|   |   |-- db/
+|   |   |-- models/
+|   |   |-- schemas/
+|   |   |-- services/
+|   |   `-- tasks/
+|   |-- main.py
+|   |-- worker.py
+|   `-- requirements.txt
+|
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- pages/
+|   |   |-- services/
+|   |   `-- App.tsx
+|   `-- package.json
+|
+|-- docs/
+|   |-- README.md
+|   |-- BACKEND.md
+|   |-- API.md
+|   |-- DATABASE.md
+|   |-- CELERY.md
+|   |-- CLOUD_PROVIDERS.md
+|   |-- SECURITY.md
+|   `-- SUMMARY.md
+|
+|-- docker-compose.yml
+|-- .env.example
+`-- README.md
+\end{lstlisting}
+
+% \newpage

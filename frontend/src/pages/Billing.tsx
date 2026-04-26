@@ -104,46 +104,50 @@ const BillingPage: React.FC = () => {
       </div>
 
       {/* Cost by Provider */}
-      <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-6">Cost by Provider</h3>
-        <div className="h-64 min-w-0">
-          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
-            <BarChart data={billing?.cost_by_provider || []}>
-              <XAxis dataKey="provider" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1a1a1d',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar dataKey="cost" fill="#eab308" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {billing?.cost_by_provider && billing.cost_by_provider.length > 0 && (
+        <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">Cost by Provider</h3>
+          <div className="h-64 min-w-0" style={{ height: 256, minHeight: 256 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
+              <BarChart data={billing?.cost_by_provider || []}>
+                <XAxis dataKey="provider" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1a1a1d',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Bar dataKey="cost" fill="#eab308" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Cost Trend */}
-      <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-6">Cost Trend (Last 30 Days)</h3>
-        <div className="h-64 min-w-0">
-          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
-            <LineChart data={billing?.cost_trend || []}>
-              <XAxis dataKey="date" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1a1a1d',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '8px',
-                }}
-              />
-              <Line type="monotone" dataKey="cost" stroke="#eab308" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+      {billing?.cost_trend && billing.cost_trend.length > 0 && (
+        <div className="bg-[#0f0f11] border border-gray-800/50 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">Cost Trend (Last 30 Days)</h3>
+          <div className="h-64 min-w-0" style={{ height: 256, minHeight: 256 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
+              <LineChart data={billing?.cost_trend || []}>
+                <XAxis dataKey="date" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1a1a1d',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Line type="monotone" dataKey="cost" stroke="#eab308" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

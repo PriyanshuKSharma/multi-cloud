@@ -6,6 +6,7 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import ProviderIcon from '../../components/ui/ProviderIcon';
 import PageHero from '../../components/ui/PageHero';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { formatDisplayValue } from '../../utils/displayValue';
 import {
   Server,
   Plus,
@@ -74,16 +75,16 @@ const normalizeInventoryVm = (vm: any): VM => {
 
   return {
     id: vm.id,
-    resource_id: vm.resource_id ?? '',
-    resource_name: vm.resource_name ?? vm.name ?? 'Unnamed VM',
-    provider: String(vm.provider ?? '').toLowerCase(),
-    region: vm.region ?? 'unknown',
-    status: normalizeVmStatus(vm.status ?? 'unknown'),
+    resource_id: formatDisplayValue(vm.resource_id ?? '', ''),
+    resource_name: formatDisplayValue(vm.resource_name ?? vm.name ?? 'Unnamed VM', 'Unnamed VM'),
+    provider: formatDisplayValue(vm.provider ?? '', '').toLowerCase(),
+    region: formatDisplayValue(vm.region ?? 'unknown', 'unknown'),
+    status: normalizeVmStatus(formatDisplayValue(vm.status ?? 'unknown', 'unknown')),
     source: 'inventory',
     metadata: {
-      instance_type: metadata.instance_type ?? vm.instance_type,
-      public_ip: metadata.public_ip ?? vm.public_ip,
-      private_ip: metadata.private_ip ?? vm.private_ip,
+      instance_type: formatDisplayValue(metadata.instance_type ?? vm.instance_type, ''),
+      public_ip: formatDisplayValue(metadata.public_ip ?? vm.public_ip, ''),
+      private_ip: formatDisplayValue(metadata.private_ip ?? vm.private_ip, ''),
       cost_per_hour: metadata.cost_per_hour ?? vm.cost_per_hour,
       tags: metadata.tags ?? vm.tags,
     },
@@ -104,15 +105,15 @@ const normalizeProvisionedVm = (resource: ProvisionedVMResource): VM => {
   return {
     id: resource.id,
     resource_id: String(resource.id),
-    resource_name: resource.name || 'Unnamed VM',
-    provider: String(resource.provider ?? '').toLowerCase(),
-    region: typeof regionValue === 'string' ? regionValue : 'unknown',
+    resource_name: formatDisplayValue(resource.name || 'Unnamed VM', 'Unnamed VM'),
+    provider: formatDisplayValue(resource.provider ?? '', '').toLowerCase(),
+    region: formatDisplayValue(regionValue ?? 'unknown', 'unknown'),
     status: normalizeVmStatus(resource.status || 'pending'),
     source: 'provisioning',
     metadata: {
-      instance_type: typeof instanceTypeValue === 'string' ? instanceTypeValue : undefined,
-      public_ip: typeof publicIpValue === 'string' ? publicIpValue : undefined,
-      private_ip: typeof privateIpValue === 'string' ? privateIpValue : undefined,
+      instance_type: formatDisplayValue(instanceTypeValue, ''),
+      public_ip: formatDisplayValue(publicIpValue, ''),
+      private_ip: formatDisplayValue(privateIpValue, ''),
       cost_per_hour: typeof costValue === 'number' ? costValue : undefined,
       tags:
         tagsValue && typeof tagsValue === 'object' && !Array.isArray(tagsValue)
@@ -426,17 +427,21 @@ const VirtualMachinesPage: React.FC = () => {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Cloud Resource ID</p>
+                          <p className="text-xs font-mono text-gray-400 truncate" title={formatDisplayValue(vm.resource_id, 'N/A')}>{formatDisplayValue(vm.resource_id, 'N/A')}</p>
+                        </div>
                         <div>
                           <p className="text-xs text-gray-500">Instance Type</p>
-                          <p className="text-sm font-medium text-gray-300">{vm.metadata.instance_type || 'N/A'}</p>
+                          <p className="text-sm font-medium text-gray-300">{formatDisplayValue(vm.metadata.instance_type, 'N/A')}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Public IP</p>
-                          <p className="text-sm font-medium text-gray-300">{vm.metadata.public_ip || 'N/A'}</p>
+                          <p className="text-sm font-medium text-gray-300">{formatDisplayValue(vm.metadata.public_ip, 'N/A')}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Region</p>
-                          <p className="text-sm font-medium text-gray-300">{vm.region}</p>
+                          <p className="text-sm font-medium text-gray-300">{formatDisplayValue(vm.region, 'unknown')}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Cost/Hour</p>
@@ -448,14 +453,17 @@ const VirtualMachinesPage: React.FC = () => {
 
                       {vm.metadata.tags && Object.keys(vm.metadata.tags).length > 0 && (
                         <div className="flex items-center space-x-2 mt-4">
-                          {Object.entries(vm.metadata.tags).slice(0, 3).map(([key, value]) => (
-                            <span
-                              key={key}
-                              className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
-                            >
-                              {key}: {value}
-                            </span>
-                          ))}
+                          {Object.entries(vm.metadata.tags).slice(0, 3).map(([key, rawValue]) => {
+                            const displayValue = formatDisplayValue(rawValue, '');
+                            return (
+                              <span
+                                key={key}
+                                className="px-2 py-1 bg-gray-800/50 text-xs text-gray-400 rounded border border-gray-700/50"
+                              >
+                                {key}: {displayValue}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
 

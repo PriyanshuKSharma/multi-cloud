@@ -32,3 +32,13 @@ node_modules
 backend/__pycache__/main.cpython-311.pyc
 backend/app/schemas/__pycache__/user.cpython-311.pyc
 backend/app/models/__pycache__/user.cpython-311.pyc
+
+# LaTeX build artifacts for the blackbook
+blackbook/*.aux
+blackbook/*.fdb_latexmk
+blackbook/*.fls
+blackbook/*.lof
+blackbook/*.lot
+blackbook/*.out
+blackbook/*.synctex.gz
+blackbook/*.toc

@@ -106,6 +106,26 @@ const CreateVMPage: React.FC = () => {
     setCurrentProject({ id: projects[0].id, name: projects[0].name });
   }, [projects]);
 
+  const { data: networks = [] } = useQuery({
+    queryKey: ['inventory', 'networks', formData.provider, formData.configuration.region],
+    queryFn: async () => {
+      const response = await axios.get('/inventory/networks', {
+        params: {
+          provider: formData.provider,
+          region: formData.configuration.region,
+        },
+      });
+      const payload = response.data;
+      const items = Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : [];
+      return items.map((item: any) => ({
+        id: item.resource_id || item.id,
+        name: item.resource_name || item.name || 'Unnamed Network',
+        cidr: item.metadata?.cidr_block || item.cidr_block,
+      }));
+    },
+    staleTime: 30_000,
+  });
+
   React.useEffect(() => {
     const onProjectChanged = (event: Event) => {
       const customEvent = event as CustomEvent<{ id?: number | null }>;
@@ -493,20 +513,43 @@ const CreateVMPage: React.FC = () => {
                 <div className="border-t border-gray-800/70 px-4 py-4 space-y-4">
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-                      VPC ID
+                       {formData.provider === 'azure' ? 'Virtual Network' : 'VPC / Network'}
                     </label>
-                    <input
-                      type="text"
-                      value={formData.configuration.vpc_id || ''}
-                      onChange={(event) =>
-                        setFormData({
-                          ...formData,
-                          configuration: { ...formData.configuration, vpc_id: event.target.value },
-                        })
-                      }
-                      placeholder="vpc-abc123"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                    />
+                    <div className="space-y-2">
+                      <select
+                        value={formData.configuration.vpc_id || ''}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            configuration: { ...formData.configuration, vpc_id: event.target.value },
+                          })
+                        }
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                      >
+                        <option value="">Select from Nebula Inventory</option>
+                        {networks.map((net: any) => (
+                          <option key={net.id} value={net.id}>
+                            {net.name} ({net.id}) {net.cidr ? `• ${net.cidr}` : ''}
+                          </option>
+                        ))}
+                        <option value="manual">-- Manual Entry --</option>
+                      </select>
+
+                      {(formData.configuration.vpc_id === 'manual' || (formData.configuration.vpc_id && !networks.some((n: any) => n.id === formData.configuration.vpc_id))) && (
+                        <input
+                          type="text"
+                          value={formData.configuration.vpc_id === 'manual' ? '' : formData.configuration.vpc_id}
+                          onChange={(event) =>
+                            setFormData({
+                              ...formData,
+                              configuration: { ...formData.configuration, vpc_id: event.target.value },
+                            })
+                          }
+                          placeholder={formData.provider === 'aws' ? 'vpc-abc123' : 'network-name'}
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      )}
+                    </div>
                   </div>
 
                   <div>

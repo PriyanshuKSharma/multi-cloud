@@ -1,0 +1,222 @@
+% Appendix C: Full HCL Templates
+\chapter{FULL HCL TEMPLATES}
+
+This appendix provides the complete Terraform HCL (HashiCorp Configuration Language) templates used by the Nebula engine for resource provisioning \\ across AWS, Azure, and GCP.
+
+\section{AWS VPC and Subnet Configuration}
+\begin{lstlisting}[language=XML, caption=AWS Infrastructure (vpc.tf)]
+resource "aws_vpc" "nebula_main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+  
+  tags = {
+    Name = "nebula-vpc"
+  }
+}
+
+resource "aws_subnet" "nebula_public" {
+  vpc_id                  = aws_vpc.nebula_main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  
+  tags = {
+    Name = "nebula-public-subnet"
+  }
+}
+\end{lstlisting}
+
+\section{Azure Resource Group and Network Configuration}
+\begin{lstlisting}[language=XML, caption=Azure Infrastructure (network.tf)]
+resource "azurerm_resource_group" "nebula_rg" {
+  name     = "nebula-resources"
+  location = "East US"
+}
+
+resource "azurerm_virtual_network" "nebula_vnet" {
+  name                = "nebula-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.nebula_rg.location
+  resource_group_name = azurerm_resource_group.nebula_rg.name
+}
+\end{lstlisting}
+
+\section{GCP Compute and Network Configuration}
+\begin{lstlisting}[language=XML, caption=GCP Infrastructure (main.tf)]
+resource "google_compute_network" "nebula_network" {
+  name                    = "nebula-network"
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "nebula_subnet" {
+  name          = "nebula-subnet"
+  ip_cidr_range = "10.20.1.0/24"
+  region        = "asia-south1"
+  network       = google_compute_network.nebula_network.id
+}
+
+resource "google_compute_firewall" "allow_ssh" {
+  name    = "nebula-allow-ssh"
+  network = google_compute_network.nebula_network.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+\end{lstlisting}
+
+\newpage
+% Appendix D: Detailed API Documentation
+\chapter{DETAILED API DOCUMENTATION}
+
+This appendix provides a comprehensive reference for all REST API endpoints exposed by the Nebula backend.
+
+\begin{table}[H]
+\centering
+\caption{Nebula API Endpoint Reference}
+\label{tab:api_ref}
+\begin{tabular}{|p{1cm}|p{3.5cm}|p{2.5cm}|p{5cm}|}
+\hline
+\textbf{Ver} & \textbf{Endpoint} & \textbf{Auth} & \textbf{Description} \\ \hline
+POST & /auth/login & None & Authenticates user and returns JWT. \\ \hline
+GET & /resources/ & JWT & Fetches all resources for the logged-in user. \\ \hline
+POST & /resources/provision & JWT & Queues a new provisioning task in Redis. \\ \hline
+GET & /resources/{id} & JWT & Fetches detailed metadata for a specific resource ID. \\ \hline
+DELETE & /resources/{id} & JWT & Queues a deletion task for the specified resource. \\ \hline
+GET & /sync/all & JWT & Triggers a background sync task across all cloud providers. \\ \hline
+GET & /logs/{task\_id} & JWT & Retrieves the execution log for a specific task. \\ \hline
+POST & /ai/analyze & JWT & Sends logs to the LLM agent for failure analysis. \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Sample Request: Provision a Resource}
+\begin{lstlisting}[language=Python, caption=Example Provisioning Request Payload]
+POST /resources/provision
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "name": "demo-web-vm",
+  "provider": "AWS",
+  "resource_type": "virtual_machine",
+  "region": "ap-south-1",
+  "variables": {
+    "instance_type": "t3.micro",
+    "ami_id": "ami-xxxxxxxx",
+    "tags": {
+      "project": "blackbook-demo",
+      "managed_by": "nebula"
+    }
+  }
+}
+\end{lstlisting}
+
+\section{Sample Response: Accepted Task}
+\begin{lstlisting}[language=Python, caption=Provisioning Response Payload]
+{
+  "id": 42,
+  "task_id": "c7d6d8aa-11b0-4b93-9cb5-001122334455",
+  "status": "pending",
+  "message": "Provisioning job accepted and queued"
+}
+\end{lstlisting}
+
+\section{Sample Response: AI Log Analysis}
+\begin{lstlisting}[language=Python, caption=AI Copilot Analysis Response]
+{
+  "task_id": "c7d6d8aa-11b0-4b93-9cb5-001122334455",
+  "category": "quota",
+  "summary": "The target region does not have enough vCPU quota for the requested size.",
+  "remedy": "Request a quota increase or redeploy with a smaller instance size.",
+  "confidence": 0.88,
+  "auto_fix": false
+}
+\end{lstlisting}
+
+\newpage
+% Appendix E: Database DDL Statements
+\chapter{DATABASE DDL STATEMENTS}
+
+This appendix provides the SQL (PostgreSQL) DDL (Data Definition Language) statements used to initialize the platform's persistence layer.
+
+\section{Table: Users}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    hashed_password TEXT NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+\end{lstlisting}
+
+\section{Table: Cloud Credentials (Encrypted)}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE cloud_credentials (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    provider_type VARCHAR(20) NOT NULL,
+    access_key_enc TEXT NOT NULL,
+    secret_key_enc TEXT NOT NULL,
+    tenant_id_enc TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+\end{lstlisting}
+
+\section{Table: Resources}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE resources (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    provider VARCHAR(20) NOT NULL,
+    resource_type VARCHAR(50) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    provider_id VARCHAR(100),
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+\end{lstlisting}
+
+\section{Table: Tasks}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    resource_id INTEGER REFERENCES resources(id),
+    task_uuid VARCHAR(100) UNIQUE NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    execution_log TEXT,
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+\end{lstlisting}
+
+\section{Table: Activity Logs}
+\begin{lstlisting}[language=SQL]
+CREATE TABLE activity_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    action VARCHAR(80) NOT NULL,
+    provider VARCHAR(20),
+    target_id VARCHAR(120),
+    details JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+\end{lstlisting}
+
+\section{Indexes and Query Optimization Aids}
+\begin{lstlisting}[language=SQL]
+CREATE INDEX idx_resources_user_provider
+    ON resources(user_id, provider);
+
+CREATE INDEX idx_tasks_status
+    ON tasks(status);
+
+CREATE INDEX idx_activity_logs_user_created
+    ON activity_logs(user_id, created_at DESC);
+\end{lstlisting}
+
+\newpage

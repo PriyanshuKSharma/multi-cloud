@@ -1,24 +1,24 @@
-Cloud Simplify's value proposition is centered on operational standardization, not only automation volume. The platform aims to convert fragmented AWS routines into a coherent lifecycle that can be executed, observed, and audited through one interface and one API contract.
+Nebula's value proposition is centered on operational standardization, not only automation volume. The platform aims to convert fragmented AWS routines into a coherent lifecycle that can be executed, observed, and audited through one interface and one API contract.
 
 \subsection{Why Standardization Matters More Than Isolated Automation}
-Teams often automate selected tasks (for example, provisioning scripts) while leaving adjacent tasks (health checks, cost reconciliation, and inventory refresh) manual. This partial automation model creates local speedups but preserves end-to-end inconsistency. Cloud Simplify addresses this by enforcing standardized states and synchronized data flows across provisioning, monitoring, and cost governance.
+Teams often automate selected tasks (for example, provisioning scripts) while leaving adjacent tasks (health checks, cost reconciliation, and inventory refresh) manual. This partial automation model creates local speedups but preserves end-to-end inconsistency. Nebula addresses this by enforcing standardized states and synchronized data flows across provisioning, monitoring, and cost governance.
 
 \subsection{AWS Operational Consolidation}
-In conventional AWS usage, engineers navigate across EC2, S3, VPC, and Cost Explorer consoles while maintaining custom scripts to bridge gaps between systems. This pattern increases handoff time and creates process variability. Cloud Simplify centralizes these interactions through uniform request and response semantics, reducing the need for service-specific workflow memorization.
+In conventional AWS usage, engineers navigate across EC2, S3, VPC, and Cost Explorer consoles while maintaining custom scripts to bridge gaps between systems. This pattern increases handoff time and creates process variability. Nebula centralizes these interactions through uniform request and response semantics, reducing the need for service-specific workflow memorization.
 
 \subsection{Governance and Cost Interpretability}
-Operational decisions are financially meaningful only when cost visibility is integrated into execution workflows \cite{mckinsey2023costs, flexera2024}. The platform links resource metadata and billing signals, enabling direct interpretation of spend structure by service class. This reduces reporting delay and supports faster governance decisions at engineering level.
+Operational decisions are financially meaningful only when cost visibility is integrated into execution workflows \cite{armbrust2010view, vaquero2008break}. The platform links resource metadata and billing signals, enabling direct interpretation of spend structure by service class. This reduces reporting delay and supports faster governance decisions at engineering level.
 
 \subsection{Operational Standardization with Real Project Data (Table 1)}
-Table \ref{tab:time_comp} compares traditional AWS operations with observed Cloud Simplify behavior from the implemented project.
+Table \ref{tab:time_comp} compares traditional AWS operations with observed Nebula behavior from the implemented project.
 
 \begin{table}[h]
 \centering
-\caption{Operational Standardization: Traditional AWS Workflow vs. Cloud Simplify}
+\caption{Operational Standardization: Traditional AWS Workflow vs. Nebula}
 \label{tab:time_comp}
 \begin{tabular}{|p{3.2cm}|p{4.2cm}|p{5.1cm}|}
 \hline
-\textbf{Operational Activity} & \textbf{Traditional AWS Workflow} & \textbf{Cloud Simplify (Observed Project Data)} \\ \hline
+\textbf{Operational Activity} & \textbf{Traditional AWS Workflow} & \textbf{Nebula (Observed Project Data)} \\ \hline
 Inventory freshness & Console or CLI checks done manually, often a few times per day. & Automated sync runs every 10 minutes using Celery (\texttt{sync\_all\_users\_resources}) with manual trigger support. \\ \hline
 Provider health tracking & Manual connectivity verification and service-level checks. & AWS health stored in \texttt{provider\_health}; sample response latency recorded as 145 ms. \\ \hline
 Deployment acknowledgement & Operator-driven confirmation via console/CLI; process-dependent delays. & API acknowledgement remains below 100 ms with 10 concurrent requests while provisioning runs asynchronously. \\ \hline

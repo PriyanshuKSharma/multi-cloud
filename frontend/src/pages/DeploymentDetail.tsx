@@ -159,34 +159,34 @@ const DeploymentDetailPage: React.FC = () => {
     data: storageObjects = [],
     refetch: refetchStorageObjects,
     isFetching: isStorageFetching,
-  } = useQuery({
+  } = useQuery<StorageObject[]>({
     queryKey: ['deployments', 'detail', id, 'storage', 'objects'],
     enabled: Boolean(id) && isAwsStorage,
     queryFn: async () => {
-      const response = await axios.get(`/resources/${deployment?.resource_id}/storage/objects`, {
-        params: { max_keys: 50 },
+      const response = await axios.get(`/resources/${id}/storage/objects`, {
+        params: { source: 'provisioning', max_keys: 300 },
       });
       const payload = response.data;
       return Array.isArray(payload?.items) ? (payload.items as StorageObject[]) : [];
     },
     refetchInterval: isAwsStorage ? 15000 : false,
-    retry: false, // 🔥 ADD THIS
   });
 
   const {
     data: websiteInfo,
     refetch: refetchWebsiteInfo,
     isFetching: isWebsiteInfoFetching,
-  } = useQuery({
-  queryKey: ['deployments', 'detail', id, 'storage', 'website'],
-  enabled: Boolean(id) && isAwsStorage,
-  queryFn: async () => {
-    const response = await axios.get(`/resources/${deployment?.resource_id}/storage/website`);
-    return response.data as StorageWebsiteInfo;
-  },
-  refetchInterval: isAwsStorage ? 20000 : false,
-  retry: false, // 🔥 ADD THIS
-});
+  } = useQuery<StorageWebsiteInfo>({
+    queryKey: ['deployments', 'detail', id, 'storage', 'website'],
+    enabled: Boolean(id) && isAwsStorage,
+    queryFn: async () => {
+      const response = await axios.get(`/resources/${id}/storage/website`, {
+        params: { source: 'provisioning' },
+      });
+      return response.data as StorageWebsiteInfo;
+    },
+    refetchInterval: isAwsStorage ? 20000 : false,
+  });
 
   React.useEffect(() => {
     if (!folderInputRef.current) return;
@@ -227,6 +227,17 @@ const DeploymentDetailPage: React.FC = () => {
     [deployment?.terraform_output]
   );
 
+  const downloadTerraform = () => {
+    if (!deployment) return;
+    const content = `# Terraform template for ${deployment.resource_name}\n` +
+      `# Provider: ${deployment.provider}\n` +
+      `# Resource Type: ${deployment.resource_type}\n\n` +
+      JSON.stringify(deployment.configuration, null, 2);
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    downloadBlob(`${deployment.resource_name.replace(/\s+/g, '_').toLowerCase()}.tf.json`, blob);
+  };
+
   const downloadMetadata = () => {
     if (!deployment) return;
     const metadataPayload = {
@@ -257,7 +268,7 @@ const DeploymentDetailPage: React.FC = () => {
     setOperationMessage(null);
 
     try {
-      const response = await axios.get(`/resources/${deployment.resource_id}/storage/download`, {
+      const response = await axios.get(`/resources/${deployment.id}/storage/download`, {
         params: { key: selectedDownloadKey, source: 'provisioning' },
         responseType: 'blob',
       });
@@ -317,7 +328,7 @@ const DeploymentDetailPage: React.FC = () => {
     formData.append('key', selectedKey);
 
     try {
-      await axios.post(`/resources/${deployment.resource_id}/storage/upload`, formData, {
+      await axios.post(`/resources/${deployment.id}/storage/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { source: 'provisioning' },
       });
@@ -365,7 +376,7 @@ const DeploymentDetailPage: React.FC = () => {
     formData.append('prefix', folderPrefixInput.trim());
 
     try {
-      const response = await axios.post(`/resources/${deployment.resource_id}/storage/upload-folder`, formData, {
+      const response = await axios.post(`/resources/${deployment.id}/storage/upload-folder`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params: { source: 'provisioning' },
       });
@@ -402,7 +413,7 @@ const DeploymentDetailPage: React.FC = () => {
     setOperationMessage(null);
 
     try {
-      const response = await axios.post(`/resources/${deployment.resource_id}/storage/website/enable`, {
+      const response = await axios.post(`/resources/${deployment.id}/storage/website/enable`, {
         index_document: indexDocument,
         error_document: errorDocument,
         public_read: websitePublicRead,
@@ -599,13 +610,22 @@ const DeploymentDetailPage: React.FC = () => {
                 <Boxes className="w-5 h-5 text-violet-400" />
                 <span>Terraform Output</span>
               </h3>
-              <button
-                onClick={() => copyText(formattedTerraformOutput)}
-                className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
-                title="Copy Terraform output JSON"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={downloadTerraform}
+                  className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
+                  title="Download Terraform template (.tf.json)"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => copyText(formattedTerraformOutput)}
+                  className="cursor-pointer p-2 rounded-lg hover:bg-gray-800/60 text-gray-400 hover:text-white transition-colors"
+                  title="Copy Terraform output JSON"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <pre className="text-sm text-gray-300 bg-[#0b0d12] border border-gray-800/50 rounded-lg p-4 overflow-auto font-mono">
               {formattedTerraformOutput}
@@ -635,10 +655,11 @@ const DeploymentDetailPage: React.FC = () => {
 
           {operationMessage && (
             <div
-              className={`rounded-lg border px-3 py-2 text-sm ${operationMessage.type === 'success'
+              className={`rounded-lg border px-3 py-2 text-sm ${
+                operationMessage.type === 'success'
                   ? 'border-green-500/30 bg-green-500/10 text-green-300'
                   : 'border-red-500/30 bg-red-500/10 text-red-300'
-                }`}
+              }`}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span>{operationMessage.text}</span>

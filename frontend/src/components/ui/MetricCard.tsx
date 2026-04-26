@@ -9,6 +9,8 @@ interface MetricCardProps {
     value: number;
     label: string;
     type: 'increase' | 'decrease' | 'neutral';
+    unit?: string;
+    prefix?: string;
   };
   icon: React.ComponentType<{ className?: string }>;
   iconColor?: string;
@@ -76,9 +78,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
       {change ? (
         <div className="mt-3 flex items-center gap-2 text-xs">
           <span className={`font-semibold ${changeClass}`}>
-            {change.type === 'increase' ? '↑' : change.type === 'decrease' ? '↓' : '•'}{' '}
+            {change.type === 'increase' ? (change.prefix || '+') : change.type === 'decrease' ? (change.prefix || '-') : '•'}{' '}
             {change.value}
-            {change.type !== 'neutral' ? '%' : ''}
+            {change.unit !== undefined ? change.unit : (change.type !== 'neutral' ? '%' : '')}
           </span>
           <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{change.label}</span>
         </div>

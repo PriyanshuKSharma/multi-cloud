@@ -747,12 +747,15 @@ def create_resource(
         ("aws", "sns"): "aws_sns",
         ("aws", "storage"): "aws_s3",
         ("aws", "vm"): "aws_vm",
+        ("aws", "network"): "aws_network",
         ("aws", "faas"): "aws_lambda",
         ("azure", "storage"): "azure_blob",
         ("azure", "vm"): "azure_vm",
+        ("azure", "network"): "azure_network",
         ("azure", "faas"): "azure_functions",
         ("gcp", "storage"): "gcp_storage",
         ("gcp", "vm"): "gcp_vm",
+        ("gcp", "network"): "gcp_network",
         ("gcp", "faas"): "gcp_functions",
     }
     
@@ -827,6 +830,15 @@ def create_resource(
         )
         tf_vars["display_name"] = _clean_string(tf_vars.get("display_name"), resource.name)
         tf_vars["delivery_policy"] = _clean_string(tf_vars.get("delivery_policy"))
+    elif provider == "aws" and resource_type == "network":
+        tf_vars.setdefault("region", "us-east-1")
+        tf_vars.setdefault("network_name", resource.name)
+        # Handle both 'cidr' and 'cidr_block' for compatibility
+        if "cidr" in tf_vars and "cidr_block" not in tf_vars:
+            tf_vars["cidr_block"] = tf_vars.pop("cidr")
+        tf_vars.setdefault("cidr_block", "10.0.0.0/16")
+        tf_vars["enable_dns_support"] = _as_bool(tf_vars.get("enable_dns_support"), True)
+        tf_vars["enable_dns_hostnames"] = _as_bool(tf_vars.get("enable_dns_hostnames"), True)
     elif provider == "aws" and resource_type == "faas":
         tf_vars.setdefault("region", "us-east-1")
         aws_function_name = _clean_string(tf_vars.get("function_name"), resource.name)
@@ -897,6 +909,15 @@ def create_resource(
                 tf_vars["location"] = tf_vars["region"]
             tf_vars.setdefault("vm_name", resource.name)
             tf_vars.setdefault("resource_group_name", f"nebula-rg-{resource.id}")
+        elif resource_type == "network":
+            if "region" in tf_vars and "location" not in tf_vars:
+                tf_vars["location"] = tf_vars["region"]
+            tf_vars.setdefault("network_name", resource.name)
+            tf_vars.setdefault("resource_group_name", f"nebula-net-rg-{resource.id}")
+            # Handle both 'cidr' and 'cidr_block' for compatibility
+            if "cidr" in tf_vars and "cidr_block" not in tf_vars:
+                tf_vars["cidr_block"] = tf_vars.pop("cidr")
+            tf_vars.setdefault("cidr_block", "10.0.0.0/16")
         elif resource_type == "storage":
             if "region" in tf_vars and "location" not in tf_vars:
                 tf_vars["location"] = tf_vars["region"]
@@ -927,6 +948,13 @@ def create_resource(
             tf_vars.setdefault("instance_name", resource.name)
             if "zone" not in tf_vars:
                 tf_vars["zone"] = f"{tf_vars['region']}-a"
+        elif resource_type == "network":
+            tf_vars.setdefault("network_name", resource.name)
+            # Handle both 'cidr' and 'cidr_block' for compatibility
+            if "cidr" in tf_vars and "cidr_block" not in tf_vars:
+                tf_vars["cidr_block"] = tf_vars.pop("cidr")
+            tf_vars.setdefault("cidr_block", "10.0.0.0/16")
+            tf_vars["enable_private_access"] = _as_bool(tf_vars.get("enable_private_access"), True)
         elif resource_type == "faas":
             gcp_function_name = _clean_string(tf_vars.get("function_name"), resource.name)
             tf_vars["function_name"] = _sanitize_kebab_name(gcp_function_name, "cloud-simplify-fn")
@@ -1741,6 +1769,15 @@ def create_sns_subscription(
     sns_client, topic_arn, topic_name, region = _resolve_sns_topic_arn(resource, current_user, db)
 
     protocol = _clean_string(payload.protocol).lower()
+    
+    # Relaxed validation for FIFO topics to allow 'email' experiments as requested
+    is_fifo = topic_arn.endswith(".fifo") or topic_name.endswith(".fifo")
+    if is_fifo and protocol != "sqs":
+        # We allow it to proceed to let the user see the provider response or 
+        # to support potential custom configurations/relays.
+        pass
+
+
     if protocol not in {"http", "https", "email", "email-json", "sms", "sqs", "lambda", "application", "firehose"}:
         raise HTTPException(status_code=400, detail="Unsupported SNS protocol")
 
@@ -1752,7 +1789,17 @@ def create_sns_subscription(
             ReturnSubscriptionArn=True,
         )
     except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code")
         detail = exc.response.get("Error", {}).get("Message", str(exc))
+        
+        # Specific handling for FIFO + Email which AWS natively rejects
+        if is_fifo and protocol == "email" and error_code == "InvalidParameter":
+            detail = (
+                "AWS FIFO Topics do not natively support email. To use email with this topic, "
+                "you must either use a Standard Topic or set up an SQS-to-Email relay (Lambda). "
+                "Contact support to enable the FIFO-Relay automation."
+            )
+        
         raise HTTPException(status_code=400, detail=f"Failed to create SNS subscription: {detail}") from exc
 
     subscription_arn = response.get("SubscriptionArn", "")

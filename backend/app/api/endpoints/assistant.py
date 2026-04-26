@@ -110,11 +110,24 @@ def _pattern_findings(text: str) -> List[CopilotFinding]:
             "Re-run deployment after confirming provider connectivity and valid Terraform module configuration.",
         ),
         (
-            r"timeout|timed out|deadline exceeded",
+            r"ami-|image id|invalid image|could not find image|no image found",
+            "Missing or Invalid Image/AMI",
+            "error",
+            "Update the module to use a valid AMI or use auto-discovery 'data' blocks to fetch the latest image.",
+        ),
+        (
+            r"protocol.*email.*sns.*fifo|invalid parameter.*protocol.*email",
+            "SNS FIFO Protocol Compatibility Error",
+            "error",
+            "SNS FIFO topics do not support the 'email' protocol. Create a Standard topic or use a Lambda/SQS relay.",
+        ),
+        (
+            r"timeout|timed out|deadline exceeded|context deadline exceeded",
             "Operation Timeout",
             "warning",
             "Retry the action and consider reducing resource complexity or choosing a different region.",
         ),
+
     ]
 
     findings: List[CopilotFinding] = []

@@ -3,7 +3,7 @@ import CreateResource from '../components/CreateResource';
 import ResourceList from '../components/ResourceList';
 import CostCharts from '../components/CostCharts';
 import { motion } from 'framer-motion';
-import { Activity, Server, DollarSign, Database, RefreshCw, Cloud, AlertCircle } from 'lucide-react';
+import { Activity, Server, DollarSign, Database, RefreshCw, Cloud, AlertCircle, Network } from 'lucide-react';
 
 import api from '../api/axios';
 import { useState, useEffect } from 'react';
@@ -78,6 +78,7 @@ const Dashboard: React.FC = () => {
     { label: 'Total Resources', value: statsData.total_resources.toString(), icon: Cloud, color: 'text-blue-400', bg: 'bg-blue-500/10' },
     { label: 'Active VMs', value: statsData.active_vms.toString(), icon: Server, color: 'text-green-400', bg: 'bg-green-500/10' },
     { label: 'Storage Buckets', value: statsData.total_storage.toString(), icon: Database, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    { label: 'Networks', value: statsData.total_networks.toString(), icon: Network, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
     { label: 'Monthly Cost', value: `$${statsData.estimated_monthly_cost.toFixed(2)}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
   ];
 
@@ -188,7 +189,7 @@ const Dashboard: React.FC = () => {
             {statsData.recent_activity.slice(0, 5).map((activity, idx) => (
               <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors">
                 <div className="flex items-center space-x-3">
-                  {activity.type === 'vm' ? <Server className="w-4 h-4 text-blue-400" /> : <Database className="w-4 h-4 text-purple-400" />}
+                  {activity.type === 'vm' ? <Server className="w-4 h-4 text-blue-400" /> : activity.type === 'storage' ? <Database className="w-4 h-4 text-purple-400" /> : <Network className="w-4 h-4 text-emerald-400" />}
                   <div>
                     <p className="text-sm font-medium text-white">{activity.resource_name}</p>
                     <p className="text-xs text-gray-400">{activity.region}</p>

@@ -1,0 +1,179 @@
+% Appendix A: Expanded User Manual (Extraordinary Expansion)
+\chapter{USER MANUAL: NEBULA COMMAND CENTER}
+
+This manual provides a step-by-step guide for setting up and using the Nebula Multi-Cloud platform. It includes separate sections for Windows, macOS, and Linux setup.
+
+\section{System Dependencies and OS-Specific Setup}
+
+\subsection{Phase 1-A: Windows Setup (WSL2 Highly Recommended)}
+For Windows users, using the Windows Subsystem for Linux (WSL2) with Ubuntu 22.04 LTS is the most stable and performant environment for Nebula.
+1) \textbf{Enable WSL2}: Open PowerShell as Administrator and run: \texttt{wsl --install}.
+2) \textbf{Docker Desktop}: Install Docker Desktop and enable the WSL2 backend in the settings.
+3) \textbf{Terraform}: Install using the Linux distribution's \texttt{apt-get} to ensure it matches the production worker environment.
+
+\subsection{Phase 1-B: macOS Setup (Homebrew Oriented)}
+macOS provides a robust Unix-based environment that is excellent for development.
+1) \textbf{Install Homebrew}: \texttt{/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"}
+2) \textbf{Docker Desktop for Mac}: Download and install the DMG for Apple Silicon or Intel as appropriate.
+3) \textbf{Terraform via Brew}: Run \texttt{brew install terraform} to get the latest binary.
+
+\subsection{Phase 1-C: Linux Setup (Native Deployment)}
+Native Linux (Ubuntu 22.04+) is the preferred environment for the production Nebula worker cluster.
+1) \textbf{Install Docker}: \texttt{sudo apt-get install docker.io docker-compose}.
+2) \textbf{Terraform via Hashicorp Repo}: 
+   - Add the HashiCorp GPG key.
+   - Add the HashiCorp repository.
+   - \texttt{sudo apt-get update && sudo apt-get install terraform}.
+3) \textbf{Python 3.11}: Ensure Python 3.11 and the \texttt{venv} module are installed for isolated virtual environments.
+
+\section{Local Backend Installation Guide}
+
+\subsection{Phase 2: Environment Configuration}
+Create a \texttt{.env} file in the backend directory with the following variables:
+\begin{lstlisting}[language=XML]
+DATABASE_URL=postgresql://user:pass@localhost:5432/nebula_db
+SECRET_KEY=yoursymmetricsecretkeyhere
+REDIS_URL=redis://localhost:6379/0
+AI_COPILOT_API_KEY=youropenaikeyhere
+\end{lstlisting}
+
+\subsection{Phase 3: Service Startup}
+Use the provided \texttt{docker-compose.yml} to start the peripheral services:
+\begin{lstlisting}[language=SQL]
+docker-compose up -d db redis
+\end{lstlisting}
+This will launch PostgreSQL and Redis in the background, allowing the FastAPI and Celery processes to connect immediately.
+
+\section{Cloud Provider Configuration}
+
+\subsection{Registering AWS Credentials}
+1) Go to the AWS Console -> IAM -> Users.
+2) Create a user with \texttt{Programmatic Access} and \texttt{AdministratorAccess}.
+3) Copy the \texttt{Access Key ID} and \texttt{Secret Access Key}.
+4) In Nebula, go to "Settings" -> "Add Provider" and select "AWS."
+5) Paste your keys and click "Securely Register."
+
+\subsection{Registering Azure Credentials}
+Azure requires a Service Principal for programmatic access.
+1) Open Azure CLI and run: \texttt{az ad sp create-for-rbac --name Nebula}.
+2) Capture the \texttt{appId}, \texttt{password}, and \texttt{tenantId}.
+3) In Nebula, go to "Add Provider" and select "Azure."
+4) Enter the credentials to enable Azure VM/Storage provisioning.
+
+\subsection{Registering GCP Credentials}
+Google Cloud onboarding requires a service account with a JSON key and the correct project scope.
+1) Open the Google Cloud Console and create or select a project.
+2) Navigate to IAM and Admin -> Service Accounts.
+3) Create a service account with the minimum roles required for the resources you plan to manage.
+4) Generate a JSON key and store it securely.
+5) In Nebula, choose "Add Provider" -> "GCP" and upload or paste the service account fields.
+6) Confirm the project ID and default region before saving the credential.
+
+\subsection{Environment Variable Reference}
+\begin{table}[H]
+\centering
+\caption{Essential Environment Variables for Local Setup}
+\label{tab:appendix_env_vars}
+
+\renewcommand{\arraystretch}{1.6}
+
+\begin{tabular}{|p{5cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Variable} & \textbf{Example} & \textbf{Purpose} \\ \hline
+
+DATABASE\_URL & postgresql://user:pass\_db & Database connection string used by the application to connect to PostgreSQL. \\ \hline
+
+REDIS\_URL & redis://localhost:6379/0 & Used as message broker and task queue transport for background job processing. \\ \hline
+
+SECRET\_KEY & Generated Fernet key & Ensures encryption and secure storage of sensitive provider credentials. \\ \hline
+
+AI\_COPILOT\_API\_KEY & Provider token & Enables integration with AI-based troubleshooting and failure analysis services. \\ \hline
+
+LOG\_LEVEL & info & Controls logging verbosity for debugging and monitoring purposes. \\ \hline
+
+\end{tabular}
+\end{table}
+
+\section{Using the Nebula Dashboard}
+
+\subsection{Provisioning Your First Resource}
+1) Click the "+" icon in the top right corner.
+2) Select your cloud provider (e.g., AWS).
+3) Select "Virtual Machine" from the resource dropdown.
+4) Enter a name (e.g., "my-dev-vm") and select "t3.micro."
+5) Click "Launch Infrastructure" and watch the real-time logs in the "Cockpit" panel.
+
+\subsection{Recommended First-Day Validation}
+Before using live cloud accounts heavily, perform a short validation cycle:
+\begin{enumerate}
+    \item create a test credential for one provider,
+    \item launch a low-cost resource in a sandbox region,
+    \item confirm that the task reaches the completed state,
+    \item verify that the resource appears in the inventory list,
+    \item trigger a manual sync and confirm metadata remains consistent,
+    \item delete the test resource and verify that cleanup completes successfully.
+\end{enumerate}
+This sequence confirms that the core path of credential storage, background execution, Terraform generation, sync, and deletion is functioning correctly.
+
+\subsection{Daily Operator Workflow}
+An operator using Nebula in a lab or project environment can follow a simple day-to-day routine:
+\begin{enumerate}
+    \item review the dashboard counters for pending or failed tasks,
+    \item check whether any provider credentials are expired or misconfigured,
+    \item launch or modify resources as needed for current work,
+    \item monitor logs during provisioning and investigate slow tasks,
+    \item run a synchronization cycle before generating reports or screenshots,
+    \item remove unused resources to avoid cost drift.
+\end{enumerate}
+
+\subsection{Cleanup Procedure}
+To clean up a project safely:
+\begin{enumerate}
+    \item filter the resource table by project or tag,
+    \item delete non-critical compute resources first,
+    \item remove dependent storage or network objects only after confirming no tasks are active,
+    \item run a final sync to detect drift or residual assets,
+    \item archive logs if the environment is part of a graded evaluation or experiment.
+\end{enumerate}
+
+\section{Troubleshooting and FAQs}
+
+\subsection{Common Issues and Remediation}
+\begin{itemize}
+    \item \textbf{Issue}: "PostgreSQL connection refused."
+    \item \textbf{Solution}: Ensure the Docker container for the DB is running and the port mapping \texttt{5432:5432} is correct.
+    \item \textbf{Issue}: "Terraform state locked."
+    \item \textbf{Solution}: Delete the \texttt{.terraform.tfstate.lock.info} file in the workspace directory and retry.
+    \item \textbf{Issue}: "Azure subscription not found."
+    \item \textbf{Solution}: Verify the Tenant ID and ensure the Service Principal has \\ Contributor permissions on the subscription.
+\end{itemize}
+
+\subsection{Expanded Troubleshooting Matrix}
+\begin{table}[H]
+\centering
+\caption{Common Operational Issues and Recovery Actions}
+\label{tab:appendix_troubleshooting}
+\begin{tabular}{|p{3.6cm}|p{3.6cm}|p{4.4cm}|}
+\hline
+\textbf{Symptom} & \textbf{Likely Cause} & \textbf{Recommended Action} \\ \hline
+Task remains queued & worker offline or broker unavailable & restart worker service and verify Redis connectivity \\ \hline
+Logs stop midway & Terraform process stalled or provider timeout & inspect worker logs and retry with lower concurrency \\ \hline
+Sync returns partial inventory & permission scope too narrow & validate provider role and region scope \\ \hline
+AI analysis unavailable & missing API key or rate limit & verify key configuration and retry later \\ \hline
+Repeated auth failures & expired credential or wrong secret format & re-register provider credential and test read access \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Frequently Asked Questions}
+\begin{enumerate}
+    \item \textbf{Can Nebula manage multiple accounts of the same provider?} \\
+    Yes. The credential vault can store multiple provider entries, provided each is tagged and scoped clearly.
+    \item \textbf{Should production credentials be used during development?} \\
+    No. Use sandbox or low-privilege accounts whenever possible.
+    \item \textbf{Why does a task take longer than the API request?} \\
+    Because the API only records intent and queues the work. The actual \\ infrastructure execution happens asynchronously in the worker layer.
+    \item \textbf{What should I do if a resource is visible in the cloud console but missing in Nebula?} \\
+    Trigger a manual synchronization cycle. If the resource still does not appear, verify whether the credential used by Nebula has permission to list that resource type.
+\end{enumerate}
+
+\newpage

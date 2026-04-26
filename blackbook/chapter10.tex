@@ -1,0 +1,185 @@
+% Chapter 10: In-Depth Cloud Provider Feature Comparison
+\chapter{COMPARISON OF CLOUD PROVIDERS}
+\thispagestyle{plain}
+
+To make a useful multi-cloud platform one needs to know about technological details and mappings for each of three large cloud providers, including Amazon Web Services, Microsoft Azure, and Google Cloud Platform (GCP). The last point is critical since the abstraction layer of Nebula should be useful enough and cannot assume that cloud providers do not have any specific features that would allow them to be distinguished from each other. This chapter compares cloud providers based on seven different criteria: compute, storage, networking, identity, platform services, operations, and decision support.
+
+
+\section{Compute Resource Mapping (Virtual Machines)}
+Cloud compute services are grouped based on the type of their instances, such as general-purpose, compute-optimized, memory-optimized, and burstable. Similarly, nebula categorizes the instances in a single size model to enable capturing intention at a broad level, along with specifics from a particular provider.
+
+\subsection{Standard Instance Type Comparison}
+\begin{table}[H]
+\centering
+\caption{Cross-Cloud Compute Resource Mapping}
+\label{tab:compute_mapping}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Nebula Tier} & \textbf{vCPU/RAM} & \textbf{AWS Instance} & \textbf{Azure VM} & \textbf{GCP Machine} \\ \hline
+Micro & 1 vCPU, 1GB & t3.micro & Standard\_B1s & e2-micro \\ \hline
+Small & 2 vCPU, 2GB & t3.small & Standard\_B2s & e2-small \\ \hline
+Medium & 2 vCPU, 4GB & t3.medium & Standard\_B2ms & e2-medium \\ \hline
+Large & 4 vCPU, 8GB & t3.large & Standard\_B4ms & e2-standard-4 \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Hypervisor and Architecture Differences}
+\begin{itemize}
+    \item \textbf{AWS Nitro System}: AWS uses a specially designed Nitro hypervisor that moves network and storage traffic to special hardware, thus improving performance consistency.
+    \item \textbf{Azure Hyper-V}: Microsoft makes use of a proven Hyper-V stack that is closely integrated with the Windows OS.
+    \item \textbf{GCP KVM}:  GCP uses a specially optimized version of the KVM hypervisor.
+\end{itemize}
+
+\subsection{Burst Behavior and Instance Positioning}
+Though instances have the same sizes, there could be differences between them when it comes to bursting capabilities and default operations. The T-series instances in AWS and B-series instances in Azure use a credit-based approach that works well for applications that require bursting. E2 shared-core instances in GCP work best for applications that have a constrained budget, but they could behave differently under continuous pressure. What concerns Nebula, even though the creation of a common micro class would make it easier to unify the API, it is still important to inform users if an application has outgrown burstable instances.
+
+
+\section{Object Storage Performance and SLAs}
+Cloud vendors offer object storage with the same amount of durability, but the differences come from names, redundancy and lifecycle options. When it comes to orchestration, object storage is one of the easiest services to standardize due to the simplicity of underlying concepts – creation, listing, uploading and lifecycle.
+
+\subsection{Object Storage Durability Table}
+\begin{table}[H]
+\centering
+\caption{Cross-Cloud Object Storage Durability and Availability}
+\label{tab:storage_sla}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Feature} & \textbf{AWS S3} & \textbf{Azure Blob} & \textbf{Google GCS} \\ \hline
+Durability & 99.999999999\% & 99.999999999\% & 99.999999999\% \\ \hline
+SLA (Availability) & 99.9\% & 99.99\% & 99.95\% \\ \hline
+Versioning Support & Yes & Yes & Yes \\ \hline
+Lifecycle Policies & Yes & Yes & Yes \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Storage Class Translation}
+\begin{table}[H]
+\centering
+\caption{Approximate Mapping of Storage Access Tiers}
+\label{tab:storage_class_map}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{AWS S3} & \textbf{Azure Blob} & \textbf{Google Cloud Storage} \\ \hline
+Standard & Hot & Standard \\ \hline
+Standard-IA & Cool & Nearline \\ \hline
+One Zone-IA & Cool with local constraints & Regional reduced-access pattern \\ \hline
+Glacier / Deep Archive & Archive & Coldline / Archive \\ \hline
+\end{tabular}
+\end{table}
+
+Tiering is a good tool to estimate recommendations and lifecycles, but pricing, access costs, latency and redundancy are quite variable. They should be presented as separate views.
+
+\section{Network Topology and Addressing}
+Although the vocabulary may be different, the concepts that govern both cloud companies are largely similar. In the example of Nebula, the following is the definition for the concept known as "network boundary":
+
+\subsection{Terminology Translation Matrix}
+\begin{itemize}
+    \item \textbf{VPC (AWS)}: Virtual Private Cloud.
+    \item \textbf{VNet (Azure)}: Virtual Network.
+    \item \textbf{VPC Network (GCP)}: A global resource in Google Cloud.
+\end{itemize}
+
+\subsection{Routing and Peering Mechanisms}
+\begin{enumerate}
+    \item \textbf{AWS VPC Peering}: A way of connecting two VPCs through their private IP addresses. Only region-specific, unless there is inter-region connection enabled.
+    \item \textbf{Azure VNet Peering}: A process of connecting two virtual networks through the high-speed and low latency backbone network of Azure.
+    \item \textbf{GCP VPC Peering}: GCP cloud network is a global network infrastructure, which gives it an edge over AWS and Azure.
+\end{enumerate}
+
+\subsection{Implication for Orchestration}
+Networking is one of the best examples of why multi-cloud abstraction should be approached with caution. While AWS has its VPC, Azure has VNet, and Google Cloud has its VPC network, “network” is simply an implementation of the idea of the logical network boundary. However, their default settings, scope, and other services can be quite different from each other. Therefore, there should be a standard operator’s view of the cloud network in Nebula.
+
+\section{Identity and Access Management}
+Identity is typically considered the hardest domain to unify because of different implementations.
+
+\begin{table}[H]
+\centering
+\caption{Identity Model Comparison}
+\label{tab:identity_compare}
+\begin{tabular}{|p{2.6cm}|p{3.0cm}|p{3.0cm}|p{3.0cm}|}
+\hline
+\textbf{Aspect} & \textbf{AWS} & \textbf{Azure} & \textbf{GCP} \\ \hline
+Primary model & IAM users, roles, policies & Entra ID identities with RBAC & IAM principals and role bindings \\ \hline
+Service identity style & IAM role / access key & Service principal / managed identity & Service account \\ \hline
+Policy granularity & JSON policy documents & role assignments on scopes & resource hierarchy bindings \\ \hline
+Common operator challenge & policy verbosity & tenant and subscription separation & project and folder hierarchy complexity \\ \hline
+\end{tabular}
+\end{table}
+
+In the case of Nebula, this aspect becomes relevant since credential management and least privilege must differ depending on the chosen provider. Having a generic credential wizard will probably not be helpful. A more practical approach might involve providing a set of recommendations specific to the selected provider for managing credentials and saving authorization information via the common control plane API schema.
+
+
+\section{Managed Data and State Services}
+While the initial example uses lower-level primitive concepts for the infrastructure, practical use involves many managed forms of data and services. Among them there are some such as:
+
+
+\begin{itemize}
+    \item \textbf{Relational databases}: Amazon RDS, Azure SQL/Azure Database service, Cloud SQL.
+    \item \textbf{Managed caches}: Amazon ElastiCache, Azure Cache for Redis, Memorestor.
+    \item \textbf{Message brokering}: Amazon SQS/SNS, Azure Service Bus, Google Pub/Sub.
+\end{itemize}
+
+Importantly, the relevance of these cloud services lies in the obvious recognition that the more abstract the service becomes, the more difficult becomes the enforcement of the mapping among multiple clouds. As such, Nebula must treat these as capability families, not equate them across multiple clouds.
+
+\section{Container and Kubernetes Ecosystem}
+The next-generation multicloud architecture revolves around containers and managed Kubernetes clusters. For AWS, it is EKS; for Azure AKS; for GCP, it is GKE. They all share the same capabilities such as managed control plane, node pool, ingress mechanisms, and scaling, yet their operational ergonomics differ.
+
+
+GKE enjoys the best Kubernetes experience since Google has extensive experience working both with containers and Kubernetes. AKS will be preferred in the Microsoft environment due to compatibility with Azure Identity Services and Network Management Services. EKS is considered valuable for its integration into other AWS services as well as its wide production adoption. Therefore, in case of Nebula's provision of the container orchestrator support, general lifecycle tasks would matter more than any similarities: cluster enumeration, node scaling, workload rollout status, and policy visualization.
+
+
+\section{Operations, Monitoring, and Support Tooling}
+Each of the platforms also highlights its mature, albeit unique, observability stack:
+
+\begin{itemize}
+    \item \textbf{AWS}: CloudWatch, CloudTrail, Config, and X-Ray.
+    \item \textbf{Azure}: Azure Monitor, Log Analytics, Activity Log, and Application Insights.
+    \item \textbf{GCP}: Cloud Monitoring, Cloud Logging, and Cloud Audit Logs within Google Cloud Operations.
+\end{itemize}
+
+
+While these native services are valuable, at the same time, they are part of the fragmentation problem that Nebula tries to address. There is no need for a control plane to fully replace these services. However, what it can do is gather decision-relevant signals from those services, such as resource health, deployment state, classification of failures, and compliance drifts.
+
+\section{Pricing and Billing Behavior}
+Pricing comparisons based purely on list prices are often misleading because pricing depends on regions, reservations, sustained use, egress, storage retrieval, and support. In terms of orchestration needs, the following comparisons can be made in terms of:
+
+\begin{enumerate}
+    \item burstable development environments,
+    \item archival workloads heavy on storage,
+    \item analytics or machine-learning bursts,
+    \item disaster recovery standby environment across multiple regions,
+    \item steady-state web services.
+\end{enumerate}
+
+
+Nebula can add value here by expressing cost guidance in the context of these workload shapes rather than exposing raw price sheets with little interpretation.
+
+\section{Provider Selection Matrix for Nebula}
+\begin{table}
+\centering
+\caption{Illustrative Provider Suitability Matrix}
+\label{tab:provider_suitability}
+\begin{tabular}{|p{4.4cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\hline
+\textbf{Workload Type} & \textbf{AWS} & \textbf{Azure} & \textbf{GCP} \\ \hline
+General enterprise application & High & High & Medium \\ \hline
+Microsoft-centered enterprise stack & Medium & Very High & Medium \\ \hline
+Analytics-heavy or data science experimentation & High & Medium & Very High \\ \hline
+Broad service portfolio requirement & Very High & High & Medium \\ \hline
+Kubernetes-first platform team & High & High & Very High \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Multi-Cloud Strategic Vendor Benchmarking}
+Nebula provides users with a "Cloud Scorecard" based on the following criteria:
+
+\begin{itemize}
+    \item \textbf{Service Breadth}: AWS has the largest range of services - 200+ native services.
+    \item \textbf{Enterprise Integration}: Azure is used primarily by those who use Active Directory or MS Office 365 solutions.
+    \item \textbf{Big Data/AI Performance}: GCP is considered a leader in the field of artificial intelligence and big data.
+\end{itemize}
+
+
+It would be incorrect to assume that the best choice lies with one particular cloud. Each of them is optimized to work around a specific center of gravity. AWS focuses on breadth and service maturity, Azure focuses on integration and organization, and GCP focuses on analytical capabilities and ease of working with new technologies. The importance of Nebula is that it understands that many companies require more than just one of the advantages mentioned above.
+
+\newpage

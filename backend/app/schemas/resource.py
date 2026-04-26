@@ -5,7 +5,7 @@ from datetime import datetime
 class ResourceBase(BaseModel):
     name: str
     provider: str
-    type: str # vm, storage, faas
+    type: str # vm, storage, network, faas
     configuration: Dict[str, Any]
 
 class ResourceCreate(ResourceBase):
@@ -23,4 +23,4 @@ class ResourceResponse(ResourceBase):
     created_at: datetime
 
     class Config:
-     from_attributes = True  
+        orm_mode = True

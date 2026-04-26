@@ -105,7 +105,7 @@ const AddCredentialModal: React.FC<AddCredentialModalProps> = ({ isOpen, onClose
           };
       }
 
-      const response = await api.post('/credentials/', payload);
+      const response = await api.post('/credentials/create', payload);
       reset();
       const created = response?.data as Partial<{ id: number; name: string; provider: string }> | undefined;
       onSuccess(

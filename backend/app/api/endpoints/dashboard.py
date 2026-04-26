@@ -2,16 +2,15 @@
 Dashboard API Endpoints
 Provides real-time statistics and metrics for the dashboard
 """
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.db.base import get_db
 from app.models.user import User
-from app.models.resource import Resource
-from app.models.resource_inventory import CostData, ProviderHealth
+from app.models.resource_inventory import ResourceInventory, CostData, ProviderHealth
 from app.api.deps import get_current_user
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,185 +23,237 @@ def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> Dict:
-
+    """
+    Get comprehensive dashboard statistics with real-time data
+    
+    Returns:
+        - Total resources count
+        - Active VMs count
+        - Storage buckets count
+        - Estimated monthly cost
+        - Provider breakdown
+        - Cost by service
+        - Region distribution
+        - Provider health status
+    """
     try:
-        # 🔥 Get ONLY current user's resources
-        inventory = db.query(Resource).all()
-
-        # ✅ BASIC METRICS
+        # Get all resources from inventory
+        inventory = db.query(ResourceInventory).filter(
+            ResourceInventory.user_id == current_user.id
+        ).all()
+        
+        # Calculate basic counts
         total_resources = len(inventory)
-
-        active_vms = len([
-            r for r in inventory
-            if r.type == 'vm' and r.status and r.status.lower() == 'running'
-        ])
-
-        total_storage = len([
-            r for r in inventory
-            if r.type == 'storage'
-        ])
-
-        total_networks = len([
-            r for r in inventory
-            if r.type in ['vpc', 'network', 'resource_group']
-        ])
-
-        # ✅ PROVIDER BREAKDOWN
+        active_vms = len([r for r in inventory if r.resource_type == 'vm' and r.status in ['running', 'RUNNING']])
+        total_storage = len([r for r in inventory if r.resource_type == 'storage'])
+        total_networks = len([r for r in inventory if r.resource_type in ['vpc', 'network', 'resource_group', 'vnet']])
+        
+        # Provider breakdown
         provider_counts = {}
-
-        for r in inventory:
-            provider = (r.provider or "unknown").lower()
-
+        for resource in inventory:
+            provider = resource.provider.upper()
             if provider not in provider_counts:
-                provider_counts[provider] = {
-                    "count": 0,
-                    "vms": 0,
-                    "storage": 0
-                }
-
-            provider_counts[provider]["count"] += 1
-
-            if r.type == "vm":
-                provider_counts[provider]["vms"] += 1
-            elif r.type == "storage":
-                provider_counts[provider]["storage"] += 1
-
+                provider_counts[provider] = {'count': 0, 'vms': 0, 'storage': 0}
+            provider_counts[provider]['count'] += 1
+            if resource.resource_type == 'vm':
+                provider_counts[provider]['vms'] += 1
+            elif resource.resource_type == 'storage':
+                provider_counts[provider]['storage'] += 1
+        
         provider_breakdown = [
             {
-                "provider": p,
-                "count": d["count"],
-                "vms": d["vms"],
-                "storage": d["storage"]
+                'provider': provider,
+                'count': data['count'],
+                'vms': data['vms'],
+                'storage': data['storage']
             }
-            for p, d in provider_counts.items()
+            for provider, data in provider_counts.items()
         ]
-
-        # ✅ COST (LAST 30 DAYS)
+        
+        # Cost calculation (last 30 days)
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-
         cost_data = db.query(CostData).filter(
             CostData.user_id == current_user.id,
             CostData.period_start >= thirty_days_ago
         ).all()
-
-        total_cost = sum(c.cost_amount or 0 for c in cost_data)
-
-        # COST BY PROVIDER
+        
+        # Calculate total cost
+        total_cost = sum(c.cost_amount for c in cost_data)
+        
+        # Cost by provider
         cost_by_provider = {}
-
-        for c in cost_data:
-            provider = (c.provider or "unknown").lower()
-            cost_by_provider[provider] = cost_by_provider.get(provider, 0) + (c.cost_amount or 0)
-
+        for cost in cost_data:
+            provider = cost.provider.upper()
+            if provider not in cost_by_provider:
+                cost_by_provider[provider] = 0
+            cost_by_provider[provider] += cost.cost_amount
+        
         cost_by_provider_list = [
-            {"provider": p, "cost": round(v, 2)}
-            for p, v in cost_by_provider.items()
+            {'provider': provider, 'cost': round(cost, 2)}
+            for provider, cost in cost_by_provider.items()
         ]
-
-        # COST BY SERVICE
-        compute_keywords = ["ec2", "compute", "vm"]
-        storage_keywords = ["s3", "storage", "bucket"]
-
-        compute_cost = 0
-        storage_cost = 0
-
-        for c in cost_data:
-            service = (c.service_name or "").lower()
-            amount = c.cost_amount or 0
-
-            if any(k in service for k in compute_keywords):
-                compute_cost += amount
-            elif any(k in service for k in storage_keywords):
-                storage_cost += amount
-
+        
+        # Cost by service
+        cost_by_service = {}
+        for cost in cost_data:
+            service = cost.service_name or 'Other'
+            if service not in cost_by_service:
+                cost_by_service[service] = 0
+            cost_by_service[service] += cost.cost_amount
+        
+        # Group into major categories
+        compute_services = ['EC2', 'Compute', 'Virtual Machines', 'Compute Engine']
+        storage_services = ['S3', 'Storage', 'Blob Storage', 'Cloud Storage']
+        
+        compute_cost = sum(cost for service, cost in cost_by_service.items() if any(s in service for s in compute_services))
+        storage_cost = sum(cost for service, cost in cost_by_service.items() if any(s in service for s in storage_services))
         other_cost = total_cost - compute_cost - storage_cost
-
-        cost_by_service = [
-            {"service": "Compute", "cost": round(compute_cost, 2)},
-            {"service": "Storage", "cost": round(storage_cost, 2)},
-            {"service": "Other", "cost": round(other_cost, 2)}
+        
+        cost_by_service_list = [
+            {'service': 'Compute', 'cost': round(compute_cost, 2)},
+            {'service': 'Storage', 'cost': round(storage_cost, 2)},
+            {'service': 'Network & Other', 'cost': round(other_cost, 2)}
         ]
-
-        # ✅ REGION DISTRIBUTION
+        
+        # Region distribution
         region_counts = {}
-
-        for r in inventory:
-            region = r.region or "unknown"
+        for resource in inventory:
+            region = resource.region or 'unknown'
             region_counts[region] = region_counts.get(region, 0) + 1
-
+        
         region_distribution = [
-            {"region": r, "count": c}
-            for r, c in sorted(region_counts.items(), key=lambda x: x[1], reverse=True)
-        ][:10]
-
-        # ✅ PROVIDER HEALTH
+            {'region': region, 'count': count}
+            for region, count in sorted(region_counts.items(), key=lambda x: x[1], reverse=True)
+        ][:10]  # Top 10 regions
+        
+        # Provider health
         health_records = db.query(ProviderHealth).filter(
             ProviderHealth.user_id == current_user.id
         ).all()
-
+        
         provider_health = [
             {
-                "provider": (h.provider or "unknown").lower(),
-                "status": h.status,
-                "response_time_ms": h.response_time_ms,
-                "last_check": h.last_check_at.isoformat() if h.last_check_at else None,
-                "error_message": h.error_message
+                'provider': h.provider.upper(),
+                'status': h.status,
+                'response_time_ms': h.response_time_ms,
+                'last_check': h.last_check_at.isoformat() if h.last_check_at else None,
+                'error_message': h.error_message
             }
             for h in health_records
         ]
-
-        # ✅ RECENT ACTIVITY
-        recent_resources = db.query(Resource).order_by(
-            Resource.last_synced_at.desc()
-        ).limit(10).all()
-
+        
+        # Recent activity (last 10 synced resources)
+        recent_resources = db.query(ResourceInventory).filter(
+            ResourceInventory.user_id == current_user.id
+        ).order_by(ResourceInventory.last_synced_at.desc()).limit(10).all()
+        
         recent_activity = [
             {
-                "resource_name": r.name,
-                "provider": (r.provider or "unknown").lower(),
-                "type": r.type,
-                "status": r.status,
-                "region": r.region,
-                "last_synced": r.last_synced_at.isoformat() if r.last_synced_at else None
+                'resource_name': r.resource_name,
+                'provider': r.provider.upper(),
+                'type': r.resource_type,
+                'status': r.status,
+                'region': r.region,
+                'last_synced': r.last_synced_at.isoformat() if r.last_synced_at else None
             }
             for r in recent_resources
         ]
 
-        return {
-            "total_resources": total_resources,
-            "active_vms": active_vms,
-            "total_storage": total_storage,
-            "total_networks": total_networks,
-            "estimated_monthly_cost": round(total_cost, 2),
-            "provider_breakdown": provider_breakdown,
-            "cost_by_provider": cost_by_provider_list,
-            "cost_by_service": cost_by_service,
-            "region_distribution": region_distribution,
-            "provider_health": provider_health,
-            "recent_activity": recent_activity,
-            "last_updated": datetime.utcnow().isoformat()
-        }
+        # Calculate dynamic metrics for change labels
+        now = datetime.utcnow()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        resources_today = [r for r in inventory if r.created_at >= today_start]
+        storage_today = [r for r in inventory if r.resource_type == 'storage' and r.created_at >= today_start]
+        networks_today = [r for r in inventory if r.resource_type in ['vpc', 'network', 'vnet'] and r.created_at >= today_start]
+        
+        vms = [r for r in inventory if r.resource_type == 'vm']
+        running_vms_count = len([vm for vm in vms if vm.status in ['running', 'RUNNING', 'active', 'ACTIVE']])
+        running_percent = (running_vms_count / len(vms) * 100) if vms else 0
 
+        # Cost Change calculation
+        sixty_days_ago = now - timedelta(days=60)
+        prev_cost_data = db.query(CostData).filter(
+            CostData.user_id == current_user.id,
+            CostData.period_start >= sixty_days_ago,
+            CostData.period_start < thirty_days_ago
+        ).all()
+        total_cost_prev = sum(c.cost_amount for c in prev_cost_data)
+        cost_change_percent = 0
+        if total_cost_prev > 0:
+            cost_change_percent = ((total_cost - total_cost_prev) / total_cost_prev) * 100
+        
+        return {
+            'total_resources': total_resources,
+            'active_vms': active_vms,
+            'total_storage': total_storage,
+            'total_networks': total_networks,
+            'estimated_monthly_cost': round(total_cost, 2),
+            'provider_breakdown': provider_breakdown,
+            'cost_by_provider': cost_by_provider_list,
+            'cost_by_service': cost_by_service_list,
+            'region_distribution': region_distribution,
+            'provider_health': provider_health,
+            'recent_activity': recent_activity,
+            'last_updated': now.isoformat(),
+            'metrics': {
+                'resources_change': {
+                    'value': len(resources_today),
+                    'label': 'added today',
+                    'type': 'increase' if len(resources_today) > 0 else 'neutral',
+                    'unit': ''
+                },
+                'vms_status': {
+                    'value': round(running_percent, 1),
+                    'label': 'running',
+                    'type': 'increase' if running_percent > 80 else 'decrease' if running_percent < 20 else 'neutral',
+                    'unit': '%'
+                },
+                'storage_change': {
+                    'value': len(storage_today),
+                    'label': 'added today',
+                    'type': 'increase' if len(storage_today) > 0 else 'neutral',
+                    'unit': ''
+                },
+                'networks_change': {
+                    'value': len(networks_today),
+                    'label': 'created today',
+                    'type': 'increase' if len(networks_today) > 0 else 'neutral',
+                    'unit': ''
+                },
+                'cost_change': {
+                    'value': abs(round(cost_change_percent, 1)),
+                    'label': 'vs last month',
+                    'type': 'increase' if cost_change_percent > 0 else 'decrease' if cost_change_percent < 0 else 'neutral',
+                    'unit': '%'
+                }
+            }
+        }
+        
     except Exception as e:
-        logger.error(f"Dashboard error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching dashboard stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching dashboard stats: {str(e)}")
 
 
 @router.post("/sync/trigger")
 def trigger_manual_sync(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
+    """
+    Trigger manual resource sync for the current user
+    """
     from app.tasks.sync_tasks import sync_user_resources
-
+    
     try:
+        # Trigger async sync task
         sync_user_resources.delay(current_user.id)
-
+        
         return {
-            "status": "success",
-            "message": "Sync triggered",
-            "user_id": current_user.id
+            'status': 'success',
+            'message': 'Resource sync triggered successfully',
+            'user_id': current_user.id
         }
-
     except Exception as e:
-        logger.error(f"Sync error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error triggering sync: {e}")
+        raise HTTPException(status_code=500, detail=f"Error triggering sync: {str(e)}")
