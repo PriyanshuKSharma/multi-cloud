@@ -50,8 +50,9 @@ if frontend_origin and frontend_origin not in origins:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=origins,
+    allow_origin_regex=origin_regex,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -82,6 +83,33 @@ app.include_router(assistant.router, prefix="/assistant", tags=["assistant"])
 @app.get("/")
 async def root():
     return {"status": "online", "message": "Welcome to the Nebula Multi-Cloud API", "version": "1.0.0"}
+
+@app.get("/debug/celery")
+async def debug_celery():
+    from app.core.celery_app import celery_app
+    import socket
+    broker_url = celery_app.conf.broker_url
+    try:
+        # Extract host and port from redis://redis:6379/0
+        import re
+        match = re.match(r"redis://([^:/]+):?(\d+)?", broker_url)
+        if match:
+            host = match.group(1)
+            port = int(match.group(2) or 6379)
+            s = socket.socket()
+            s.settimeout(2.0)
+            s.connect((host, port))
+            s.close()
+            connection_check = "Success"
+        else:
+            connection_check = "Invalid URL format"
+    except Exception as e:
+        connection_check = f"Failed: {str(e)}"
+        
+    return {
+        "broker_url": broker_url,
+        "connection_check": connection_check
+    }
 
 @app.get("/health")
 async def health():
