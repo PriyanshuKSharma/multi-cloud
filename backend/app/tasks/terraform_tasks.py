@@ -4,6 +4,7 @@ from app.db.base import SessionLocal
 from app.models.resource import Resource
 from app.models.resource_inventory import ResourceInventory
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 import os
 import json
 
@@ -39,7 +40,7 @@ def provision_resource_task(resource_id: str, provider: str, module_name: str, v
     sk = os.getenv("SECRET_KEY", "MISSING")
     logs += f"[Debug] Using SECRET_KEY starting with: {sk[:4]}...\n"
     db = SessionLocal()
-    resource = db.query(Resource).filter(Resource.id == int(resource_id)).first()
+    resource = db.query(Resource).options(joinedload(Resource.project)).filter(Resource.id == int(resource_id)).first()
     
     if not resource:
         print("--- [DEBUG] Resource not found! ---")

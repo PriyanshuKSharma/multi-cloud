@@ -833,6 +833,9 @@ def create_resource(
     elif provider == "aws" and resource_type == "network":
         tf_vars.setdefault("region", "us-east-1")
         tf_vars.setdefault("network_name", resource.name)
+        # Handle both 'cidr' and 'cidr_block' for compatibility
+        if "cidr" in tf_vars and "cidr_block" not in tf_vars:
+            tf_vars["cidr_block"] = tf_vars.pop("cidr")
         tf_vars.setdefault("cidr_block", "10.0.0.0/16")
         tf_vars["enable_dns_support"] = _as_bool(tf_vars.get("enable_dns_support"), True)
         tf_vars["enable_dns_hostnames"] = _as_bool(tf_vars.get("enable_dns_hostnames"), True)
@@ -911,6 +914,9 @@ def create_resource(
                 tf_vars["location"] = tf_vars["region"]
             tf_vars.setdefault("network_name", resource.name)
             tf_vars.setdefault("resource_group_name", f"nebula-net-rg-{resource.id}")
+            # Handle both 'cidr' and 'cidr_block' for compatibility
+            if "cidr" in tf_vars and "cidr_block" not in tf_vars:
+                tf_vars["cidr_block"] = tf_vars.pop("cidr")
             tf_vars.setdefault("cidr_block", "10.0.0.0/16")
         elif resource_type == "storage":
             if "region" in tf_vars and "location" not in tf_vars:
@@ -944,6 +950,9 @@ def create_resource(
                 tf_vars["zone"] = f"{tf_vars['region']}-a"
         elif resource_type == "network":
             tf_vars.setdefault("network_name", resource.name)
+            # Handle both 'cidr' and 'cidr_block' for compatibility
+            if "cidr" in tf_vars and "cidr_block" not in tf_vars:
+                tf_vars["cidr_block"] = tf_vars.pop("cidr")
             tf_vars.setdefault("cidr_block", "10.0.0.0/16")
             tf_vars["enable_private_access"] = _as_bool(tf_vars.get("enable_private_access"), True)
         elif resource_type == "faas":
